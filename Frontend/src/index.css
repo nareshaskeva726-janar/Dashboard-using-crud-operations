@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
+@import "tailwindcss";
+
+* {
+  font-family: "Outfit", sans-serif;
+}
+
+:where(.css-dev-only-do-not-override-1enej14).ant-layout-header{
+  padding: 10px;
+  display: flex;
+  align-items: center;
+}
+
+
+/* Show by default (mobile + tablet) */
+.menuButton {
+  padding-top: 5px !important;
+}
+
+
+/* Hide on desktop */
+@media (min-width: 1024px) {
+  .menuButton {
+    display: none;
+  }
+}
