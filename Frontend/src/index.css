@@ -5,22 +5,116 @@
   font-family: "Outfit", sans-serif;
 }
 
-:where(.css-dev-only-do-not-override-1enej14).ant-layout-header{
+:where(.css-dev-only-do-not-override-1enej14).ant-layout-header {
   padding: 10px;
   display: flex;
   align-items: center;
 }
 
+/* ::-webkit-scrollbar {
+  display: none;
+} */
 
-/* Show by default (mobile + tablet) */
+html {
+  scroll-behavior: "smooth";
+}
+
 .menuButton {
   padding-top: 5px !important;
 }
 
 
-/* Hide on desktop */
+
 @media (min-width: 1024px) {
   .menuButton {
     display: none;
   }
+}
+
+
+@media (min-width: 375px) and (max-width: 575px) {
+  #chatBot {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #mainchat {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+
+@media (min-width: 320px) and (max-width: 374px) {
+  #chatBot {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #mainchat {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+
+@media (min-width: 0px) and (max-width: 320px) {
+  #chatBot {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #mainchat {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.Staffs_check {
+  background-color: rgb(73, 119, 254);
+  color: white !important;
+}
+
+.Staffs_check:hover {
+  background-color: rgb(73, 119, 254) !important;
+}
+
+.menuBTN {
+  visibility: hidden;
+}
+
+@media (min-width: 767px) and (max-width:1023px) {
+  .menuBTN {
+    visibility: visible;
+  }
+}
+
+@media (min-width: 575px) and (max-width:768px) {
+  .menuBTN {
+    visibility: visible;
+  }
+}
+
+@media (min-width: 375px) and (max-width:574px) {
+  .menuBTN {
+    visibility: visible;
+  }
+}
+
+@media (min-width: 320px) and (max-width:374px) {
+  .menuBTN {
+    visibility: visible;
+  }
+}
+
+@media (min-width: 0px) and (max-width:319px) {
+  .menuBTN {
+    visibility: visible;
+  }
+}
+
+.navbaricons {
+  display: flex;
+  align-items: center !important;
+  gap: 20px;
 }

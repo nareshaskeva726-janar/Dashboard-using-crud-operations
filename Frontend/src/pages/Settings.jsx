@@ -18,7 +18,7 @@ function Settings() {
 
 
 
-  
+
   const updatePassword = async (values) => {
 
     try {
@@ -88,6 +88,7 @@ function Settings() {
               <Form.Item
                 label="New Password"
                 name="newPassword"
+                normalize={(value) => value.replace(/^\s+/, "")}
                 rules={[
                   { required: true, message: "Enter new password" },
                   { min: 6, message: "Minimum 6 characters" }
@@ -99,6 +100,7 @@ function Settings() {
               <Form.Item
                 label="Confirm Password"
                 name="confirmPassword"
+                normalize={(value) => value.replace(/^\s+/, "")}
                 dependencies={["newPassword"]}
                 rules={[
                   { required: true, message: "Confirm password" },
@@ -126,16 +128,16 @@ function Settings() {
                   type="primary"
                   htmlType="submit"
                   loading={isLoading}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto mt-2"
                 >
                   Update Password
                 </Button>
 
                 <Button
                   onClick={() => setShowForm(false)}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto "
                 >
-                  <CloseOutlined /> Cancel
+                  <CloseOutlined />
                 </Button>
 
               </div>

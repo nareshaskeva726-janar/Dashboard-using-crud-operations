@@ -1,8 +1,10 @@
 import { Layout, Menu, Drawer } from "antd";
-import { UserOutlined, PlusCircleOutlined, SettingOutlined, LogoutOutlined } from "@ant-design/icons";
+import { UserOutlined, PlusCircleOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, ProjectOutlined, UsergroupAddOutlined, FileMarkdownOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
+
 import { selectUser, logout } from "../redux/authSlice";
+
 import toast from "react-hot-toast";
 
 const { Sider } = Layout;
@@ -18,7 +20,6 @@ function SideBar({ open, setOpen }) {
   const user = useSelector(selectUser);
 
   const sidebarColor = "#020024"; //color code
-
 
   const handleLogout = () => {
     dispatch(logout());
@@ -47,6 +48,8 @@ function SideBar({ open, setOpen }) {
       label: "All Users"
     },
 
+
+    //DESTRUCTING THE USER BECAUSE WE CAN ADD ALSO
     ...(user?.role === "staff"
       ? [
         {
@@ -58,10 +61,44 @@ function SideBar({ open, setOpen }) {
       : []),
 
     {
+      key: "chat",
+      icon: <MessageOutlined />,
+      label: "ChatBot",
+    },
+
+
+    ...(user?.role === "student"
+      ? [
+        {
+          key: "assignments",
+          icon: <ProjectOutlined />,
+          label: "Assignments",
+        }] : [
+        {
+          key: "assignmentCheck",
+          icon: <ProjectOutlined />,
+          label: "Assignment Check"
+        }
+      ]),
+
+      ...(user?.role === "staff" ? [  
+    {
+      key: "attendancestaff",
+      icon: <FileMarkdownOutlined />,
+      label: "Attendance"
+    }] : [,
+    {
+      key: "attendance",
+      icon: <FileMarkdownOutlined />,
+      label: "Attendance"
+    }]),
+
+    {
       key: "settings",
       icon: <SettingOutlined />,
       label: "Settings"
     },
+
 
     {
       key: "logout",

@@ -8,6 +8,7 @@ import NavBar from "../components/NavBar";
 const { Content } = Layout;
 
 function DashBoardLayout() {
+
   const [open, setOpen] = useState(false);
 
   return (
@@ -20,11 +21,13 @@ function DashBoardLayout() {
         {/* Navbar */}
         <NavBar setOpen={setOpen} />
 
-
         {/* Page Content */}
         <Content className="p-4 md:p-6 bg-gray-100 min-h-screen">
-          <Outlet />
+
+          <Outlet /> {/*OUTLET IS THE COMPONENT WHICH IS USED TO ALLOW THE OTHER COMPONENT IT IS LIKE PARENT */}
+
         </Content>
+
       </Layout>
       
     </Layout>

@@ -14,17 +14,13 @@ node_modules/
 dist/
 dist-ssr/
 
-# Environment variables (IMPORTANT)
+# Environment variables
 .env*
 
-# Local files
+# Local config files
 *.local
 
-# Cache / temp
-tmp/
-uploads/
-
-# Editor files
+# Editor directories and files
 .vscode/*
 !.vscode/extensions.json
 .idea

@@ -59,10 +59,12 @@ export const userApi = createApi({
     // GET SINGLE USER
     getUser: builder.query({
       query: (id) => `/user/${id}`, // provides tags only for getApi
+      method : "GET"
     }),
 
     checkAuth: builder.query({
-      query: () => "/me"
+      query: () => "/me",
+      method : "GET"
     }),
 
 
@@ -87,6 +89,7 @@ export const userApi = createApi({
       invalidatesTags: ["Users"], //Invalidtages only for put becase we want to re render the function
     }),
 
+    
     // DELETE USER
     deleteUser: builder.mutation({
       query: (id) => ({

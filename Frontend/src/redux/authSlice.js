@@ -2,19 +2,23 @@ import { createSlice } from "@reduxjs/toolkit";
 
 //Alwys token want to store in cookies because we have multiple users so we use Token
 
+
+
 // Get token from cookie
 const getCookie = (name) => {
   const value = `; ${document.cookie}`;
-  // console.log(value, "Token");
+  // console.log(value, "values");
   const parts = value.split(`; ${name}=`);
-  // console.log(parts);
-
+  // console.log(parts, "parts");
 
   if (parts.length === 2) {
     return parts.pop().split(";").shift();
   }
   return null;
 };
+
+
+
 
 
 // set cookie
@@ -32,12 +36,12 @@ const setCookie = (name, value, days) => {
   document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Strict`;
 };
 
+
 // delete cookie
 const deleteCookie = (name) => {
   //delete the cookie
   document.cookie = `${name}=; Max-Age=0; path=/`;
 };
-
 
 
 //Local storage for users details
@@ -64,7 +68,9 @@ const authSlice = createSlice({
 
       //saving states 
       state.user = user;
+
       state.token = token;
+
       state.isAuthenticated = true;
 
       // Save user
@@ -74,7 +80,10 @@ const authSlice = createSlice({
       setCookie("token", token, 7);
     },
 
-    //logout funcationality
+
+
+
+    //logout functionality
     logout: (state) => {
       state.user = null; // remove the users data from localstorage
       state.token = null; // remove the token from the cookies
@@ -82,7 +91,6 @@ const authSlice = createSlice({
       localStorage.removeItem("user"); // remove the user
       deleteCookie("token"); // del the cookie token it will be empty
     },
-
   },
 });
 
