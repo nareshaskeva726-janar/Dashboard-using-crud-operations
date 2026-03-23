@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  attendanceData: [], // 🔥 temporary data for marking attendance
+  attendanceData: [],
 };
 
 const attendanceSlice = createSlice({
@@ -10,25 +10,28 @@ const attendanceSlice = createSlice({
 
   reducers: {
 
-    // ✅ Set full attendance list (initial load)
+
     setAttendanceData: (state, action) => {
-      state.attendanceData = action.payload;
+      state.attendanceData = action.payload || [];
     },
 
-    // ✅ Update single student's attendance
     updateStudentAttendance: (state, action) => {
       const { studentId, status } = action.payload;
 
-      const index = state.attendanceData.findIndex(
+      const student = state.attendanceData.find(
         (s) => s.studentId === studentId
       );
 
-      if (index !== -1) {
-        state.attendanceData[index].status = status;
+      if (student) {
+        student.status = status;
       }
     },
 
-    // ✅ Reset after submit
+
+    addStudentAttendance: (state, action) => {
+      state.attendanceData.push(action.payload);
+    },
+
     resetAttendance: (state) => {
       state.attendanceData = [];
     },
@@ -38,6 +41,7 @@ const attendanceSlice = createSlice({
 export const {
   setAttendanceData,
   updateStudentAttendance,
+  addStudentAttendance,
   resetAttendance,
 } = attendanceSlice.actions;
 

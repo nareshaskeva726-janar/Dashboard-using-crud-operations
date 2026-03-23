@@ -1,126 +1,125 @@
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons"
+
+import React, { useEffect, useMemo } from "react";
 import {
   Button,
   Card,
   Table,
   Radio,
-  message,
   Row,
   Col,
   Statistic,
   Divider,
-  Alert,
+  Popconfirm,
+  message,
 } from "antd";
-import React, { useEffect, useMemo, useState } from "react";
-import { useGetUsersQuery, useCheckAuthQuery } from "../redux/userApi";
-import { useMarkAttendanceMutation } from "../redux/attendanceApi";
+import {
+  useGetUsersQuery,
+  useCheckAuthQuery,
+} from "../redux/userApi";
+import {
+  useCheckAttendanceQuery,
+  useMarkAttendanceMutation,
+  useDeleteAttendanceMutation,
+  useGetMonthlySummaryQuery,
+} from "../redux/attendanceApi";
 
 const AttendanceStaff = () => {
-  const { data: usersData, isLoading: usersLoading } = useGetUsersQuery();
-  const { data: authData, isLoading: authLoading } = useCheckAuthQuery();
-  const [markAttendance, { isLoading: submitting }] = useMarkAttendanceMutation();
+  const { data: usersData } = useGetUsersQuery();
+  const { data: authData } = useCheckAuthQuery();
 
-  const [attendanceData, setAttendanceData] = useState([]);
-  const [todaySubject, setTodaySubject] = useState("");
-  const [canSubmit, setCanSubmit] = useState(true);
-  const [todayDay, setTodayDay] = useState("");
-  const [todayDate, setTodayDate] = useState("");
+  const [markAttendance] = useMarkAttendanceMutation();
+  const [deleteAttendance] = useDeleteAttendanceMutation();
 
-  // ✅ Detect day + subject
-  useEffect(() => {
-    const today = new Date();
-    const day = today.getDay();
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const year = today.getFullYear();
+  const todayISO = today.toLocaleDateString("en-CA");
+  const todayDayName = today.toLocaleDateString("en-US", { weekday: "long" });
+  const day = today.getDay();
 
-    const subjectSchedule = {
-      1: "Java",
-      2: "Python",
-      3: "C",
-      4: "C++",
-      5: "DataScience",
-    };
+  const subjectSchedule = { 1: "Java", 2: "Python", 3: "C", 4: "C++", 5: "DataScience" };
+  const todaySubject = day === 0 || day === 6 ? "" : subjectSchedule[day];
 
-    const detectedDay = today.toLocaleDateString("en-US", {
-      weekday: "long",
+  // Fetch existing attendance for today
+  const {
+    data: checkData,
+    isLoading: checkLoading,
+    refetch: refetchAttendance,
+  } = useCheckAttendanceQuery(todaySubject, {
+    skip: !todaySubject,
+    refetchOnMountOrArgChange: true,
+  });
+
+  // Fetch monthly summary
+  const { data: summaryData } = useGetMonthlySummaryQuery({ month, year });
+
+  // Build student attendance table data
+  const attendanceData = useMemo(() => {
+    if (!usersData?.users || !authData?.user || !todaySubject) return [];
+
+    const studentsOnly = usersData.users.filter((u) => u.role === "student");
+
+    return studentsOnly.map((student) => {
+      const existingRecord = checkData?.records?.find(
+        (r) => r.studentId === student._id
+      );
+      return {
+        _id: student._id,
+        studentId: student._id,
+        StudentName: student.name,
+        status: existingRecord?.status || "Present", // default Present
+      };
     });
+  }, [usersData, authData, checkData, todaySubject]);
 
-    setTodayDay(detectedDay);
-    setTodayDate(today.toLocaleDateString());
+  // Determine if attendance is already submitted
+  const isSubmitted = !!checkData?.submitted;
 
-    if (day === 0 || day === 6) {
-      setCanSubmit(false);
-      setTodaySubject("");
-    } else {
-      setTodaySubject(subjectSchedule[day]);
-      setCanSubmit(true);
-    }
-  }, []);
+  // Only allow staff from the same department to mark attendance
+  const canAccess = authData?.user?.department === todaySubject;
+  const canSubmit = !!todaySubject && canAccess && !isSubmitted;
 
-  // ✅ Load students (FIXED)
-  useEffect(() => {
-    if (!usersData?.users || !authData?.user) return;
-
-    // wait until subject is set
-    if (!todaySubject) return;
-
-    // check department match
-    if (authData.user.department !== todaySubject) {
-      setCanSubmit(false);
-      message.warning("You cannot submit attendance for today!");
-      return;
-    }
-
-    const studentsOnly = usersData.users.filter(
-      (u) => u.role === "student"
-    );
-
-    const initialData = studentsOnly.map((student) => ({
-      _id: student._id,
-      studentId: student._id,
-      StudentName: student.name,
-      status: "Present",
-    }));
-
-    setAttendanceData(initialData);
-  }, [usersData, authData, todaySubject]);
-
-  // ✅ Change attendance
+  // Handle marking a student present/absent
   const handleAttendanceChange = (id, status) => {
-    setAttendanceData((prev) =>
-      prev.map((s) =>
-        s._id === id ? { ...s, status } : s
-      )
-    );
+    const record = attendanceData.find((s) => s._id === id);
+    if (record) record.status = status; // mutate local array for instant UI update
   };
 
-  // ✅ Mark all present
+  // Mark all present
   const markAllPresent = () => {
-    setAttendanceData((prev) =>
-      prev.map((s) => ({ ...s, status: "Present" }))
-    );
+    attendanceData.forEach((s) => (s.status = "Present"));
   };
 
-  // ✅ Submit
+  // Submit attendance
   const handleSubmit = async () => {
     if (!canSubmit) return;
 
     try {
-      const payload = {
-        date: new Date().toISOString().split("T")[0],
-        subject: todaySubject,
-        students: attendanceData.map((s) => ({
-          studentId: s.studentId,
-          status: s.status,
-        })),
-      };
+      await markAttendance({
+        students: attendanceData.map((s) => ({ studentId: s.studentId, status: s.status })),
+      }).unwrap();
 
-      await markAttendance(payload).unwrap();
-      message.success("Attendance submitted successfully ✅");
-    } catch (error) {
-      message.error("Failed ❌");
+      message.success("Attendance submitted successfully!");
+      refetchAttendance(); // refresh data immediately
+    } catch {
+      message.error("Submit failed!");
     }
   };
 
-  // ✅ Summary
-  const summary = useMemo(() => {
+  // Delete attendance
+  const handleDeleteAttendance = async () => {
+    try {
+      await deleteAttendance({ date: todayISO, subject: todaySubject }).unwrap();
+      message.success("Attendance deleted!");
+      refetchAttendance(); // refresh data immediately
+    } catch {
+      message.error("Delete failed!");
+    }
+  };
+
+  // Compute today's summary
+  const summaryToday = useMemo(() => {
     let present = 0;
     let absent = 0;
 
@@ -130,14 +129,11 @@ const AttendanceStaff = () => {
     });
 
     const total = present + absent;
-    const percentage = total
-      ? ((present / total) * 100).toFixed(1)
-      : 0;
+    const percentage = total ? ((present / total) * 100).toFixed(1) : 0;
 
     return { total, present, absent, percentage };
   }, [attendanceData]);
 
-  // ✅ Table columns
   const columns = [
     { title: "Student Name", dataIndex: "StudentName" },
     {
@@ -145,9 +141,7 @@ const AttendanceStaff = () => {
       render: (_, record) => (
         <Radio.Group
           value={record.status}
-          onChange={(e) =>
-            handleAttendanceChange(record._id, e.target.value)
-          }
+          onChange={(e) => handleAttendanceChange(record._id, e.target.value)}
         >
           <Radio value="Present">Present</Radio>
           <Radio value="Absent">Absent</Radio>
@@ -156,81 +150,91 @@ const AttendanceStaff = () => {
     },
   ];
 
+  if (checkLoading) return <p>Loading today's attendance...</p>;
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
-      <Card className="shadow-lg rounded-2xl">
-        <h1 className="text-2xl font-bold mb-2">
-          Staff Attendance Panel
-        </h1>
+      {summaryData?.summary && (
+        <Card className="mb-6">
+          <h2>Monthly Summary ({month}/{year})</h2>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Statistic title="Total Days" value={summaryData.summary.totalDays} />
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Statistic title="Present" value={summaryData.summary.present} />
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Statistic title="Absent" value={summaryData.summary.absent} />
+            </Col>
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Statistic title="Leave" value={summaryData.summary.leave} />
+            </Col>
+          </Row>
+          <Row gutter={[16, 16]} className="mt-2">
+            <Col xs={24} sm={12} md={12} lg={6}>
+              <Statistic title="Attendance %" value={summaryData.summary.percentage} suffix="%" />
+            </Col>
+          </Row>
+        </Card>
+      )}
 
-        <p className="text-gray-500">Date: {todayDate}</p>
-        <p className="text-gray-500">Day: {todayDay}</p>
-        <p className="text-gray-500 mb-4">
-          Subject: {todaySubject || "N/A"}
-        </p>
+      <Card>
+        <h2>Staff Attendance Panel</h2>
+        <p>Date: {today.toLocaleDateString()}</p>
+        <p>Day: {todayDayName}</p>
+        <p>Subject: {todaySubject || "N/A"}</p>
 
-        {!canSubmit ? (
-          <Alert
-            message="Holiday"
-            description={`Today is ${todayDay}. Attendance is not required.`}
-            type="warning"
-            showIcon
-            className="mb-4"
-          />
-        ) : (
-          <Alert
-            message="Working Day"
-            description={`You can mark attendance for ${todaySubject}`}
-            type="success"
-            showIcon
-            className="mb-4"
-          />
-        )}
+        <Divider>Today's Summary</Divider>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center border border-gray-200 p-6 rounded-lg">
+          <div className="flex flex-col text-gray-500">
+            <span>Total</span>
+            <span className="text-2xl font-semibold">{summaryToday.total}</span>
+          </div>
+          <div className="flex flex-col text-gray-500">
+            <span>Present</span>
+            <span className="text-2xl font-semibold">{summaryToday.present}</span>
+          </div>
+          <div className="flex flex-col text-gray-500">
+            <span>Absent</span>
+            <span className="text-2xl font-semibold">{summaryToday.absent}</span>
+          </div>
+          <div className="flex flex-col text-gray-500">
+            <span>Percentage</span>
+            <span className="text-2xl font-semibold">{summaryToday.percentage}</span>
+          </div>
+        </div>
 
-        <Divider orientation="left">Today's Summary</Divider>
-
-        <Row gutter={16} className="mb-6">
-          <Col span={6}>
-            <Statistic title="Total" value={summary.total} />
-          </Col>
-          <Col span={6}>
-            <Statistic title="Present" value={summary.present} />
-          </Col>
-          <Col span={6}>
-            <Statistic title="Absent" value={summary.absent} />
-          </Col>
-          <Col span={6}>
-            <Statistic title="%" value={summary.percentage} suffix="%" />
-          </Col>
-        </Row>
-
-        {canSubmit && (
-          <div className="mb-4 flex gap-2">
-            <Button onClick={markAllPresent}>
-              Mark All Present
+        <Divider>Mark Attendance</Divider>
+        {!canAccess ? (
+          <p className="text-red-500">Today is not your subject.</p>
+        ) : !isSubmitted ? (
+          <>
+            <Button className="mb-4" onClick={markAllPresent}>Mark All Present</Button>
+            <Table columns={columns} dataSource={attendanceData} rowKey="_id" />
+            <Button className="mt-4" type="primary" onClick={handleSubmit}>
+              Submit
             </Button>
+          </>
+        ) : (
+          <div className="flex justify-between mt-4 items-center">
+            <p className="text-green-600 text-lg">Today's Attendance Recorded</p>
+
+            <div className="flex gap-5 items-center">
+
+              <div className="flex gap-1 cursor-pointer">
+                <EditOutlined style={{ color: "blue", cursor: "pointer" }} /> <p className="text-blue-700">Edit</p>
+              </div>
+
+              <Popconfirm title="Delete attendance?" onConfirm={handleDeleteAttendance}>
+                <div className="flex gap-1  cursor-pointer">
+                  <DeleteOutlined style={{ color: "red", }} /> <p className="text-red-500">Delete</p>
+                </div>
+              </Popconfirm>
+
+            </div>
           </div>
         )}
-
-        <Divider orientation="left">Mark Attendance</Divider>
-
-        <Table
-          columns={columns}
-          dataSource={attendanceData}
-          rowKey="_id"
-          loading={usersLoading || authLoading}
-          pagination={{ pageSize: 8 }}
-        />
-
-        <Button
-          className="mt-4"
-          type="primary"
-          onClick={handleSubmit}
-          loading={submitting}
-          disabled={!canSubmit || attendanceData.length === 0}
-        >
-          Submit Attendance
-        </Button>
       </Card>
     </div>
   );

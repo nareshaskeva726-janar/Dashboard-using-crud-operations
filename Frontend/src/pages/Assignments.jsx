@@ -39,6 +39,7 @@ const Assignments = () => {
   const dispatch = useDispatch();
 
   const [submitProject, { isLoading }] = useSubmitProjectMutation();
+  
   const { data, refetch } = useGetMyProjectsQuery();
 
   const projects = data?.projects || [];
@@ -234,3 +235,5 @@ const Assignments = () => {
 };
 
 export default Assignments;
+
+

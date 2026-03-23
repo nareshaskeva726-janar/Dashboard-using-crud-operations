@@ -1,5 +1,5 @@
 import { Layout, Menu, Drawer } from "antd";
-import { UserOutlined, PlusCircleOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, ProjectOutlined, UsergroupAddOutlined, FileMarkdownOutlined } from "@ant-design/icons";
+import { UserOutlined, PlusCircleOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, ProjectOutlined,  FileMarkdownOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 

@@ -19,6 +19,8 @@ const AssignmentCheck = () => {
 
 
 
+
+
   const { data: allProjectsData, refetch: refetchProjects } = useGetProjectsQuery();
 
   const { data: pendingData, refetch: refetchPending } = useGetPendingStudentsQuery();
@@ -45,10 +47,16 @@ const AssignmentCheck = () => {
     refetchPendingRef.current = refetchPending;
   });
 
+
+
+
   const user = JSON.parse(localStorage.getItem("user"));
   const staffSubject = user?.department || null;
+
   console.log(staffSubject);
+
   const staffId = user?._id;
+  console.log(staffId, "test")
 
 
   useEffect(() => {
@@ -57,7 +65,13 @@ const AssignmentCheck = () => {
     }
   }, [pendingData, dispatch]);
 
+
+
+
   const pendingStudents = useSelector((state) => state.project.pendingStudents);
+
+
+  
 
   // SOCKET  
   useEffect(() => {

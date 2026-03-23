@@ -4,9 +4,9 @@ import jwt from "jsonwebtoken";
 //TOKEN GENERATING USING SIGN
 const generateToken = (userId) => {
   return jwt.sign(
-    { id: userId },            // payload
-    process.env.JWT_SECRET,    // secret key
-    { expiresIn: "30d" }       // token expiration
+    { id: userId },            
+    process.env.JWT_SECRET,    
+    { expiresIn: "30d" }       
   );
 };
 
