@@ -68,7 +68,8 @@ function AddUsers() {
   };
 
   return (
-    <div className="p-4 flex justify-center">
+    <div className="p-4 flex ">
+
       <Card title={editingUser ? "Update User" : "Add User"} className="w-full max-w-md">
         <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item
@@ -126,6 +127,7 @@ function AddUsers() {
               <Form.Item
                 label="Password"
                 name="password"
+                normalize={(value) => value?.trimStart()}
                 rules={[
                   { required: true, message: "Enter password" },
                   { min: 6, message: "Password must be at least 6 characters" },
@@ -138,6 +140,7 @@ function AddUsers() {
                 label="Confirm Password"
                 name="confirmPassword"
                 dependencies={["password"]}
+                normalize={(value) => value?.trimStart()}
                 rules={[
                   { required: true, message: "Confirm your password" },
                   ({ getFieldValue }) => ({

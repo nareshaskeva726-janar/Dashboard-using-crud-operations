@@ -15,6 +15,8 @@ import attendanceRouter from "./routes/attendanceRoutes.js";
 //  IMPORT SOCKET HANDLER
 import socketHandler from "./socket/ChatSocket.js";
 import NotificationSocket from "./socket/notificationSocket.js";
+import startMorningReminder from "./lib/morningReminder.js";
+import reminderRouter from "./routes/reminderRoutes.js";
 
 
 dotenv.config();
@@ -39,12 +41,15 @@ app.use(
 // ================== DB ==================
 connectDB();
 
+
+
 // ================== ROUTES ==================
 app.use("/api", Userrouter);
 app.use("/api", Messagerouter);
 app.use("/api", projectRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/attendance", attendanceRouter)
+app.use("/api", reminderRouter);
 
 app.get("/", (req, res) => {
   res.status(200).send("API WORKING SUCCESSFULLY!");
@@ -64,6 +69,7 @@ app.set("io", io);
 
 socketHandler(io);
 NotificationSocket(io);
+startMorningReminder();
 
 // SERVER 
 server.listen(PORT, () => {

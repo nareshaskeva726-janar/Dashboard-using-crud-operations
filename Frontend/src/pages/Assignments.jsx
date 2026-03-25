@@ -39,7 +39,7 @@ const Assignments = () => {
   const dispatch = useDispatch();
 
   const [submitProject, { isLoading }] = useSubmitProjectMutation();
-  
+
   const { data, refetch } = useGetMyProjectsQuery();
 
   const projects = data?.projects || [];
@@ -133,7 +133,7 @@ const Assignments = () => {
     }
   };
 
-  
+
 
   return (
     <div style={{ padding: "20px" }}>
@@ -169,6 +169,7 @@ const Assignments = () => {
           <Form.Item
             label="Project Name"
             name="projectName"
+            normalize={(value) => value?.trimStart()}
             rules={[{ required: true, message: "Enter project name" }]}
           >
             <Input placeholder="Enter project name" />
@@ -202,6 +203,8 @@ const Assignments = () => {
       </Modal>
 
       <Card title="Completed Projects">
+
+        
         <Row gutter={[16, 16]}>
           {projects.length > 0 ? (
             projects.map((project) => (

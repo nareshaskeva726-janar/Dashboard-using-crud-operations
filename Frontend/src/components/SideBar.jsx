@@ -1,5 +1,5 @@
 import { Layout, Menu, Drawer } from "antd";
-import { UserOutlined, PlusCircleOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, ProjectOutlined,  FileMarkdownOutlined } from "@ant-design/icons";
+import { UserOutlined, PlusCircleOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, ProjectOutlined, FileMarkdownOutlined, TableOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
@@ -81,17 +81,23 @@ function SideBar({ open, setOpen }) {
         }
       ]),
 
-      ...(user?.role === "staff" ? [  
-    {
-      key: "attendancestaff",
-      icon: <FileMarkdownOutlined />,
-      label: "Attendance"
-    }] : [,
-    {
-      key: "attendance",
-      icon: <FileMarkdownOutlined />,
-      label: "Attendance"
-    }]),
+    ...(user?.role === "staff" ? [
+      {
+        key: "attendancestaff",
+        icon: <FileMarkdownOutlined />,
+        label: "Attendance"
+      }] : [,
+      {
+        key: "attendance",
+        icon: <FileMarkdownOutlined />,
+        label: "Attendance"
+      }]),
+
+      {
+        key: "timetable",
+        icon: <TableOutlined/>,
+        label : "TimeTable"
+      },
 
     {
       key: "settings",

@@ -13,6 +13,7 @@ import { messageApi } from "./messageApi";
 import { projectApi } from "./projectApi";
 import { notificationApi } from "./notificationApi";
 import { attendanceApi } from "./attendanceApi";
+import { cronApi } from "./cronApi";
 
 
 export const store = configureStore({
@@ -30,6 +31,7 @@ export const store = configureStore({
     [projectApi.reducerPath]: projectApi.reducer,
     [notificationApi.reducerPath]: notificationApi.reducer,
     [attendanceApi.reducerPath]: attendanceApi.reducer, 
+    [cronApi.reducerPath]: cronApi.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -38,7 +40,8 @@ export const store = configureStore({
       messageApi.middleware,
       projectApi.middleware,
       notificationApi.middleware,
-      attendanceApi.middleware 
+      attendanceApi.middleware ,
+      cronApi.middleware,
     ),
 
   devTools: process.env.NODE_ENV !== "production",

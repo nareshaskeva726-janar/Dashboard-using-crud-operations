@@ -5,6 +5,8 @@ const socketHandler = (io) => {
   io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 
+
+
    //JOIN ROOM 
     socket.on("join_room", (userId) => {
       if (!userId) return;
@@ -12,8 +14,6 @@ const socketHandler = (io) => {
       socket.join(userId.toString());
       console.log(`User ${userId} joined room`);
     });
-
-
 
 
     // CHAT APP
@@ -25,16 +25,19 @@ const socketHandler = (io) => {
           message: data.message,
         });
 
+
         const populatedMessage = await newMessage.populate([
           { path: "senderId", select: "name" },
           { path: "receiverId", select: "name" },
         ]);
+
 
         // ✅ Send message
         io.to(data.receiverId.toString()).emit(
           "receive_message",
           populatedMessage
         );
+
 
         // CHAT NOTFICATION
         io.to(data.receiverId.toString()).emit("messageNotification", {
@@ -46,6 +49,7 @@ const socketHandler = (io) => {
         console.error("Message error:", err);
       }
     });
+
 
     // STAFF --- STUDENTS
     socket.on("sendReminder", async ({ studentIds, message, staffId }) => {
@@ -65,6 +69,7 @@ const socketHandler = (io) => {
           }))
         );
 
+
        // REAL TIME NOTIFY
         studentIds.forEach((studentId) => {
           io.to(studentId.toString()).emit("newNotification", {
@@ -79,6 +84,7 @@ const socketHandler = (io) => {
         console.error("Reminder error:", err);
       }
     });
+
 
     // DISCONNECT
     socket.on("disconnect", () => {

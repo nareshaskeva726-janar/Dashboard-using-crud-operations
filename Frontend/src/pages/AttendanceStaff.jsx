@@ -222,9 +222,7 @@ const AttendanceStaff = () => {
 
             <div className="flex gap-5 items-center">
 
-              <div className="flex gap-1 cursor-pointer">
-                <EditOutlined style={{ color: "blue", cursor: "pointer" }} /> <p className="text-blue-700">Edit</p>
-              </div>
+         
 
               <Popconfirm title="Delete attendance?" onConfirm={handleDeleteAttendance}>
                 <div className="flex gap-1  cursor-pointer">

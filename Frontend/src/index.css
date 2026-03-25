@@ -118,3 +118,8 @@ html {
   align-items: center !important;
   gap: 20px;
 }
+
+
+/* :where(.css-dev-only-do-not-override-1enej14).ant-badge{
+  line-height: normal;
+} */

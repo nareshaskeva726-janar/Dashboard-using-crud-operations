@@ -5,7 +5,6 @@ import Notification from "../models/notificationModel.js";
 
 // SUBMIT PROJECT (STUDENT)
 
-
 export const submitProject = async (req, res) => {
   try {
     const { subject, projectName } = req.body;

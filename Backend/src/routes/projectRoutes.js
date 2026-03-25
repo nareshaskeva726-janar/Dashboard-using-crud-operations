@@ -12,7 +12,7 @@ import userAuth from "../middleware/authMiddleware.js";
 
 const projectRouter = express.Router();
 
-// ✅ Submit a project
+//  Submit a project
 projectRouter.post(
   "/submit-project",
   userAuth,
@@ -20,13 +20,13 @@ projectRouter.post(
   submitProject
 );
 
-// ✅ Get all submitted projects (staff)
+//  Get all submitted projects (staff)
 projectRouter.get("/all-projects", userAuth, getAllProjects);
 
-// ✅ Get projects for logged-in student
+//  Get projects for logged-in student
 projectRouter.get("/my-projects", userAuth, getMyProjects);
 
-// ✅ Get pending students and send reminders (staff)
+//  Get pending students and send reminders (staff)
 projectRouter.get("/getpendingprojects", userAuth, pendingProjects);
 
 projectRouter.post("/send-reminder", userAuth, sendReminder);

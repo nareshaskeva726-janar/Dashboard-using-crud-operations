@@ -15,17 +15,9 @@ const AssignmentCheck = () => {
   const dispatch = useDispatch();
   const [loadingReminder, setLoadingReminder] = useState(false);
 
-
-
-
-
-
-
   const { data: allProjectsData, refetch: refetchProjects } = useGetProjectsQuery();
 
   const { data: pendingData, refetch: refetchPending } = useGetPendingStudentsQuery();
-
-
 
   const [sendReminder] = useSendReminderMutation();
 
@@ -35,20 +27,13 @@ const AssignmentCheck = () => {
 
   const isSocketInitialized = useRef(false);
 
-
   const refetchProjectsRef = useRef(refetchProjects);
   const refetchPendingRef = useRef(refetchPending);
-
-
-
 
   useEffect(() => {
     refetchProjectsRef.current = refetchProjects;
     refetchPendingRef.current = refetchPending;
   });
-
-
-
 
   const user = JSON.parse(localStorage.getItem("user"));
   const staffSubject = user?.department || null;
@@ -56,7 +41,7 @@ const AssignmentCheck = () => {
   console.log(staffSubject);
 
   const staffId = user?._id;
-  console.log(staffId, "test")
+  console.log(staffId, "test");
 
 
   useEffect(() => {

@@ -12,6 +12,7 @@ import Assignments from "../pages/Assignments";
 import AssignmentCheck from "../components/AssignmentCheck";
 import AttendanceStaff from "../pages/AttendanceStaff";
 import Attendance from "../pages/Attendance";
+import TimeTable from "../pages/TimeTable";
 
 
 const StartRoute = () => {
@@ -19,17 +20,18 @@ const StartRoute = () => {
         <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            
+
             <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<DashBoardLayout />}>
 
                     <Route path="users" element={<AllUsers />} />
                     <Route path="add-user" element={<AddUsers />} />
-                    <Route path="chat" element={<ChatBot />} />                    
-                    <Route path="assignments" element={<Assignments/>} />
-                    <Route path="assignmentcheck" element={<AssignmentCheck/>} />
-                     <Route path="attendance" element={<Attendance/>}/>
-                    <Route path="attendancestaff" element={<AttendanceStaff/>}/>
+                    <Route path="chat" element={<ChatBot />} />
+                    <Route path="assignments" element={<Assignments />} />
+                    <Route path="assignmentcheck" element={<AssignmentCheck />} />
+                    <Route path="attendance" element={<Attendance />} />
+                    <Route path="attendancestaff" element={<AttendanceStaff />} />
+                     <Route path="timetable" element={<TimeTable />} />
                     <Route path="settings" element={<Settings />} />
 
                 </Route>

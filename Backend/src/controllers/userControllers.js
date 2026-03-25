@@ -125,6 +125,7 @@ export const loginUser = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
+
     // Return user without password
     const { password: _, ...userData } = user._doc;
 
@@ -158,6 +159,7 @@ export const addUser = async (req, res) => {
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -404,6 +406,8 @@ export const resetPassword = async (req, res) => {
     });
   }
 };
+
+
 
 
 // GET CURRENT USER (ME)
