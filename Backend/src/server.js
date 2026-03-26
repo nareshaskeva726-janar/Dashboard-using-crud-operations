@@ -17,7 +17,7 @@ import socketHandler from "./socket/ChatSocket.js";
 import NotificationSocket from "./socket/notificationSocket.js";
 import startMorningReminder from "./lib/morningReminder.js";
 import reminderRouter from "./routes/reminderRoutes.js";
-import TimeTablerouter from "./routes/timeTableRoutes.js";
+
 
 
 dotenv.config();
@@ -51,7 +51,7 @@ app.use("/api", projectRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/attendance", attendanceRouter)
 app.use("/api", reminderRouter);
-app.use("/api/timetable", TimeTablerouter);
+
 
 app.get("/", (req, res) => {
   res.status(200).send("API WORKING SUCCESSFULLY!");
