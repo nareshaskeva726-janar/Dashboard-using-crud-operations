@@ -14,7 +14,6 @@ import { projectApi } from "./projectApi";
 import { notificationApi } from "./notificationApi";
 import { attendanceApi } from "./attendanceApi";
 import { cronApi } from "./cronApi";
-import { timeTableApi } from "./timeTableApi";
 
 
 export const store = configureStore({
@@ -33,7 +32,6 @@ export const store = configureStore({
     [notificationApi.reducerPath]: notificationApi.reducer,
     [attendanceApi.reducerPath]: attendanceApi.reducer, 
     [cronApi.reducerPath]: cronApi.reducer,
-    [timeTableApi.reducerPath]: timeTableApi.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -44,7 +42,6 @@ export const store = configureStore({
       notificationApi.middleware,
       attendanceApi.middleware ,
       cronApi.middleware,
-      timeTableApi.middleware,
 
     ),
 
