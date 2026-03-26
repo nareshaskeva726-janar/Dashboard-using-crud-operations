@@ -14,8 +14,15 @@ export const cronApi = createApi({
       refetchOnFocus: true,
       refetchOnReconnect: true,
       providesTags: ["Cron"]
+    }),
+
+    markAllasRead: builder.mutation({
+      query: () => ({
+        url: "/reminders/mark-all",
+        method: "PUT",
+      })
     })
   })
 });
 
-export const { useGetCronNotifyQuery } = cronApi;
+export const { useGetCronNotifyQuery, useMarkAllasReadMutation } = cronApi;

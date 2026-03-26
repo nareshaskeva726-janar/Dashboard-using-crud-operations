@@ -1,7 +1,7 @@
 import { Card, Table } from 'antd'
 import React, { useMemo } from 'react'
 
-// RTK Query
+
 import { useGetUsersQuery } from "../redux/userApi"
 
 const TimeTable = () => {
@@ -10,7 +10,7 @@ const TimeTable = () => {
 
     const users = data?.users || []
 
-    // Filter staff safely
+    
     const staffUsers = useMemo(
         () => users.filter(user => user.role === "staff"),
         [users]
@@ -23,7 +23,7 @@ const TimeTable = () => {
         { title: "Subject Staff", dataIndex: "staff", key: "staff" },
     ]
 
-    // Normalize matching (VERY IMPORTANT)
+   
     const getStaffByDepartment = (dept) => {
         const staff = staffUsers.find(
             s => s.department?.toLowerCase().trim() === dept.toLowerCase().trim()
@@ -33,7 +33,7 @@ const TimeTable = () => {
 
     const NULL = "-"
 
-    // Memoize schedule (prevents re-running)
+  
     const schedule = useMemo(() => ({
         Sunday: { subject: "Holiday", staff: NULL },
         Monday: { subject: "Java", staff: getStaffByDepartment("Java") },
@@ -43,6 +43,11 @@ const TimeTable = () => {
         Friday: { subject: "DataScience", staff: getStaffByDepartment("DataScience") },
         Saturday: { subject: "Holiday", staff: NULL },
     }), [staffUsers])
+
+
+
+
+
 
     const generateWeekData = () => {
         const today = new Date()
@@ -65,6 +70,9 @@ const TimeTable = () => {
         })
     }
 
+
+
+    
     const dataSource = useMemo(() => generateWeekData(), [schedule])
 
     if (isLoading) return <p>Loading timetable...</p>
@@ -93,3 +101,5 @@ const TimeTable = () => {
 }
 
 export default TimeTable
+
+

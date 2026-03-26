@@ -1,40 +1,39 @@
-import { Layout, Button } from "antd";
+import { Layout } from "antd";
 import { Outlet } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import SideBar from "../components/SideBar";
 import NavBar from "../components/NavBar";
-import { useGetCronNotifyQuery } from "../redux/cronApi";
+import {
+  useGetCronNotifyQuery,
+  useMarkAllasReadMutation,
+} from "../redux/cronApi";
 
 const { Content } = Layout;
 
 function DashBoardLayout() {
   const [open, setOpen] = useState(false);
 
-
-  
-  // ✅ Polling API every 60 seconds
-  const { data, isSuccess, refetch } = useGetCronNotifyQuery(undefined, {
-    pollingInterval: 60000
+  const { data, isSuccess } = useGetCronNotifyQuery(undefined, {
+    pollingInterval: 60000,
   });
 
-  // ✅ Prevent duplicate toasts
-  const shownMessages = useRef(new Set());
+  const [markAllReminders] = useMarkAllasReadMutation();
+
+  const toastShown = useRef(false);
 
   useEffect(() => {
     if (!isSuccess || !data?.length) return;
 
-    const stored = JSON.parse(localStorage.getItem("shownReminders")) || [];
+    if (toastShown.current) return;
 
     data.forEach((item) => {
-      if (!shownMessages.current.has(item._id) && !stored.includes(item._id)) {
-        toast.success(item.message);
-        shownMessages.current.add(item._id);
-        stored.push(item._id);
-      }
+      toast.success(item.message);
     });
 
-    localStorage.setItem("shownReminders", JSON.stringify(stored));
+    markAllReminders();
+
+    toastShown.current = true;
   }, [isSuccess, data]);
 
   return (

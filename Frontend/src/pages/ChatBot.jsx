@@ -221,7 +221,7 @@ const ChatBot = () => {
           <b>FROM :</b> {user?.name || "Unknown"}
         </p>
 
-        {/* SELECT USER */}
+   
         <div className="mb-4">
 
           <Dropdown
@@ -240,6 +240,10 @@ const ChatBot = () => {
           </Dropdown>
 
         </div>
+
+
+
+
 
         {/* CHAT AREA */}
         <div className="border border-blue-200 rounded-md h-72 p-3 overflow-y-auto bg-gray-50 mb-4">
@@ -271,8 +275,8 @@ const ChatBot = () => {
 
                   <div
                     className={`px-3 py-2 rounded-lg max-w-[75%] break-words text-sm shadow ${isSender
-                        ? "bg-blue-500 text-white"
-                        : "bg-blue-200 text-black"
+                        ? "bg-blue-500 text-white font-sans"
+                        : "bg-blue-200 text-black font-sans"
                       }`}
                   >
 

@@ -24,7 +24,7 @@ export const markAllRemindersAsRead = async (req, res) => {
 
     await Reminder.updateMany(
       { userId, isRead: false },
-      { isRead: true }
+      { isRead: true } // I am making this True
     );
 
     res.json({ message: "All reminders marked as read" });
