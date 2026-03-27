@@ -9,7 +9,6 @@ export const projectApi = createApi({
 
   tagTypes: ["Projects", "MyProjects", "Pending"],
 
-  
   endpoints: (builder) => ({
 
     // Submit a project (student)
@@ -22,17 +21,11 @@ export const projectApi = createApi({
       invalidatesTags: ["Projects", "MyProjects", "Pending"],
     }),
 
-
-
-
-
     // Get projects submitted by logged-in student
     getMyProjects: builder.query({
       query: () => "my-projects",
       providesTags: ["MyProjects"],
     }),
-
-
 
     // Get all projects (staff)
     getProjects: builder.query({
@@ -41,21 +34,18 @@ export const projectApi = createApi({
     }),
 
 
-
-
     // Get pending students for staff
     getPendingStudents: builder.query({
       query: () => "getpendingprojects",
       providesTags: ["Pending"],
     }),
-
-
-
+    
 
     // Send reminder to pending students (staff)
     sendReminder: builder.mutation({
+
       query: (data) => ({
-        url: "send-reminder", // ✅ MUST MATCH projectRouter
+        url: "send-reminder", // MUST MATCH projectRouter
         method: "POST",
         body: data,
       }),
@@ -63,6 +53,7 @@ export const projectApi = createApi({
     }),
   }),
 });
+
 
 // Export hooks for usage in components
 export const {

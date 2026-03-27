@@ -18,14 +18,15 @@ import { cronApi } from "./cronApi";
 
 export const store = configureStore({
   reducer: {
-    // 🔹 Custom reducers
+    
+    // Custom reducers
     auth: authReducer,
     message: messageReducer,
     project: projectReducer,
     notification: notificationReducer,
     attendance: attendanceReducer, 
 
-    // 🔹 RTK Query reducers
+    //  RTK Query reducers
     [userApi.reducerPath]: userApi.reducer,
     [messageApi.reducerPath]: messageApi.reducer,
     [projectApi.reducerPath]: projectApi.reducer,

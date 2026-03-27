@@ -5,8 +5,8 @@ import Users from "../models/userModel.js";
 const startMorningReminder = () => {
 
   // Runs at 10AM daily
-  cron.schedule("* * * * *", async () => {
-    console.log("Morning Reminder Cron Running");
+  cron.schedule("* * * * * *", async () => {
+    // console.log("Morning Reminder Cron Running");
 
     try {
       const now = new Date();
@@ -52,7 +52,7 @@ const startMorningReminder = () => {
         });
       }
 
-      console.log("Reminders created successfully");
+      // console.log("Reminders created successfully");
 
     } catch (error) {
       console.log("Cron error:", error.message);

@@ -1,9 +1,9 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,10');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
 
 * {
-  font-family: "Roboto Mono", monospace;
+  font-family: "Outfit", sans-serif;
 }
 
 :where(.css-dev-only-do-not-override-1enej14).ant-layout-header {

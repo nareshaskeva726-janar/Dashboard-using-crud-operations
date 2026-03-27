@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema(
     subjects: {
       type: [{ type: String, enum: ["Java", "Python", "C", "C++", "DataScience"] }],
       default: function () {
+        
         // Students get all subjects automatically
         return this.role === "student" ? ["Java", "Python", "C", "C++", "DataScience"] : [];
       },

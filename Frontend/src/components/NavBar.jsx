@@ -15,6 +15,7 @@ import {
   MenuOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser, logout } from "../redux/authSlice";
 import { useNavigate } from "react-router-dom";
@@ -37,9 +38,16 @@ import {
 const { Header } = Layout;
 
 function NavBar({ setOpen }) {
+
   const user = useSelector(selectUser);
+
+
+
+  console.log("cscsdxsz", user)
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
 
   //  ALWAYS FETCH FROM BACKEND
   const {
@@ -50,6 +58,8 @@ function NavBar({ setOpen }) {
   } = useGetNotificationsQuery(undefined, {
     skip: !user?._id,
   });
+
+
 
   const [markNotificationsRead] = useMarkNotificationsReadMutation();
   const [markSingleNotificationReadApi] =
@@ -269,9 +279,17 @@ function NavBar({ setOpen }) {
           </span>
         </Dropdown>
 
+
+
+
         <Tooltip title={user?.email}>
           <UserOutlined style={{ color: "white", fontSize: 20 }} />
         </Tooltip>
+
+
+
+
+
 
         <LogoutOutlined
           style={{ color: "white", fontSize: 20, cursor: "pointer" }}
