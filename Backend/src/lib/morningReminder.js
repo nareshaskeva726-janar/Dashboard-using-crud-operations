@@ -5,7 +5,7 @@ import Users from "../models/userModel.js";
 const startMorningReminder = () => {
 
   // Runs at 10AM daily
-  cron.schedule("* * * * * *", async () => {
+  cron.schedule("0 9 * * * *", async () => {
     // console.log("Morning Reminder Cron Running");
 
     try {
