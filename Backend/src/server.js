@@ -73,6 +73,8 @@ const io = new Server(server, {
   },
 });
 
+app.set("trust proxy", 1);
+
 // Global socket access
 app.set("io", io);
 
