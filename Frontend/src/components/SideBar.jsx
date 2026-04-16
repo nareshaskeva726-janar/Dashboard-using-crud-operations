@@ -59,49 +59,6 @@ function SideBar({ open, setOpen }) {
 
 
 
-    ...(user?.role === "staff"
-      ? [
-        {
-          key: "attendancestaff",
-          icon: <FileMarkdownOutlined />,
-          label: "Attendance",
-        },
-      ] : []),
-
-
-    ...(user?.role === "student" ?
-      [
-        {
-          key: "attendancestudent",
-          icon: <FileMarkdownOutlined />,
-          label: "Attendance",
-        },
-      ] : []),
-
-
-    ...(user?.role === "superadmin"
-      ? [
-        {
-          key: "attendancesuperadmin",
-          icon: <FileMarkdownOutlined />,
-          label: "Attendance",
-        },
-      ]
-      : []),
-
-    ...(user?.role === "admin"
-      ? [
-        {
-          key: "attendanceadmin",
-          icon: <FileMarkdownOutlined />,
-          label: "Attendance",
-        },
-      ]
-      : []),
-
-
-
-
     ...(user?.role === "student")
       ? [
         {

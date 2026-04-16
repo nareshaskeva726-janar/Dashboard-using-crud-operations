@@ -8,13 +8,9 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import ChatBot from "../pages/ChatBot";
 import Assignments from "../pages/Assignments";
 import AssignmentCheck from "../pages/AssignmentCheck";
-import AttendanceStaff from "../pages/AttendanceStaff";
 import TimeTable from "../pages/TimeTable";
 import DashBoardPage from "../pages/DashBoardPage";
 import ChatList from "../pages/ChatList";
-import AttendanceStudent from "../pages/AttendanceStudent";
-import AttendanceSuperAdmin from "../pages/AttendanceSuperAdmin";
-import AttendanceAdmin from "../pages/AttendanceAdmin";
 import AssignmentAdmin from "../pages/AssignmentAdmin";
 import AssignmentSuperAdmin from "../pages/AssignmentSuperAdmin";
 
@@ -35,10 +31,7 @@ const LayoutRouter = () => {
                     <Route path="assignments" element={<Assignments />} />
                     <Route path="assignmentcheck" element={<AssignmentCheck />} />
 
-                    <Route path="attendancesuperadmin" element={<AttendanceSuperAdmin />} />
-                    <Route path="attendanceadmin" element={<AttendanceAdmin />} />
-                    <Route path="attendancestaff" element={<AttendanceStaff />} />
-                    <Route path="attendancestudent" element={<AttendanceStudent />} />
+            
 
 
                     <Route path="timetable" element={<TimeTable />} />

@@ -12,9 +12,7 @@ import reminderRouter from "./routes/reminderRoutes.js";
 import seedRouter from "./routes/seedRoutes.js";
 import NotificationRouter from "./routes/notficationRoutes.js";
 import Projectrouter from "./routes/assignmentRoutes.js";
-import AttendanceRouter from "./routes/attendanceRoutes.js";
 import ChatRouter from "./routes/chatRoutes.js";
-// import { startPeriodCron } from "./cron/periodCron.js";
 
 //DOTENV CONFIGURATION
 dotenv.config();
@@ -50,7 +48,6 @@ app.use("/api/users", Userrouter);
 app.use("/api/chat", ChatRouter);
 app.use("/api/projects", Projectrouter);
 app.use("/api/notifications", NotificationRouter);
-app.use("/api/attendance", AttendanceRouter);
 app.use("/api/reminders", reminderRouter);
 
 
@@ -85,7 +82,3 @@ server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
 
-//CRON FOR PERIOD!
-// startPeriodCron((periodIndex)=> {
-//   console.log("Now The period is :" , periodIndex);
-// })
