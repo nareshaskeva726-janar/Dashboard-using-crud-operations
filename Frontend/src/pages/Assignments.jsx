@@ -3,161 +3,129 @@ import {
   Button,
   Modal,
   Form,
-  Input,
   Select,
   Upload,
   Card,
   Row,
   Col,
   message,
+  Tag,
+  Typography,
+  Input
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
+import {toast} from "react-hot-toast";
+
 import {
   useSubmitProjectMutation,
   useGetMyProjectsQuery,
 } from "../redux/projectApi";
+
 import { useGetNotificationsQuery } from "../redux/notificationApi";
-import socket from "../socket/socket.js";
-import {
-  setNotifications,
-  addNotification,
-  mergeNotifications,
-} from "../redux/notificationSlice.js";
-import { useDispatch, useSelector } from "react-redux";
+
+import socket from "../socket/socket";
 
 const { Option } = Select;
+const { Title, Text } = Typography;
 
-const subjectsList = ["Java", "C", "C++", "Python", "DataScience"];
+/* ================= SUBJECT MAP ================= */
+const departmentSubjectsMap = {
+  ESE: ["Core Java", "Spring", "Hibernate", "JSP", "Servlets"],
+  EEE: ["Python Basics", "Django", "Flask", "Data Analysis", "Machine Learning"],
+  CSE: ["C Basics", "Pointers", "Data Structures", "Algorithms", "File Handling"],
+  MECH: ["C++ Basics", "OOP", "STL", "Algorithms", "Templates"],
+  CIVIL: ["Python for DS", "Statistics", "Pandas", "NumPy", "Machine Learning"],
+};
 
 const Assignments = () => {
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const userId = user?._id;
+  const user = JSON.parse(localStorage.getItem("user")) || {};
+  const subjectsList = departmentSubjectsMap[user?.department] || [];
 
-  const dispatch = useDispatch();
+  const { data, refetch } = useGetMyProjectsQuery();
+  const projects = data?.projects || [];
+
+  const { data: notificationData, refetch: refetchAnnouncements } = useGetNotificationsQuery();
+  const announcedProjects =
+    notificationData?.notifications?.filter(n => n.type === "PROJECT_ANNOUNCEMENT") || [];
+    console.log(announcedProjects, "data");
 
   const [submitProject, { isLoading }] = useSubmitProjectMutation();
 
-  const { data, refetch } = useGetMyProjectsQuery();
-
-  const projects = data?.projects || [];
-
-  // ✅ Fetch notifications (API)
-  const { data: notifData } = useGetNotificationsQuery(undefined, {
-    skip: !userId,
-  });
-
-  // ✅ Redux notifications
-  const { notifications } = useSelector((state) => state.notification);
-
-  // ✅ Sync API → Redux
   useEffect(() => {
-    if (notifData?.notifications) {
-      dispatch(setNotifications(notifData.notifications));
-    }
-  }, [notifData, dispatch]);
+    socket.on("projectAnnounced", () => {
+      refetchAnnouncements();
+      toast.info(" New project announced!");
+    });
 
-  // 🔥 SOCKET (FIXED - NO REFRESH POPUP)
-  useEffect(() => {
-    if (!userId) return;
-
-    if (!socket.connected) {
-      socket.connect();
-    }
-
-    socket.emit("join_room", userId);
-
-    let isFirstLoad = true; // ✅ BLOCK refresh popup
-    const shownNotifications = new Set();
-
-    const handleNotification = (notif) => {
-      if (notif.receiverRole !== "student") return;
-
-      //  skip refresh notifications
-      if (isFirstLoad) return;
-
-      //  prevent duplicates
-      if (shownNotifications.has(notif._id)) return;
-      shownNotifications.add(notif._id);
-
-      dispatch(addNotification(notif));
-
-      //  only real-time notification
-      message.info(notif.message);
-    };
-
-    const handleOfflineNotifications = (notifs) => {
-      if (!Array.isArray(notifs)) return;
-
-      dispatch(mergeNotifications(notifs));
-
-      //  after refresh allow new notifications
-      isFirstLoad = false;
-    };
-
-    socket.on("newNotification", handleNotification);
-    socket.on("loadUnreadNotifications", handleOfflineNotifications);
+    socket.on("marksUpdated", () => {
+      refetch();
+      toast.success("Marks updated!");
+    });
 
     return () => {
-      socket.off("newNotification", handleNotification);
-      socket.off("loadUnreadNotifications", handleOfflineNotifications);
+      socket.off("projectAnnounced");
+      socket.off("marksUpdated");
     };
-  }, [userId, dispatch]);
+  }, [refetch, refetchAnnouncements]);
 
-  // SUBMIT PROJECT
   const onFinish = async (values) => {
     try {
-      const formData = new FormData();
-      formData.append("subject", values.subject);
-      formData.append("projectName", values.projectName);
-
       const fileObj = values.file?.[0]?.originFileObj;
-      if (!fileObj) {
-        return message.error("Please upload a file");
-      }
+      if (!fileObj) return message.error("Upload project file");
 
+      const formData = new FormData();
+      formData.append("projectName", values.projectName || fileObj.name);
+      formData.append("subject", values.subject);
+      formData.append("email", values.email);
       formData.append("projectFile", fileObj);
 
       await submitProject(formData).unwrap();
 
-      message.success("Project submitted successfully ");
-
+      toast.success(" Project submitted successfully");
       refetch();
       form.resetFields();
       setOpen(false);
     } catch (err) {
-      console.error(err);
-      message.error(err?.data?.message || "Submission failed");
+      toast.error(err?.data?.message || "Submission failed");
     }
   };
 
-
-
   return (
-    <div style={{ padding: "20px" }}>
-      <Card style={{ textAlign: "center", marginBottom: 20 }}>
-        <h1>Submit Your Project</h1>
-        <Button type="primary" onClick={() => setOpen(true)}>
-          Add Project
+    <div style={{ padding: 24, maxWidth: 1200, margin: "0 auto" }}>
+      {/* ===== SUBMIT BUTTON ===== */}
+      <Card
+        style={{
+          textAlign: "center",
+          marginBottom: 30,
+          borderRadius: 12,
+          boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
+        }}
+      >
+        <Title level={3}>Submit Your Assignment</Title>
+        <Button type="primary" size="large" onClick={() => setOpen(true)}>
+          Submit Project
         </Button>
       </Card>
 
+      {/* ===== MODAL ===== */}
       <Modal
-        title="Submit Your Project"
+        title={<Title level={4}>Submit Project</Title>}
         open={open}
-        onCancel={() => setOpen(false)}
         footer={null}
         destroyOnClose
+        onCancel={() => setOpen(false)}
+        bodyStyle={{ padding: 24 }}
       >
         <Form form={form} layout="vertical" onFinish={onFinish}>
           <Form.Item
             label="Subject"
             name="subject"
-            rules={[{ required: true, message: "Select a subject" }]}
+            rules={[{ required: true, message: "Select subject" }]}
           >
-            <Select placeholder="Select Subject">
+            <Select placeholder="Select subject" size="large">
               {subjectsList.map((s) => (
                 <Option key={s} value={s}>
                   {s}
@@ -169,67 +137,87 @@ const Assignments = () => {
           <Form.Item
             label="Project Name"
             name="projectName"
-            normalize={(value) => value?.trimStart()}
-            rules={[{ required: true, message: "Enter project name" }]}
+            rules={[{ required: true, type: "text", message: "Enter valid email" }]}
           >
-            <Input placeholder="Enter project name" />
+            <Input placeholder="projectName" />
           </Form.Item>
 
           <Form.Item
-            label="Project File"
             name="file"
+            label="Project File"
             valuePropName="fileList"
-            getValueFromEvent={(e) => e?.fileList}
-            rules={[{ required: true, message: "Upload your project file" }]}
+            getValueFromEvent={(e) => e?.fileList || []}
+            rules={[{ required: true, message: "Upload file" }]}
           >
             <Upload beforeUpload={() => false} maxCount={1}>
-              <Button icon={<UploadOutlined />}>
-                Upload Project File
+              <Button icon={<UploadOutlined />} type="dashed" block>
+                Upload File
               </Button>
             </Upload>
           </Form.Item>
 
-          <Form.Item>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <Button type="primary" htmlType="submit" loading={isLoading}>
-                Submit
-              </Button>
-              <Button danger onClick={() => setOpen(false)}>
-                Close
-              </Button>
-            </div>
-          </Form.Item>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={isLoading}
+            block
+            size="large"
+            style={{ borderRadius: 8 }}
+          >
+            Submit
+          </Button>
         </Form>
       </Modal>
 
-      <Card title="Completed Projects">
+      {/* ===== SUBMITTED PROJECTS ===== */}
+      <Card
+        title={<Title level={4}>My Submitted Projects</Title>}
+        style={{ borderRadius: 12, boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}
+      >
+        <Row gutter={[20, 20]}>
+          {projects.length ? (
+            projects.map((p) => (
+              <Col xs={24} sm={12} md={8} lg={6} key={p._id}>
+                <Card
+                  hoverable
+                  style={{
+                    borderRadius: 12,
+                    boxShadow: "0 3px 10px rgba(0,0,0,0.08)",
+                    transition: "transform 0.2s",
+                  }}
+                  bodyStyle={{ padding: 16 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                >
+                  <Text strong>Subject:</Text> {p.subject || "-"} <br />
+                  <Text strong>Project:</Text> {p.projectName || "-"} <br />
 
-        
-        <Row gutter={[16, 16]}>
-          {projects.length > 0 ? (
-            projects.map((project) => (
-              <Col xs={24} sm={12} md={8} lg={6} key={project._id}>
-                <Card bordered hoverable>
-                  <p>
-                    <strong>Subject:</strong> {project.subject}
-                  </p>
-                  <p>
-                    <strong>Project Name:</strong> {project.projectName}
-                  </p>
-                  {project.projectFile ? (
-                    <a href={project.projectFile} target="_blank">
+                  <Tag color={p.status === "Submitted" ? "green" : "orange"} style={{ marginTop: 8 }}>
+                    {p.status || "Pending"}
+                  </Tag>
+                  <br />
+
+                  {p.projectFile && (
+                    <a
+                      href={p.projectFile}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ display: "block", marginTop: 8 }}
+                    >
                       View File
                     </a>
-                  ) : (
-                    <span style={{ color: "red" }}>Not Submitted</span>
+                  )}
+
+                  {p.marks !== undefined && (
+                    <Tag color="blue" style={{ marginTop: 8 }}>
+                      Marks: {p.marks}
+                    </Tag>
                   )}
                 </Card>
               </Col>
             ))
           ) : (
-            <p style={{ textAlign: "center", width: "100%" }}>
-              No projects submitted yet.
-            </p>
+            <p>No submissions yet</p>
           )}
         </Row>
       </Card>
@@ -237,6 +225,7 @@ const Assignments = () => {
   );
 };
 
+
+
+
 export default Assignments;
-
-

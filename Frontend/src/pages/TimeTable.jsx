@@ -1,105 +1,148 @@
-import { Card, Table } from 'antd'
-import React, { useMemo } from 'react'
+import React, { useMemo } from "react";
+import { Card, Table, Spin, Tag } from "antd";
+import { useGetUsersQuery, useCheckAuthQuery } from "../redux/userApi";
 
+/* =========================
+   Department Subjects
+========================= */
+const departmentSubjectsMap = {
+  ESE: ["Core Java", "Spring", "Hibernate", "JSP", "Servlets"],
+  EEE: ["Python Basics", "Django", "Flask", "Data Analysis", "Machine Learning"],
+  CSE: ["C Basics", "Pointers", "Data Structures", "Algorithms", "File Handling"],
+  MECH: ["C++ Basics", "OOP", "STL", "Algorithms", "Templates"],
+  CIVIL: ["Python for DS", "Statistics", "Pandas", "NumPy", "Machine Learning"],
+};
 
-import { useGetUsersQuery } from "../redux/userApi"
+/* =========================
+   Weekdays & Periods
+========================= */
+const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+const periods = [
+  { name: "Period 1", time: "09:00-10:00" },
+  { name: "Period 2", time: "10:00-11:00" },
+  { name: "Period 3", time: "11:00-12:00" },
+  { name: "Break", time: "12:00-13:00" },
+  { name: "Period 5", time: "13:00-14:00" },
+  { name: "Period 6", time: "14:00-15:00" },
+];
 
 const TimeTable = () => {
+  /* ================= AUTH ================= */
+  const { data: authData, isLoading: authLoading } = useCheckAuthQuery();
+  const department = authData?.user?.department;
 
-    const { data, isLoading, error } = useGetUsersQuery()
+  /* ================= STAFF ================= */
+  const { data, isLoading } = useGetUsersQuery();
+  const users = data?.users || [];
 
-    const users = data?.users || []
+  /* ================= STAFF MAP ================= */
+  const subjectStaffMap = useMemo(() => {
+    const map = {};
+    users
+      .filter((u) => u.role === "staff")
+      .forEach((staff) => {
+        staff.subjects?.forEach((sub) => {
+          map[sub] = staff.name;
+        });
+      });
+    return map;
+  }, [users]);
 
-    
-    const staffUsers = useMemo(
-        () => users.filter(user => user.role === "staff"),
-        [users]
-    )
+  const subjects = departmentSubjectsMap[department] || [];
 
-    const columns = [
-        { title: "Date", dataIndex: "date", key: "date" },
-        { title: "Day", dataIndex: "day", key: "day" },
-        { title: "Subject", dataIndex: "subject", key: "subject" },
-        { title: "Subject Staff", dataIndex: "staff", key: "staff" },
-    ]
+  /* ================= ROTATIONAL TIMETABLE ================= */
+  const tableData = useMemo(() => {
+    const totalSubjects = subjects.length;
 
-   
-    const getStaffByDepartment = (dept) => {
-        const staff = staffUsers.find(
-            s => s.department?.toLowerCase().trim() === dept.toLowerCase().trim()
-        )
-        return staff?.name || "Not Assigned"
-    }
+    return periods.map((periodItem, periodIndex) => {
+      const row = {
+        key: periodIndex,
+        period: `${periodItem.name} (${periodItem.time})`,
+      };
 
-    const NULL = "-"
+      weekdays.forEach((day, dayIndex) => {
+        if (periodItem.name === "Break") {
+          row[day] = "Break";
+          return;
+        }
 
-  
-    const schedule = useMemo(() => ({
-        Sunday: { subject: "Holiday", staff: NULL },
-        Monday: { subject: "Java", staff: getStaffByDepartment("Java") },
-        Tuesday: { subject: "Python", staff: getStaffByDepartment("Python") },
-        Wednesday: { subject: "C", staff: getStaffByDepartment("C") },
-        Thursday: { subject: "C++", staff: getStaffByDepartment("C++") },
-        Friday: { subject: "DataScience", staff: getStaffByDepartment("DataScience") },
-        Saturday: { subject: "Holiday", staff: NULL },
-    }), [staffUsers])
+        const subjectIndex =
+          (dayIndex + (periodIndex > 2 ? periodIndex - 1 : periodIndex)) %
+          totalSubjects;
 
+        row[day] = subjects[subjectIndex];
+      });
 
+      return row;
+    });
+  }, [subjects]);
 
+  /* ================= TABLE COLUMNS ================= */
+  const columns = [
+    { title: "Period", dataIndex: "period", fixed: "left" },
+    ...weekdays.map((day) => ({
+      title: day,
+      dataIndex: day,
+      render: (subject) =>
+        subject === "Break" ? (
+          <Tag color="orange">Break</Tag>
+        ) : (
+          <>
+            <div>{subject}</div>
+            <small className="text-gray-500">
+              {subjectStaffMap[subject] || "-"}
+            </small>
+          </>
+        ),
+    })),
+  ];
 
+  /* ================= TODAY INFO ================= */
+  const today = new Date();
+  const todayDayIndex = today.getDay(); // 0 = Sunday, 6 = Saturday
+  const todayText =
+    todayDayIndex === 0 || todayDayIndex === 6
+      ? "Holiday"
+      : weekdays[todayDayIndex - 1];
 
-
-    const generateWeekData = () => {
-        const today = new Date()
-        const firstDay = new Date(today)
-        firstDay.setDate(today.getDate() - today.getDay())
-
-        return Array.from({ length: 7 }).map((_, index) => {
-            const currentDate = new Date(firstDay)
-            currentDate.setDate(firstDay.getDate() + index)
-
-            const dayName = currentDate.toLocaleDateString("en-US", { weekday: "long" })
-
-            return {
-                key: index,
-                date: currentDate.toLocaleDateString(),
-                day: dayName,
-                subject: schedule[dayName]?.subject || "-",
-                staff: schedule[dayName]?.staff || "-",
-            }
-        })
-    }
-
-
-
-    
-    const dataSource = useMemo(() => generateWeekData(), [schedule])
-
-    if (isLoading) return <p>Loading timetable...</p>
-    if (error) return <p>Error loading data</p>
-
+  if (authLoading || isLoading)
     return (
-        <div style={{ padding: 20 }}>
-            <Card style={{ marginBottom: "10px" }}>
-                <h1 className='text-center text-gray-600 text-2xl font-bold'>
-                    Time Table
-                </h1>
-            </Card>
+      <div className="flex justify-center mt-10">
+        <Spin size="large" />
+      </div>
+    );
 
-            <Table
-                columns={columns}
-                dataSource={dataSource}
-                pagination={false}
-                scroll={{ x: 600 }}
-            />
+  return (
+    <div className="p-6 max-w-7xl mx-auto">
+      <Card className="shadow-lg rounded-lg">
+        <h2 className="text-2xl font-bold text-center mb-3">
+          {department || "-"} Department Timetable
+        </h2>
 
-            <h1 className="text-xl text-gray-600 mt-5 text-center">
-                Saturday and Sunday are always considered holidays.
-            </h1>
+        <div className="flex gap-5 justify-center">
+          <p className="text-center mb-5">
+            Today: <strong>{todayText}</strong>
+          </p>
+          <p className="text-center mb-5">
+            Department: <strong>{department}</strong>
+          </p>
         </div>
-    )
-}
 
-export default TimeTable
+        <Table
+          columns={columns}
+          dataSource={tableData}
+          pagination={false}
+          bordered
+          scroll={{ x: 900 }}
+        />
 
+        <p className="text-center mt-4 text-gray-500">
+          Period 3 → Break | Saturday & Sunday → Holiday
+        </p>
+      </Card>
+    </div>
+  );
+};
 
+export default TimeTable;

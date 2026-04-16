@@ -1,87 +1,114 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// Helper: get pending students from localStorage
-const getPendingFromStorage = () => {
-  try {
-    const data = localStorage.getItem("pendingStudents");
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
-};
-
 const initialState = {
   projects: [],
+  myProjects: [],
   selectedProject: null,
+
   submissionStatus: null,
   reminderSent: false,
-  pendingStudents: getPendingFromStorage(),
+
+  pendingStudents: [],
 };
 
-const projectSlice = createSlice({
-  name: "project",
+const assignmentSlice = createSlice({
+  name: "Assignment",
   initialState,
+
   reducers: {
+    /* ================= PROJECT LIST ================= */
+
     setProjects: (state, action) => {
-      state.projects = action.payload;
+      state.projects = action.payload ?? [];
     },
 
     addProject: (state, action) => {
-      state.projects.unshift(action.payload);
+      const exists = state.projects.some(
+        (p) => p._id === action.payload._id
+      );
+
+      if (!exists) {
+        state.projects.unshift(action.payload);
+      }
     },
 
+    setMyProjects: (state, action) => {
+      state.myProjects = action.payload ?? [];
+    },
+
+    /* ================= SELECT PROJECT ================= */
+
     setSelectedProject: (state, action) => {
-      state.selectedProject = action.payload;
+      state.selectedProject = action.payload ?? null;
     },
 
     clearSelectedProject: (state) => {
       state.selectedProject = null;
     },
 
+    /* ================= SUBMISSION ================= */
+
     setSubmissionStatus: (state, action) => {
-      state.submissionStatus = action.payload;
+      state.submissionStatus = action.payload ?? null;
     },
+
+    clearSubmissionStatus: (state) => {
+      state.submissionStatus = null;
+    },
+
+    /* ================= REMINDER ================= */
 
     setReminderSent: (state, action) => {
-      state.reminderSent = action.payload;
+      state.reminderSent = Boolean(action.payload);
     },
 
+    resetReminder: (state) => {
+      state.reminderSent = false;
+    },
+
+    /* ================= PENDING STUDENTS ================= */
+
     setPendingStudents: (state, action) => {
-      state.pendingStudents = action.payload;
-      localStorage.setItem("pendingStudents", JSON.stringify(action.payload));
+      state.pendingStudents = action.payload ?? [];
     },
 
     removePendingStudent: (state, action) => {
       state.pendingStudents = state.pendingStudents.filter(
-        (s) => s._id !== action.payload
+        (student) => student._id !== action.payload
       );
-
-      localStorage.setItem(
-        "pendingStudents",
-        JSON.stringify(state.pendingStudents)
-      );
-
     },
 
     clearPendingStudents: (state) => {
       state.pendingStudents = [];
-      localStorage.removeItem("pendingStudents");
     },
 
-  },
+    /* ================= LOGOUT RESET ================= */
 
+    resetProjectState: () => initialState,
+  },
 });
+
+/* ================= EXPORTS ================= */
 
 export const {
   setProjects,
   addProject,
+  setMyProjects,
+
   setSelectedProject,
   clearSelectedProject,
+
   setSubmissionStatus,
+  clearSubmissionStatus,
+
   setReminderSent,
+  resetReminder,
+
   setPendingStudents,
   removePendingStudent,
   clearPendingStudents,
-} = projectSlice.actions;
 
-export default projectSlice.reducer;
+  resetProjectState,
+} = assignmentSlice.actions;
+
+export default assignmentSlice.reducer;

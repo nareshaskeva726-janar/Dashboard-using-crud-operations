@@ -2,30 +2,45 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   messages: [],
+  activeChatUser: null,
 };
 
 const chatSlice = createSlice({
   name: "chat",
   initialState,
+
   reducers: {
-
-    // Load messages from database/API
     setMessages: (state, action) => {
-      state.messages = action.payload;
+      state.messages = action.payload.messages || [];
     },
 
-    // Add new message (from socket or user send)
+    
+
     addMessage: (state, action) => {
-      state.messages.push(action.payload);
+
+      const msg = action.payload;
+
+      // prevent duplicates
+      const exists = state.messages.some(
+        (m) => m._id === msg._id
+      );
+
+      if (!exists) {
+        state.messages.push(msg);
+      }
     },
 
-    // Clear chat when switching users
-    clearMessages: (state) => {
-      state.messages = [];
+    setActiveChatUser: (state, action) => {
+      state.activeChatUser = action.payload;
+      state.messages = []; 
     },
-
   },
 });
 
-export const { setMessages, addMessage, clearMessages } = chatSlice.actions;
+export const {
+  setMessages,
+  addMessage,
+  setActiveChatUser,
+} = chatSlice.actions;
+
 export default chatSlice.reducer;

@@ -1,6 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
-import Allusers from "../pages/AllUsers";
 
 function ProtectedRoute() {
 
@@ -13,10 +12,6 @@ function ProtectedRoute() {
     return <Navigate to="/" replace />;
   }
 
-
-
-  
-  
   return <Outlet />;
 }
 

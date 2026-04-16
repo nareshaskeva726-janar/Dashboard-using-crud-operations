@@ -1,41 +1,67 @@
+// userModel.js
 import mongoose from "mongoose";
+
+const departmentSubjectsMap = {
+  ESE: ["Core Java", "Spring", "Hibernate", "JSP", "Servlets"],
+  EEE: ["Python Basics", "Django", "Flask", "Data Analysis", "Machine Learning"],
+  CSE: ["C Basics", "Pointers", "Data Structures", "Algorithms", "File Handling"],
+  MECH: ["C++ Basics", "OOP", "STL", "Algorithms", "Templates"],
+  CIVIL: ["Python for DS", "Statistics", "Pandas", "NumPy", "Machine Learning"]
+};
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, unique: true, required: true },
-    password: { type: String, required: true, minlength: 6 },
-    contact: { type: Number, required: true },
-    forgotPassword: { type: Boolean, default: false },
-    resetpassword: { type: String },
-    role: { type: String, enum: ["staff", "student"], required: true },
+    name: {
+      type: String,
+      required: true,
+    },
 
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+    },
+
+    contact: {
+      type: String,
+      required: true,
+    },
+
+    role: {
+      type: String,
+      enum: ["superadmin", "admin", "staff", "student"],
+      required: true,
+    },
 
     department: {
       type: String,
-      enum: ["Java", "Python", "C", "C++", "DataScience"],
+      enum: Object.keys(departmentSubjectsMap),
       required: function () {
-        // Department is required for staff only
-        return this.role === "staff";
-      },
+        return this.role !== "superadmin";
+      }
     },
-
 
     subjects: {
-      type: [{ type: String, enum: ["Java", "Python", "C", "C++", "DataScience"] }],
-      default: function () {
-        
-        // Students get all subjects automatically
-        return this.role === "student" ? ["Java", "Python", "C", "C++", "DataScience"] : [];
-      },
+      type: [String],
+      default: [],
     },
+
+    forgotPassword: {
+      type: Boolean,
+      default: false,
+    },
+
+    resetpassword: { type: String },
   },
-
-
-  
   { timestamps: true }
 );
 
-const User = mongoose.model("Users", userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 export default User;

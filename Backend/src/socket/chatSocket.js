@@ -1,93 +1,52 @@
-import Message from "../models/Message.js";
-import Notification from "../models/notificationModel.js";
+import Chat from "../models/chatModel.js";
+
+const onlineUsers = new Map();
 
 const socketHandler = (io) => {
   io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 
-
-
-   //JOIN ROOM 
-    socket.on("join_room", (userId) => {
-      if (!userId) return;
-
-      socket.join(userId.toString());
-      console.log(`User ${userId} joined room`);
+    socket.on("join_room", ({ userId }) => {
+      socket.userId = userId;
+      socket.join(userId);
+      onlineUsers.set(userId, socket.id);
     });
 
-
-    // CHAT APP
     socket.on("send_message", async (data) => {
+
+      const { senderId, receiverId, message } = data;
+
       try {
-        const newMessage = await Message.create({
-          senderId: data.senderId,
-          receiverId: data.receiverId,
-          message: data.message,
+        if (!senderId || !receiverId || !message) return;
+
+        const users = [senderId.toString(), receiverId.toString()].sort();
+        const conversationId = users.join("_");
+
+        const newMessage = await Chat.create({
+          sender: senderId,
+          receiver: receiverId,
+          conversationId,
+          message,
         });
 
+        const populated = await newMessage.populate("sender receiver", "name role");
 
-        const populatedMessage = await newMessage.populate([
-          { path: "senderId", select: "name" },
-          { path: "receiverId", select: "name" },
-        ]);
+        io.to(senderId).emit("receive_message", populated);
 
+        io.to(receiverId).emit("receive_message", populated);
 
-        // ✅ Send message
-        io.to(data.receiverId.toString()).emit(
-          "receive_message",
-          populatedMessage
-        );
-
-
-        // CHAT NOTFICATION
-        io.to(data.receiverId.toString()).emit("messageNotification", {
-          senderId: data.senderId,
-          senderName: populatedMessage.senderId.name,
-          message: data.message,
+        io.to(receiverId).emit("live_notification", {
+          message: `New message from ${populated.sender.name}`,
+          chat: populated,
         });
+
       } catch (err) {
-        console.error("Message error:", err);
+        console.log("Socket send_message error:", err);
       }
     });
 
-
-    // STAFF --- STUDENTS
-    socket.on("sendReminder", async ({ studentIds, message, staffId }) => {
-      try {
-        if (!studentIds || studentIds.length === 0) return;
-
-        // SAVE NOTIFICATION
-        const notifications = await Notification.insertMany(
-          studentIds.map((studentId) => ({
-            sender: staffId,
-            receiver: studentId,
-            senderRole: "staff",
-            receiverRole: "student",
-            message,
-            type: "reminder",
-            isRead: false,
-          }))
-        );
-
-
-       // REAL TIME NOTIFY
-        studentIds.forEach((studentId) => {
-          io.to(studentId.toString()).emit("newNotification", {
-            message,
-            senderRole: "staff",
-            receiverRole: "student",
-          });
-        });
-
-        console.log("Reminder sent:", notifications.length);
-      } catch (err) {
-        console.error("Reminder error:", err);
-      }
-    });
-
-
-    // DISCONNECT
     socket.on("disconnect", () => {
+      if (socket.userId) onlineUsers.delete(socket.userId);
       console.log("User disconnected:", socket.id);
     });
   });

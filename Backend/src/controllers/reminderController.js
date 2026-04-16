@@ -21,6 +21,7 @@ export const getCronReminder = async (req, res) => {
 export const markAllRemindersAsRead = async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log(userId);
 
     await Reminder.updateMany(
       { userId, isRead: false },

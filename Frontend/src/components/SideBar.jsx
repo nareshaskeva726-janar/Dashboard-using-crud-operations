@@ -1,32 +1,35 @@
 import { Layout, Menu, Drawer } from "antd";
-import { UserOutlined, PlusCircleOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, ProjectOutlined, FileMarkdownOutlined, TableOutlined } from "@ant-design/icons";
+import {
+  UserOutlined,
+  SettingOutlined,
+  LogoutOutlined,
+  MessageOutlined,
+  ProjectOutlined,
+  FileMarkdownOutlined,
+  TableOutlined,
+  DashboardOutlined,
+  HistoryOutlined,
+} from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-
 import { selectUser, logout } from "../redux/authSlice";
-
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 const { Sider } = Layout;
 
 function SideBar({ open, setOpen }) {
-
-  //hooks are saving in the variables
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-
-  // Get user safely from redux //this is a usersdata
   const user = useSelector(selectUser);
 
-  const sidebarColor = "#020024"; //color code
+  const sidebarColor = "#020024";
 
   const handleLogout = () => {
     dispatch(logout());
-    toast.success("Logout successfully");
+    toast.success("Logout successfully", { position: "top-center", duration: 5000 });
     navigate("/");
   };
-
 
   const handleMenuClick = ({ key }) => {
     if (key === "logout") {
@@ -37,80 +40,138 @@ function SideBar({ open, setOpen }) {
     if (setOpen) setOpen(false);
   };
 
-  // Safe selected key
   const selectedKey = location.pathname.split("/")[2] || "users";
 
-
+  // Build menu items dynamically based on role
   const menuItems = [
+    {
+      key: "dashboardpage",
+      icon: <DashboardOutlined />,
+      label: "Dashboard",
+    },
     {
       key: "users",
       icon: <UserOutlined />,
-      label: "All Users"
+      label: "Users",
+      // Only visible to superadmin, admin, staff
+      hidden: !["superadmin", "admin", "staff", "student"].includes(user?.role),
     },
 
 
-    //DESTRUCTING THE USER BECAUSE WE CAN ADD ALSO
+
     ...(user?.role === "staff"
       ? [
         {
-          key: "add-user",
-          icon: <PlusCircleOutlined />,
-          label: "Add User"
-        }
+          key: "attendancestaff",
+          icon: <FileMarkdownOutlined />,
+          label: "Attendance",
+        },
+      ] : []),
+
+
+    ...(user?.role === "student" ?
+      [
+        {
+          key: "attendancestudent",
+          icon: <FileMarkdownOutlined />,
+          label: "Attendance",
+        },
+      ] : []),
+
+
+    ...(user?.role === "superadmin"
+      ? [
+        {
+          key: "attendancesuperadmin",
+          icon: <FileMarkdownOutlined />,
+          label: "Attendance",
+        },
       ]
       : []),
 
+    ...(user?.role === "admin"
+      ? [
+        {
+          key: "attendanceadmin",
+          icon: <FileMarkdownOutlined />,
+          label: "Attendance",
+        },
+      ]
+      : []),
+
+
+
+
+    ...(user?.role === "student")
+      ? [
+        {
+          key: "assignments", //student
+          icon: <ProjectOutlined />,
+          label: "Assignments",
+        },
+      ] : [],
+
+
+    ...(user?.role === "staff")
+      ? [
+        {
+          key: "assignmentCheck",
+          icon: <ProjectOutlined />,
+          label: "Assignments",
+        },
+      ] : [],
+
+    ...(user?.role === "superadmin")
+      ? [
+        {
+          key: "assignmnentsuperadmin",
+          icon: <ProjectOutlined />,
+          label: "Assignments",
+        },
+      ] : [],
+
+
+    ...(user?.role === "admin")
+      ? [
+        {
+          key: "assignmentadmin",
+          icon: <ProjectOutlined />,
+          label: "Assignments",
+        },
+      ] : [],
+
+      
     {
       key: "chat",
       icon: <MessageOutlined />,
       label: "ChatBot",
     },
+    ...(user?.role === 'superadmin' || user?.role === "admin" || user?.role === "staff") ?
+      [{
+        key: "chathistory",
+        icon: <HistoryOutlined />,
+        label: "Chat History",
+      },] : [],
 
 
-    ...(user?.role === "student"
-      ? [
-        {
-          key: "assignments",
-          icon: <ProjectOutlined />,
-          label: "Assignments",
-        }] : [
-        {
-          key: "assignmentCheck",
-          icon: <ProjectOutlined />,
-          label: "Assignment Check"
-        }
-      ]),
 
-    ...(user?.role === "staff" ? [
-      {
-        key: "attendancestaff",
-        icon: <FileMarkdownOutlined />,
-        label: "Attendance"
-      }] : [,
-      {
-        key: "attendance",
-        icon: <FileMarkdownOutlined />,
-        label: "Attendance"
-      }]),
 
+    ...(user?.role !== "superadmin") ? [
       {
         key: "timetable",
-        icon: <TableOutlined/>,
-        label : "TimeTable"
-      },
-
+        icon: <TableOutlined />,
+        label: "TimeTable",
+      },] : [],
     {
       key: "settings",
       icon: <SettingOutlined />,
-      label: "Settings"
+      label: "Settings",
     },
-
-
     {
       key: "logout",
       icon: <LogoutOutlined />,
-      label: "Logout"
-    }
+      label: "Logout",
+    },
   ];
 
   return (
@@ -123,7 +184,7 @@ function SideBar({ open, setOpen }) {
         className="hidden lg:block min-h-screen"
         style={{ backgroundColor: sidebarColor }}
       >
-        <div className="flex items-center justify-center py-4.5 mb-2 ">
+        <div className="flex items-center justify-center py-4.5 mb-2">
           <h1 className="text-white text-xl font-bold">Dashboard</h1>
         </div>
 
@@ -132,10 +193,10 @@ function SideBar({ open, setOpen }) {
           mode="inline"
           selectedKeys={[selectedKey]}
           onClick={handleMenuClick}
-          items={menuItems}
+          items={menuItems.filter((item) => !item.hidden)}
           style={{
             backgroundColor: sidebarColor,
-            borderRight: "none"
+            borderRight: "none",
           }}
         />
       </Sider>
@@ -148,13 +209,8 @@ function SideBar({ open, setOpen }) {
         closable={false}
         onClose={() => setOpen(false)}
         styles={{
-          body: {
-            padding: 0,
-            backgroundColor: sidebarColor
-          },
-          header: {
-            backgroundColor: sidebarColor
-          }
+          body: { padding: 0, backgroundColor: sidebarColor },
+          header: { backgroundColor: sidebarColor },
         }}
         title={<span className="text-white font-bold">Dashboard</span>}
       >
@@ -163,9 +219,9 @@ function SideBar({ open, setOpen }) {
           mode="inline"
           selectedKeys={[selectedKey]}
           onClick={handleMenuClick}
-          items={menuItems}
+          items={menuItems.filter((item) => !item.hidden)}
           style={{
-            backgroundColor: sidebarColor
+            backgroundColor: sidebarColor,
           }}
         />
       </Drawer>

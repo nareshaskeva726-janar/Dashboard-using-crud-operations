@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// Helper
-const getUnreadCount = (notifications) =>
-  notifications.filter((n) => !n.isRead).length;
+/* ---------------- UNREAD COUNT HELPER ---------------- */
+const getUnreadCount = (notifications = []) =>
+  notifications.filter((n) => n?.isRead === false).length;
 
+/* ---------------- SLICE ---------------- */
 const notificationSlice = createSlice({
   name: "notification",
   initialState: {
@@ -12,64 +13,66 @@ const notificationSlice = createSlice({
   },
 
   reducers: {
-    //  SET (API → FULL DATA)
+    /* SET ALL NOTIFICATIONS (API LOAD) */
     setNotifications: (state, action) => {
       state.notifications = action.payload || [];
       state.unreadCount = getUnreadCount(state.notifications);
     },
 
-    //  ADD (SOCKET → SINGLE)
+    /* SOCKET NEW NOTIFICATION */
     addNotification: (state, action) => {
-      const exists = state.notifications.find(
-        (n) => n._id === action.payload._id
+      const newNotif = action.payload;
+
+      const exists = state.notifications.some(
+        (n) => n._id?.toString() === newNotif._id?.toString()
       );
 
       if (!exists) {
-        state.notifications.unshift(action.payload);
-        state.unreadCount = getUnreadCount(state.notifications);
+        state.notifications.unshift(newNotif);
+
+        // faster unread update
+        if (!newNotif.isRead) state.unreadCount++;
       }
     },
 
-    //  MERGE (SOCKET OFFLINE DATA)
+    /* MERGE API + SOCKET DATA */
     mergeNotifications: (state, action) => {
       const incoming = action.payload || [];
 
-      incoming.forEach((newNotif) => {
-        const exists = state.notifications.find(
-          (n) => n._id === newNotif._id
-        );
+      const existingIds = new Set(
+        state.notifications.map((n) => n._id)
+      );
 
-        if (!exists) {
-          state.notifications.unshift(newNotif);
+      incoming.forEach((notif) => {
+        if (!existingIds.has(notif._id)) {
+          state.notifications.unshift(notif);
         }
       });
 
       state.unreadCount = getUnreadCount(state.notifications);
     },
 
-    //  MARK SINGLE
+    /* MARK SINGLE READ */
     markAsRead: (state, action) => {
       const notif = state.notifications.find(
-        (n) => n._id === action.payload
+        (n) => n._id?.toString() === action.payload?.toString()
       );
 
-      if (notif) {
+      if (notif && !notif.isRead) {
         notif.isRead = true;
+        state.unreadCount = Math.max(0, state.unreadCount - 1);
       }
-
-      state.unreadCount = getUnreadCount(state.notifications);
     },
 
-    //  MARK ALL
+    /* MARK ALL READ */
     markAllAsRead: (state) => {
       state.notifications.forEach((n) => {
-        n.isRead = true;
+        if (!n.isRead) n.isRead = true;
       });
-
       state.unreadCount = 0;
     },
 
-    //  CLEAR (logout)
+    /* CLEAR ON LOGOUT */
     clearNotifications: (state) => {
       state.notifications = [];
       state.unreadCount = 0;
@@ -77,10 +80,11 @@ const notificationSlice = createSlice({
   },
 });
 
+/* ---------------- EXPORTS ---------------- */
 export const {
   setNotifications,
   addNotification,
-  mergeNotifications, 
+  mergeNotifications,
   markAsRead,
   markAllAsRead,
   clearNotifications,

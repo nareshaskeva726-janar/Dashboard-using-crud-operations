@@ -4,34 +4,33 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import http from "http";
 import { Server } from "socket.io";
-
 import connectDB from "./config/database.js";
 import Userrouter from "./routes/userRoutes.js";
-import Messagerouter from "./routes/messageRoutes.js";
-import projectRouter from "./routes/projectRoutes.js";
-import notificationRouter from "./routes/notficationRoutes.js";
-import attendanceRouter from "./routes/attendanceRoutes.js";
-
-//  IMPORT SOCKET HANDLER
-import socketHandler from "./socket/ChatSocket.js";
+import socketHandler from "./socket/chatSocket.js";
 import NotificationSocket from "./socket/notificationSocket.js";
-import startMorningReminder from "./lib/morningReminder.js";
 import reminderRouter from "./routes/reminderRoutes.js";
+import seedRouter from "./routes/seedRoutes.js";
+import NotificationRouter from "./routes/notficationRoutes.js";
+import Projectrouter from "./routes/assignmentRoutes.js";
+import AttendanceRouter from "./routes/attendanceRoutes.js";
+import ChatRouter from "./routes/chatRoutes.js";
+// import { startPeriodCron } from "./cron/periodCron.js";
 
-
-
+//DOTENV CONFIGURATION
 dotenv.config();
 const PORT = process.env.PORT || 5000;
 
+//EXPRESS TO SOCKET
 const app = express();
 const server = http.createServer(app);
 
-// ================== MIDDLEWARE ==================
+//MIDDLEWARE
 app.use("/upload", express.static("upload"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+//ALLOW BY CORS
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -39,25 +38,26 @@ app.use(
   })
 );
 
-// ================== DB ==================
+//DATABASE
 connectDB();
 
+//API ENDPOINTS
+app.use("/api/seed", seedRouter);
+app.use("/api/users", Userrouter);
+app.use("/api/chat", ChatRouter);
+app.use("/api/projects", Projectrouter);
+app.use("/api/notifications", NotificationRouter);
+app.use("/api/attendance", AttendanceRouter);
+app.use("/api/reminders", reminderRouter);
 
 
-// ================== ROUTES ==================
-app.use("/api", Userrouter);
-app.use("/api", Messagerouter);
-app.use("/api", projectRouter);
-app.use("/api/notifications", notificationRouter);
-app.use("/api/attendance", attendanceRouter)
-app.use("/api", reminderRouter);
-
-
+//API ENDPOINT TEST
 app.get("/", (req, res) => {
   res.status(200).send("API WORKING SUCCESSFULLY!");
 });
 
-// SOCKET.IO
+
+// SOCKET.IO GLOBAL
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
@@ -66,16 +66,20 @@ const io = new Server(server, {
   },
 });
 
-// ✅ Make io available in controllers
+//GLOBAL IO SOCKET
 app.set("io", io);
 
+
+// SOCKET FUNCTIONS
 socketHandler(io);
 NotificationSocket(io);
-
-// cron
-startMorningReminder();
 
 // SERVER 
 server.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+
+//CRON FOR PERIOD!
+// startPeriodCron((periodIndex)=> {
+//   console.log("Now The period is :" , periodIndex);
+// })

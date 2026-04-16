@@ -1,33 +1,66 @@
 import express from "express";
 import {
   markAttendance,
-  getMyAttendance,
-  getAttendanceByDateSubject,
-  updateAttendance,
   deleteAttendance,
-  checkAttendance,
+  updateAttendance,
+  getAllAttendance,
+  getMyAttendance,
   getMonthlySummary,
 } from "../controllers/attendanceController.js";
 
 import userAuth from "../middleware/authMiddleware.js";
+import {checkRole} from "../middleware/checkRole.js";
 
-const attendanceRouter = express.Router();
+const AttendanceRouter = express.Router();
 
-//  POST
-attendanceRouter.post("/mark", userAuth, markAttendance);
+//mark attendance
+AttendanceRouter.post(
+  "/mark",
+  userAuth,
+  checkRole("staff"),
+  markAttendance
+);
 
 
-attendanceRouter.get("/my", userAuth, getMyAttendance);
-attendanceRouter.get("/check", userAuth, checkAttendance);
-attendanceRouter.get("/monthly-summary", userAuth, getMonthlySummary);
+//update attendance
+AttendanceRouter.put(
+  "/:id",
+  userAuth,
+  checkRole("staff", "admin", "superadmin"),
+  updateAttendance
+);
+
+//delete attendance
+AttendanceRouter.delete(
+  "/:id",
+  userAuth,
+  checkRole("staff", "admin", "superadmin"),
+  deleteAttendance
+);
 
 
-attendanceRouter.get("/", userAuth, getAttendanceByDateSubject);
+//all attendance
+AttendanceRouter.get(
+  "/",
+  userAuth,
+  checkRole("staff", "admin", "superadmin"),
+  getAllAttendance
+);
 
-// UPDATE
-attendanceRouter.put("/:id", userAuth, updateAttendance);
+//my attendance
+AttendanceRouter.get(
+  "/my",
+  userAuth,
+  checkRole("student"),
+  getMyAttendance
+);
 
-// DELETE
-attendanceRouter.delete("/", userAuth, deleteAttendance);
+//monthly summary
+AttendanceRouter.get(
+  "/summary",
+  userAuth,
+  checkRole("student", "staff", "admin", "superadmin"),
+  getMonthlySummary
+);
 
-export default attendanceRouter;
+export default AttendanceRouter;

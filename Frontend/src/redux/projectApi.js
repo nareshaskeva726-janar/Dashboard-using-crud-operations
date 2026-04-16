@@ -3,63 +3,97 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const projectApi = createApi({
   reducerPath: "projectApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/", 
+    baseUrl: "http://localhost:5000/api",
     credentials: "include",
   }),
-
-  tagTypes: ["Projects", "MyProjects", "Pending"],
-
+  tagTypes: ["Project"],
   endpoints: (builder) => ({
-
-    // Submit a project (student)
-    submitProject: builder.mutation({
-      query: (formData) => ({
-        url: "submit-project",
-        method: "POST",
-        body: formData,
-      }),
-      invalidatesTags: ["Projects", "MyProjects", "Pending"],
-    }),
-
-    // Get projects submitted by logged-in student
-    getMyProjects: builder.query({
-      query: () => "my-projects",
-      providesTags: ["MyProjects"],
-    }),
-
-    // Get all projects (staff)
-    getProjects: builder.query({
-      query: () => "all-projects",
-      providesTags: ["Projects"],
-    }),
-
-
-    // Get pending students for staff
-    getPendingStudents: builder.query({
-      query: () => "getpendingprojects",
-      providesTags: ["Pending"],
-    }),
-    
-
-    // Send reminder to pending students (staff)
-    sendReminder: builder.mutation({
-
+    // ================= STAFF =================
+    announceProject: builder.mutation({
       query: (data) => ({
-        url: "send-reminder", // MUST MATCH projectRouter
+        url: "/projects/announce",
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Pending"],
+      invalidatesTags: ["Project"],
+    }),
+    getPendingStudents: builder.query({
+      query: () => "/projects/pending-students",
+      providesTags: ["Project"],
+    }),
+    staffReminder: builder.mutation({
+      query: (data) => ({
+        url: "/projects/staff-reminder",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    getStaffProjects: builder.query({
+      query: () => "/projects/staff-projects",
+      providesTags: ["Project"],
+    }),
+
+    getAdminProjects: builder.query({
+      query: () => "/projects/get-admin-projects",
+      providesTags: ["Project"],
+    }),
+
+    // ================= STUDENT =================
+    submitProject: builder.mutation({
+      query: (data) => ({
+        url: "/projects/submit",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Project"],
+    }),
+
+
+    getMyProjects: builder.query({
+      query: () => "/projects/my-projects",
+      providesTags: ["Project"],
+    }),
+
+    // ================= SUPERADMIN =================
+    getAllProjectsSuperadmin: builder.query({
+      query: () => "/projects/all-projects-superadmin",
+      providesTags: ["Project"],
+    }),
+
+    superadminWarning: builder.mutation({
+      query: (data) => ({
+        url: "/projects/superadmin-warning",
+        method: "POST",
+        body: data,
+      }),
+    }),
+
+    // ================= ADMIN =================
+    hodReminder: builder.mutation({
+      query: (data) => ({
+        url: "/projects/hod-reminder",
+        method: "POST",
+        body: data,
+      }),
     }),
   }),
 });
 
-
-// Export hooks for usage in components
 export const {
-  useSubmitProjectMutation,
-  useGetProjectsQuery,
-  useGetMyProjectsQuery,
+
+  useGetAllProjectsSuperadminQuery,
+  useAnnounceProjectMutation,
+
   useGetPendingStudentsQuery,
-  useSendReminderMutation,
+  useStaffReminderMutation,
+
+  useGetAdminProjectsQuery,
+
+  useGetStaffProjectsQuery,
+  useSubmitProjectMutation,
+
+  useGetMyProjectsQuery,
+  useHodReminderMutation,
+
+  useSuperadminWarningMutation,
 } = projectApi;

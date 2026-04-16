@@ -1,32 +1,30 @@
 import express from "express";
 import {
-  addUser,
-  getUsers,
-  getUser,
   updateUser,
   deleteUser,
   loginUser,
   resetPassword,
-  registerUser,
-  getMe
+  // registerUser,
+  getMe,
+  createUser,
+  getAllUsers,
 } from "../controllers/userControllers.js";
 import userAuth from "../middleware/authMiddleware.js";
 
-const router = express.Router();
+const Userrouter = express.Router();
 
-// Public Routes
-router.post("/register", registerUser);
-router.post("/login", loginUser);
-router.post("/resetPassword", resetPassword);
+Userrouter.post("/login", loginUser);
 
-// Protected Routes (require authentication)
-router.use(userAuth); // All routes below are protected
+Userrouter.post("/resetPassword", resetPassword);
 
-router.post("/addUser", addUser);
-router.get("/users", getUsers);
-router.get("/user/:id", getUser);
-router.put("/updateUser/:id", updateUser);
-router.delete("/deleteUser/:id", deleteUser);
-router.get("/me", getMe);
+Userrouter.post("/addUser",userAuth, createUser);
 
-export default router;
+Userrouter.get("/users",userAuth, getAllUsers);
+
+Userrouter.put("/updateUser/:id",userAuth, updateUser);
+
+Userrouter.delete("/deleteUser/:id",userAuth, deleteUser);
+
+Userrouter.get("/me",userAuth,  getMe);
+
+export default Userrouter;

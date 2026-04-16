@@ -3,6 +3,7 @@ import { useState } from "react";
 import { CloseOutlined } from "@ant-design/icons";
 
 import { useResetPasswordMutation } from "../redux/userApi";
+import { toast } from "react-hot-toast";
 
 
 
@@ -15,10 +16,6 @@ function Settings() {
 
   const user = JSON.parse(localStorage.getItem("user")) || {};
 
-
-
-
-
   const updatePassword = async (values) => {
 
     try {
@@ -30,7 +27,10 @@ function Settings() {
 
       const res = await resetPassword(payload).unwrap();
 
-      message.success(res.message || "Password Updated");
+      toast.success(res.message || "Password Updated", {
+        position: "top-center",
+        duration: 5000,
+      });
 
       form.resetFields();
       setShowForm(false);

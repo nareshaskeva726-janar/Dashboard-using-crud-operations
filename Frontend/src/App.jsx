@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
-import StartRoute from "./route/StartRoute";
 import { Toaster } from "react-hot-toast";
+import { ToastContainer} from 'react-toastify';
 
 import { useCheckAuthQuery } from "./redux/userApi";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "./redux/authSlice";
+import LayoutRouter from "./route/LayoutRouter";
 
 const App = () => {
 
@@ -22,7 +23,8 @@ const App = () => {
   return (
     <BrowserRouter>
       <Toaster />
-      <StartRoute />
+      <ToastContainer />
+      <LayoutRouter />
     </BrowserRouter>
   );
 };

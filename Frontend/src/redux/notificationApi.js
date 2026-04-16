@@ -2,63 +2,58 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const notificationApi = createApi({
   reducerPath: "notificationApi",
+
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/notifications",
-    credentials: "include",
+    baseUrl: "http://localhost:5000/api",
+
+    // ⭐ IMPORTANT
+    credentials: "include", // cookies send automatically
   }),
+
   tagTypes: ["Notification"],
 
   endpoints: (builder) => ({
-    // ✅ SEND
+
+    //  GET Notifications
+    getNotifications: builder.query({
+      query: () => "/notifications/",
+      providesTags: ["Notification"],
+    }),
+
+    //  SEND Notification
     sendNotification: builder.mutation({
       query: (data) => ({
-        url: "/send",
+        url: "/notifications/send",
         method: "POST",
         body: data,
       }),
       invalidatesTags: ["Notification"],
     }),
 
-    // ✅ GET
-    getNotifications: builder.query({
-      query: () => "/",
-      providesTags: (result) =>
-        result?.notifications
-          ? [
-              ...result.notifications.map((n) => ({
-                type: "Notification",
-                id: n._id,
-              })),
-              { type: "Notification", id: "LIST" },
-            ]
-          : [{ type: "Notification", id: "LIST" }],
-    }),
-
-    // ✅ MARK ALL READ
-    markNotificationsRead: builder.mutation({
+    //  Mark All Read
+    markAllRead: builder.mutation({
       query: () => ({
-        url: "/mark-read",
+        url: "/notifications/mark-all-read",
         method: "PUT",
       }),
-      invalidatesTags: [{ type: "Notification", id: "LIST" }],
+      invalidatesTags: ["Notification"],
     }),
 
-    // ✅ MARK SINGLE READ
-    markSingleNotificationRead: builder.mutation({
+    // ✅ Mark Single Read
+    markSingleRead: builder.mutation({
       query: (id) => ({
-        url: `/mark-read/${id}`,
+        url: `/notifications/mark-read/${id}`,
         method: "PUT",
       }),
-      invalidatesTags: (result, error, id) => [
-        { type: "Notification", id },
-      ],
+      invalidatesTags: ["Notification"],
     }),
+
   }),
 });
 
 export const {
-  useSendNotificationMutation,
   useGetNotificationsQuery,
-  useMarkNotificationsReadMutation,
-  useMarkSingleNotificationReadMutation,
+  useSendNotificationMutation,
+  useMarkAllReadMutation,
+  useMarkSingleReadMutation,
 } = notificationApi;

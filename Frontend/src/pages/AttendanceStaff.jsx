@@ -1,239 +1,298 @@
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons"
-
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  Button,
-  Card,
   Table,
-  Radio,
+  Card,
+  Typography,
+  Tag,
+  Tabs,
+  Select,
+  DatePicker,
+  Button,
   Row,
   Col,
-  Statistic,
   Divider,
-  Popconfirm,
+  Spin,
   message,
 } from "antd";
+
+import dayjs from "dayjs";
+
 import {
-  useGetUsersQuery,
-  useCheckAuthQuery,
-} from "../redux/userApi";
-import {
-  useCheckAttendanceQuery,
   useMarkAttendanceMutation,
-  useDeleteAttendanceMutation,
+  useGetAllAttendanceQuery,
   useGetMonthlySummaryQuery,
 } from "../redux/attendanceApi";
 
+import {
+  useCheckAuthQuery,
+  useGetUsersQuery,
+} from "../redux/userApi";
+
+const { Title } = Typography;
+const { Option } = Select;
+
 const AttendanceStaff = () => {
-  const { data: usersData } = useGetUsersQuery();
-  const { data: authData } = useCheckAuthQuery();
 
-  const [markAttendance] = useMarkAttendanceMutation();
-  const [deleteAttendance] = useDeleteAttendanceMutation();
+  /* ================= AUTH ================= */
+  const { data: authData, isLoading: authLoading } =
+    useCheckAuthQuery();
 
-  const today = new Date();
-  const month = today.getMonth() + 1;
-  const year = today.getFullYear();
-  const todayISO = today.toLocaleDateString("en-CA");
-  const todayDayName = today.toLocaleDateString("en-US", { weekday: "long" });
-  const day = today.getDay();
+  const staff = authData?.user || {};
+  const department = staff?.department || "";
+  const staffSubjects = staff?.subjects || [];
 
-  const subjectSchedule = { 1: "Java", 2: "Python", 3: "C", 4: "C++", 5: "DataScience" };
-  const todaySubject = day === 0 || day === 6 ? "" : subjectSchedule[day];
+  /* ================= USERS ================= */
+  const { data: usersData, isLoading: usersLoading } =
+    useGetUsersQuery();
 
-  // Fetch existing attendance for today
+  const users =
+    usersData?.users ||
+    usersData?.data?.users ||
+    usersData ||
+    [];
+
+  const students = useMemo(() => {
+    return users.filter(
+      (u) =>
+        u.role === "student" &&
+        u.department === department
+    );
+  }, [users, department]);
+
+  /* ================= STATE ================= */
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [selectedSubject, setSelectedSubject] = useState();
+  const [selectedPeriod, setSelectedPeriod] = useState("1");
+
+  // local attendance state
+  const [attendance, setAttendance] = useState({});
+
+  /* ================= API ================= */
+  const [markAttendance, { isLoading: marking }] =
+    useMarkAttendanceMutation();
+
+  const month = selectedDate.month() + 1;
+  const year = selectedDate.year();
+
+  const { data: summaryData, isLoading: summaryLoading } =
+    useGetMonthlySummaryQuery(
+      { month, year, department },
+      { skip: !department }
+    );
+
+    console.log(summaryData, "summarydata")
+
   const {
-    data: checkData,
-    isLoading: checkLoading,
-    refetch: refetchAttendance,
-  } = useCheckAttendanceQuery(todaySubject, {
-    skip: !todaySubject,
-    refetchOnMountOrArgChange: true,
-  });
+    data: attendanceData,
+    isLoading: attendanceLoading,
+  } = useGetAllAttendanceQuery(
+    {
+      department,
+      subject: selectedSubject,
+      date: selectedDate.format("YYYY-MM-DD"),
+    },
+    { skip: !selectedSubject }
+  );
 
-  // Fetch monthly summary
-  const { data: summaryData } = useGetMonthlySummaryQuery({ month, year });
+  /* ================= LOAD EXISTING ATTENDANCE ================= */
+  React.useEffect(() => {
+    if (!attendanceData?.data) return;
 
-  // Build student attendance table data
-  const attendanceData = useMemo(() => {
-    if (!usersData?.users || !authData?.user || !todaySubject) return [];
-
-    const studentsOnly = usersData.users.filter((u) => u.role === "student");
-
-    return studentsOnly.map((student) => {
-      const existingRecord = checkData?.records?.find(
-        (r) => r.studentId === student._id
-      );
-      return {
-        _id: student._id,
-        studentId: student._id,
-        StudentName: student.name,
-        status: existingRecord?.status || "Present", // default Present
-      };
+    const map = {};
+    attendanceData.data.forEach((rec) => {
+      map[rec.studentId._id] = rec.status;
     });
-  }, [usersData, authData, checkData, todaySubject]);
 
-  // Determine if attendance is already submitted
-  const isSubmitted = !!checkData?.submitted;
+    setAttendance(map);
+  }, [attendanceData]);
 
-  // Only allow staff from the same department to mark attendance
-  const canAccess = authData?.user?.department === todaySubject;
-  const canSubmit = !!todaySubject && canAccess && !isSubmitted;
-
-  // Handle marking a student present/absent
-  const handleAttendanceChange = (id, status) => {
-    const record = attendanceData.find((s) => s._id === id);
-    if (record) record.status = status; // mutate local array for instant UI update
+  /* ================= SELECT STATUS ================= */
+  const setStatus = (studentId, status) => {
+    setAttendance((prev) => ({
+      ...prev,
+      [studentId]: status,
+    }));
   };
 
-  // Mark all present
-  const markAllPresent = () => {
-    attendanceData.forEach((s) => (s.status = "Present"));
-  };
-
-  // Submit attendance
+  /* ================= SAVE ATTENDANCE ================= */
   const handleSubmit = async () => {
-    if (!canSubmit) return;
+    if (!selectedSubject)
+      return message.warning("Select subject");
+
+    const records = students.map((s) => ({
+      studentId: s._id,
+      status: attendance[s._id] || "absent",
+    }));
 
     try {
       await markAttendance({
-        students: attendanceData.map((s) => ({ studentId: s.studentId, status: s.status })),
+        subject: selectedSubject,
+        period: selectedPeriod,
+        date: selectedDate.format("YYYY-MM-DD"),
+        records,
       }).unwrap();
 
-      message.success("Attendance submitted successfully!");
-      refetchAttendance(); // refresh data immediately
-    } catch {
-      message.error("Submit failed!");
+      message.success("Attendance Saved ✅");
+    } catch (err) {
+      message.error(err?.data?.message);
     }
   };
 
-  // Delete attendance
-  const handleDeleteAttendance = async () => {
-    try {
-      await deleteAttendance({ date: todayISO, subject: todaySubject }).unwrap();
-      message.success("Attendance deleted!");
-      refetchAttendance(); // refresh data immediately
-    } catch {
-      message.error("Delete failed!");
-    }
-  };
-
-  // Compute today's summary
-  const summaryToday = useMemo(() => {
-    let present = 0;
-    let absent = 0;
-
-    attendanceData.forEach((s) => {
-      if (s.status === "Present") present++;
-      else absent++;
-    });
-
-    const total = present + absent;
-    const percentage = total ? ((present / total) * 100).toFixed(1) : 0;
-
-    return { total, present, absent, percentage };
-  }, [attendanceData]);
-
-  const columns = [
-    { title: "Student Name", dataIndex: "StudentName" },
+  /* ================= TABLE ================= */
+  const markColumns = [
     {
-      title: "Attendance",
+      title: "Student",
+      dataIndex: "name",
+    },
+    {
+      title: "Status",
       render: (_, record) => (
-        <Radio.Group
-          value={record.status}
-          onChange={(e) => handleAttendanceChange(record._id, e.target.value)}
+        <Select
+          value={attendance[record._id]}
+          style={{ width: 140 }}
+          onChange={(v) => setStatus(record._id, v)}
         >
-          <Radio value="Present">Present</Radio>
-          <Radio value="Absent">Absent</Radio>
-        </Radio.Group>
+          <Option value="present">Present</Option>
+          <Option value="absent">Absent</Option>
+        </Select>
       ),
     },
   ];
 
-  if (checkLoading) return <p>Loading today's attendance...</p>;
+  const recordColumns = [
+    {
+      title: "Student",
+      dataIndex: ["studentId", "name"],
+    },
+    {
+      title: "Subject",
+      dataIndex: "subject",
+    },
+    {
+      title: "Date",
+      dataIndex: "date",
+      render: (d) => dayjs(d).format("DD MMM YYYY"),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      render: (s) =>
+        s === "present" ? (
+          <Tag color="green">Present</Tag>
+        ) : (
+          <Tag color="red">Absent</Tag>
+        ),
+    },
+  ];
+
+  if (authLoading || usersLoading)
+    return <Spin fullscreen />;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {summaryData?.summary && (
-        <Card className="mb-6">
-          <h2>Monthly Summary ({month}/{year})</h2>
-          <Row gutter={[16, 16]}>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Statistic title="Total Days" value={summaryData.summary.totalDays} />
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Statistic title="Present" value={summaryData.summary.present} />
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Statistic title="Absent" value={summaryData.summary.absent} />
-            </Col>
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Statistic title="Leave" value={summaryData.summary.leave} />
-            </Col>
-          </Row>
-          <Row gutter={[16, 16]} className="mt-2">
-            <Col xs={24} sm={12} md={12} lg={6}>
-              <Statistic title="Attendance %" value={summaryData.summary.percentage} suffix="%" />
-            </Col>
-          </Row>
-        </Card>
-      )}
+    <div style={{ padding: 24 }}>
+      <Title level={3}>📘 Staff Attendance</Title>
 
-      <Card>
-        <h2>Staff Attendance Panel</h2>
-        <p>Date: {today.toLocaleDateString()}</p>
-        <p>Day: {todayDayName}</p>
-        <p>Subject: {todaySubject || "N/A"}</p>
+      {/* CONTROLS */}
+      <Card style={{ marginBottom: 20 }}>
+        <Row gutter={16}>
+          <Col span={6}>
+            <DatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
+              style={{ width: "100%" }}
+            />
+          </Col>
 
-        <Divider>Today's Summary</Divider>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center border border-gray-200 p-6 rounded-lg">
-          <div className="flex flex-col text-gray-500">
-            <span>Total</span>
-            <span className="text-2xl font-semibold">{summaryToday.total}</span>
-          </div>
-          <div className="flex flex-col text-gray-500">
-            <span>Present</span>
-            <span className="text-2xl font-semibold">{summaryToday.present}</span>
-          </div>
-          <div className="flex flex-col text-gray-500">
-            <span>Absent</span>
-            <span className="text-2xl font-semibold">{summaryToday.absent}</span>
-          </div>
-          <div className="flex flex-col text-gray-500">
-            <span>Percentage</span>
-            <span className="text-2xl font-semibold">{summaryToday.percentage}</span>
-          </div>
-        </div>
+          <Col span={6}>
+            <Select
+              placeholder="Subject"
+              value={selectedSubject}
+              onChange={setSelectedSubject}
+              style={{ width: "100%" }}
+            >
+              {staffSubjects.map((s) => (
+                <Option key={s}>{s}</Option>
+              ))}
+            </Select>
+          </Col>
 
-        <Divider>Mark Attendance</Divider>
-        {!canAccess ? (
-          <p className="text-red-500">Today is not your subject.</p>
-        ) : !isSubmitted ? (
-          <>
-            <Button className="mb-4" onClick={markAllPresent}>Mark All Present</Button>
-            <Table columns={columns} dataSource={attendanceData} rowKey="_id" />
-            <Button className="mt-4" type="primary" onClick={handleSubmit}>
-              Submit
+          <Col span={6}>
+            <Select
+              value={selectedPeriod}
+              onChange={setSelectedPeriod}
+              style={{ width: "100%" }}
+            >
+              {[1,2,3,4,5,6].map((p) => (
+                <Option key={p} value={String(p)}>
+                  Period {p}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+
+          <Col span={6}>
+            <Button
+              type="primary"
+              block
+              loading={marking}
+              onClick={handleSubmit}
+            >
+              Save Attendance
             </Button>
-          </>
-        ) : (
-          <div className="flex justify-between mt-4 items-center">
-            <p className="text-green-600 text-lg">Today's Attendance Recorded</p>
-
-            <div className="flex gap-5 items-center">
-
-         
-
-              <Popconfirm title="Delete attendance?" onConfirm={handleDeleteAttendance}>
-                <div className="flex gap-1  cursor-pointer">
-                  <DeleteOutlined style={{ color: "red", }} /> <p className="text-red-500">Delete</p>
-                </div>
-              </Popconfirm>
-
-            </div>
-          </div>
-        )}
+          </Col>
+        </Row>
       </Card>
+
+      <Tabs
+        items={[
+          {
+            key: "1",
+            label: "Mark Attendance",
+            children: (
+              <Table
+                rowKey="_id"
+                dataSource={students}
+                columns={markColumns}
+                pagination={false}
+              />
+            ),
+          },
+          {
+            key: "2",
+            label: "Monthly Summary",
+            children: (
+              <Table
+                loading={summaryLoading}
+                dataSource={summaryData?.data || []}
+                rowKey="_id"
+                pagination={false}
+                columns={[
+                  { title: "Student", dataIndex: "studentName" },
+                  { title: "Present", dataIndex: "present" },
+                  { title: "Absent", dataIndex: "absent" },
+                  {
+                    title: "Percentage",
+                    dataIndex: "percentage",
+                    render: (p) => `${p?.toFixed(1)}%`,
+                  },
+                ]}
+              />
+            ),
+          },
+          {
+            key: "3",
+            label: "All Records",
+            children: (
+              <Table
+                loading={attendanceLoading}
+                dataSource={attendanceData?.data || []}
+                rowKey="_id"
+                columns={recordColumns}
+              />
+            ),
+          },
+        ]}
+      />
     </div>
   );
 };

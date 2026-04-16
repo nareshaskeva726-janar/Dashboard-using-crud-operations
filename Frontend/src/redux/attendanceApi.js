@@ -4,84 +4,86 @@ export const attendanceApi = createApi({
   reducerPath: "attendanceApi",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api",
+    baseUrl: "http://localhost:5000/api/attendance",
     credentials: "include",
   }),
 
-  tagTypes: ["Attendance"],
+  tagTypes: ["Attendance", "Summary"],
 
   endpoints: (builder) => ({
 
-  
+    /* =========================================
+       MARK ATTENDANCE (STAFF)
+    ========================================= */
     markAttendance: builder.mutation({
       query: (data) => ({
-        url: "/attendance/mark",
+        url: "/mark",
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["Attendance"],
+      invalidatesTags: ["Attendance", "Summary"],
     }),
 
-
-    checkAttendance: builder.query({
-      query: () => "/attendance/check",
-      providesTags: ["Attendance"],
-      keepUnusedDataFor: 60,
+    /* =========================================
+       UPDATE ATTENDANCE
+    ========================================= */
+    updateAttendance: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `/${id}`,
+        method: "PUT",
+        body: { status },
+      }),
+      invalidatesTags: ["Attendance", "Summary"],
     }),
 
-    getMonthlySummary: builder.query({
-      query: ({ month, year }) =>
-        `/attendance/monthly-summary?month=${month}&year=${year}`,
-      providesTags: ["Attendance"], 
-      keepUnusedDataFor: 60,
-    }),
-
-
-    
+    /* =========================================
+       DELETE ATTENDANCE
+    ========================================= */
     deleteAttendance: builder.mutation({
-      query: ({ date, subject }) => ({
-        url: `/attendance?date=${date}&subject=${subject}`,
+      query: (id) => ({
+        url: `/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Attendance"],
+      invalidatesTags: ["Attendance", "Summary"],
     }),
 
-    
+    /* =========================================
+       GET ALL ATTENDANCE
+    ========================================= */
+    getAllAttendance: builder.query({
+      query: () => "/",
+      providesTags: ["Attendance"],
+    }),
+
+    /* =========================================
+       STUDENT → MY ATTENDANCE
+    ========================================= */
     getMyAttendance: builder.query({
-      query: () => "/attendance/my",
-      providesTags: ["Attendance"], 
-      keepUnusedDataFor: 60,
-    }),
-
-   
-    
-    getAttendanceByDateSubject: builder.query({
-      query: ({ date, subject }) =>
-        `/attendance?date=${date}&subject=${subject}`,
-      providesTags: ["Attendance"], 
-      keepUnusedDataFor: 60,
-    }),
-
-    
-
-    updateAttendance: builder.mutation({
-      query: ({ id, students }) => ({
-        url: `/attendance/${id}`,
-        method: "PUT",
-        body: { students },
+      query: (params) => ({
+        url: "/my",
+        params,
       }),
-      invalidatesTags: ["Attendance"], 
+      providesTags: ["Attendance"],
     }),
 
+    /* =========================================
+       MONTHLY SUMMARY
+    ========================================= */
+    getMonthlySummary: builder.query({
+      query: ({ month, year }) => ({
+        url: "/summary",
+        params: { month, year },
+      }),
+      providesTags: ["Summary"],
+    }),
   }),
 });
 
 export const {
   useMarkAttendanceMutation,
-  useGetMyAttendanceQuery,
-  useGetMonthlySummaryQuery,
-  useGetAttendanceByDateSubjectQuery,
   useUpdateAttendanceMutation,
   useDeleteAttendanceMutation,
-  useCheckAttendanceQuery,
+  useGetAllAttendanceQuery,
+  useGetMyAttendanceQuery,
+  useGetMonthlySummaryQuery,
 } = attendanceApi;

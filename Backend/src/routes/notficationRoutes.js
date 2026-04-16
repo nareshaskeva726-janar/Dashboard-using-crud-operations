@@ -1,32 +1,23 @@
 import express from "express";
-import {
-  getNotifications,
-  markNotificationsRead,
-  markSingleNotificationRead,
-  sendNotifications,
-  sendReminderByDepartment,
-} from "../controllers/notificationController.js";
-import userAuth from "../middleware/authMiddleware.js";
 
-const notificationRouter = express.Router();
+import { sendNotifications, getNotifications, markAllRead, markSingleRead } from "../controllers/notificationController.js";
 
-// ✅ Send notification
-notificationRouter.post("/send", userAuth, sendNotifications);
+import useAuth from "../middleware/authMiddleware.js";
 
-// ✅ Get notifications
-notificationRouter.get("/", userAuth, getNotifications);
+const NotificationRouter = express.Router();
 
-// ✅ Mark single first (IMPORTANT ORDER)
-notificationRouter.put("/mark-read/:id", userAuth, markSingleNotificationRead);
+// SEND notification
+NotificationRouter.post("/send", sendNotifications);
 
-// ✅ Mark all
-notificationRouter.put("/mark-read", userAuth, markNotificationsRead);
+// GET notifications
+NotificationRouter.get("/", useAuth, getNotifications);
 
-// ✅ Send reminders
-notificationRouter.post(
-  "/projects/reminders",
-  userAuth,
-  sendReminderByDepartment
-);
+// MARK all read
+NotificationRouter.put("/mark-all-read", useAuth, markAllRead);
 
-export default notificationRouter;
+// MARK single read
+NotificationRouter.put("/mark-read/:id", useAuth, markSingleRead);
+
+export default NotificationRouter;
+
+

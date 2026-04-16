@@ -1,241 +1,367 @@
-import Attendance from "../models/attendance.js";
-import User from "../models/userModel.js";
-
+import mongoose from "mongoose";
+import Attendance from "../models/attendanceModel.js";
+import { getCurrentPeriod } from "../lib/getCurrentPeriod.js";
 
 export const markAttendance = async (req, res) => {
   try {
-    const { students } = req.body;
-    const staffId = req.user._id || req.user.id;
+    const staff = req.user;
 
-    const today = new Date();
-    const date = today.toLocaleDateString("en-CA"); // ✅ FIXED DATE
-    const day = today.getDay();
-
-    if (day === 0 || day === 6) {
-      return res.status(400).json({ message: "No attendance on weekends!" });
-    }
-
-    const subjectSchedule = {
-      1: "Java",
-      2: "Python",
-      3: "C",
-      4: "C++",
-      5: "DataScience",
-    };
-
-    const todaySubject = subjectSchedule[day];
-
-    const staff = await User.findById(staffId);
-
-    
+    /* ================= ROLE CHECK ================= */
     if (!staff || staff.role !== "staff") {
-      return res.status(403).json({ message: "Only staff allowed" });
+      return res.status(403).json({
+        success: false,
+        message: "Only staff allowed",
+      });
     }
 
-    if (staff.department !== todaySubject) {
-      return res.status(403).json({ message: "Not your subject today!" });
+    const { subject, date, students } = req.body;
+    console.log("BODY", req.body);
+
+    /* ================= VALIDATION ================= */
+    if (!subject || !date) {
+      return res.status(400).json({
+        success: false,
+        message: "subject and date are required",
+      });
     }
 
-    const existing = await Attendance.findOne({
-      date,
-      subject: todaySubject,
-      staffId,
+    if (!Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Students required",
+      });
+    }
+
+    console.log(students, 'students')
+
+    /* ================= SUBJECT AUTH ================= */
+    if (!staff.subjects?.includes(subject)) {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot mark this subject",
+      });
+    }
+
+    /* ================= CURRENT PERIOD ================= */
+    const period = getCurrentPeriod();
+    console.log(period, "period")
+
+    if (!period) {
+      return res.status(400).json({
+        success: false,
+        message: "No active period",
+      });
+    }
+
+    /* ================= NORMALIZE DATE ================= */
+    const attendanceDate = new Date(date);
+    attendanceDate.setHours(0, 0, 0, 0);
+
+    /* ================= BULK UPSERT ================= */
+    const operations = students
+      .filter((s) => s.studentId)
+      .map((s) => ({
+        updateOne: {
+          filter: {
+            studentId: new mongoose.Types.ObjectId(s.studentId),
+            subject,
+            period,
+            date: attendanceDate,
+          },
+          update: {
+            $set: {
+              status: s.status || "Absent",
+              markedBy: staff._id,
+              department: staff.department,
+              updatedAt: new Date(),
+            },
+            $setOnInsert: {
+              createdAt: new Date(),
+            },
+          },
+          upsert: true,
+        },
+      }));
+
+      console.log(operations, "operations")
+
+    if (!operations.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid student records found",
+      });
+    }
+
+    await Attendance.bulkWrite(operations);
+
+    /* ================= SUCCESS ================= */
+    return res.json({
+      success: true,
+      message: "Attendance marked successfully",
+      data: {
+        subject,
+        period,
+        date: attendanceDate,
+        total: operations.length,
+      },
     });
+  } catch (err) {
+    console.error("Mark Attendance Error:", err);
 
-    if (existing) {
-      return res.status(400).json({ message: "Already submitted!" });
-    }
-
-    const attendance = await Attendance.create({
-      date,
-      subject: todaySubject,
-      staffId,
-      students,
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
     });
-
-    res.status(201).json({ success: true, attendance });
-  } catch (error) {
-    console.error("Mark Attendance Error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
-
-export const getMyAttendance = async (req, res) => {
-  try {
-    const studentId = (req.user._id || req.user.id).toString();
-
-    const records = await Attendance.find().sort({ date: -1 });
-
-    const result = [];
-
-    records.forEach((record) => {
-      const studentData = record.students.find(
-        (s) => s.studentId.toString() === studentId // ✅ FIXED
-      );
-
-      // ✅ ONLY push if record exists for this student
-      if (studentData) {
-        result.push({
-          date: record.date,
-          subject: record.subject,
-          status: studentData.status,
-        });
-      }
-    });
-
-    res.status(200).json(result); // ✅ CLEAN RESPONSE
-  } catch (error) {
-    console.error("Get My Attendance Error:", error);
-    res.status(500).json({ message: "Error fetching attendance" });
   }
 };
 
 
-export const getAttendanceByDateSubject = async (req, res) => {
-  try {
-    const { date, subject } = req.query;
-
-    if (!date || !subject) {
-      return res.status(400).json({ message: "Date and subject required" });
-    }
-
-    const attendance = await Attendance.findOne({ date, subject }).populate(
-      "students.studentId",
-      "name email"
-    );
-
-    if (!attendance) {
-      return res.status(404).json({ message: "No attendance found" });
-    }
-
-    res.status(200).json(attendance);
-  } catch (error) {
-    console.error("Get Attendance Error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
 
 
-export const updateAttendance = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { students } = req.body;
-    const staffId = req.user._id;
 
-    const attendance = await Attendance.findOne({ _id: id, staffId });
-
-    if (!attendance) {
-      return res.status(404).json({ message: "Not found" });
-    }
-
-    attendance.students = students;
-    await attendance.save();
-
-    res.json({ success: true, attendance });
-  } catch (error) {
-    res.status(500).json({ message: "Error" });
-  }
-};
-
+//DELETE ATTENDANCE
 export const deleteAttendance = async (req, res) => {
   try {
-    const staffId = req.user._id;
-    const { date, subject } = req.query;
+    const attendance = await Attendance.findById(req.params.id);
 
-    const attendance = await Attendance.findOneAndDelete({
-      date,
-      subject,
-      staffId,
-    });
+    if (!attendance)
+      return res.status(404).json({
+        message: "Attendance not found",
+      });
 
-    if (!attendance) {
-      return res.status(404).json({ message: "Not found" });
-    }
+    const user = req.user;
 
-    res.json({ success: true });
-  } catch (error) {
-    console.error("Delete Error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+    let allowed = false;
 
+    if (user.role === "superadmin") allowed = true;
 
-export const checkAttendance = async (req, res) => {
-  try {
-    const staffId = req.user._id;
+    else if (user.role === "admin")
+      allowed = attendance.department === user.department;
 
-    const today = new Date();
-    const date = today.toLocaleDateString("en-CA"); // ✅ FIXED
-    const day = today.getDay();
+    else if (user.role === "staff")
+      allowed =
+        attendance.markedBy?.toString() === user._id.toString();
 
-    const subjectSchedule = {
-      1: "Java",
-      2: "Python",
-      3: "C",
-      4: "C++",
-      5: "DataScience",
-    };
+    if (!allowed)
+      return res.status(403).json({
+        message: "Not authorized",
+      });
 
-    const todaySubject = subjectSchedule[day];
-
-    const existing = await Attendance.findOne({
-      date,
-      subject: todaySubject,
-      staffId,
-    });
-
-    res.json({ submitted: !!existing });
-  } catch (error) {
-    res.status(500).json({ message: "Error" });
-  }
-};
-
-
-
-export const getMonthlySummary = async (req, res) => {
-  try {
-    const { month, year } = req.query;
-    const studentId = req.user._id.toString();
-
-    const start = `${year}-${month.padStart(2, "0")}-01`;
-    const end = `${year}-${month.padStart(2, "0")}-31`;
-
-    const records = await Attendance.find({
-      date: { $gte: start, $lte: end },
-    });
-
-    let totalDays = 0;
-    let present = 0;
-    let absent = 0;
-    let leave = 0;
-
-    records.forEach((record) => {
-      const studentData = record.students.find(
-        (s) => s.studentId.toString() === studentId
-      );
-
-      if (studentData) {
-        totalDays++;
-
-        if (studentData.status === "Present") present++;
-        else if (studentData.status === "Absent") absent++;
-        else if (studentData.status === "Leave") leave++;
-      }
-    });
-
-    const percentage = totalDays
-      ? ((present / totalDays) * 100).toFixed(1)
-      : 0;
+    await attendance.deleteOne();
 
     res.json({
-      totalDays,
-      present,
-      absent,
-      leave,
-      percentage,
+      success: true,
+      message: "Attendance deleted",
     });
-  } catch (error) {
-    console.error("Monthly Summary Error:", error);
-    res.status(500).json({ message: "Server error" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+//UPDATE ATTENDANCE
+export const updateAttendance = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["present", "absent"].includes(status))
+      return res.status(400).json({
+        message: "Invalid status",
+      });
+
+    const attendance = await Attendance.findById(req.params.id);
+
+    if (!attendance)
+      return res.status(404).json({
+        message: "Attendance not found",
+      });
+
+    const user = req.user;
+
+    let allowed = false;
+
+    if (user.role === "superadmin") allowed = true;
+
+    else if (user.role === "admin")
+      allowed = attendance.department === user.department;
+
+    else if (user.role === "staff")
+      allowed =
+        attendance.markedBy?.toString() === user._id.toString();
+
+    if (!allowed)
+      return res.status(403).json({
+        message: "Not authorized",
+      });
+
+    attendance.status = status;
+    await attendance.save();
+
+    res.json({
+      success: true,
+      message: "Attendance updated",
+      data: attendance,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+//GET ALL ATTENDANCE
+export const getAllAttendance = async (req, res) => {
+  try {
+    const user = req.user;
+    let filter = {};
+
+    if (user.role === "staff") {
+      filter = {
+        department: user.department,
+        markedBy: user._id,
+      };
+
+      if (user.subjects?.length)
+        filter.subject = { $in: user.subjects };
+    }
+
+    else if (user.role === "admin") {
+      filter.department = user.department;
+    }
+
+    // superadmin → no filter
+
+    const data = await Attendance.find(filter)
+      .populate("studentId", "name department email")
+      .populate("markedBy", "name department")
+      .sort({ date: -1 });
+
+    res.json({
+      success: true,
+      count: data.length,
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+//MY ATTENDANCE
+export const getMyAttendance = async (req, res) => {
+  try {
+    if (req.user.role !== "student")
+      return res.status(403).json({
+        message: "Students only",
+      });
+
+    const filter = {
+      studentId: req.user._id,
+    };
+
+    if (req.query.subject)
+      filter.subject = req.query.subject;
+
+    if (req.query.startDate && req.query.endDate) {
+      filter.date = {
+        $gte: new Date(req.query.startDate),
+        $lte: new Date(req.query.endDate),
+      };
+    }
+
+    const data = await Attendance.find(filter)
+      .populate("markedBy", "name email")
+      .sort({ date: -1 });
+
+    res.json({
+      success: true,
+      count: data.length,
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+//MONTHLY SUMMARY
+export const getMonthlySummary = async (req, res) => {
+  try {
+    const month = Number(req.query.month);
+    const year = Number(req.query.year);
+
+    if (!month || !year)
+      return res.status(400).json({
+        message: "Month & year required",
+      });
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    let match = {
+      date: { $gte: startDate, $lte: endDate },
+    };
+
+    const user = req.user;
+
+    if (user.role === "student")
+      match.studentId = user._id;
+
+    else if (user.role === "admin")
+      match.department = user.department;
+
+    else if (user.role === "staff")
+      match.markedBy = user._id;
+
+    const summary = await Attendance.aggregate([
+      { $match: match },
+
+      {
+        $group: {
+          _id: "$studentId",
+          total: { $sum: 1 },
+          present: {
+            $sum: {
+              $cond: [
+                { $eq: ["$status", "present"] },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "student",
+        },
+      },
+      { $unwind: "$student" },
+
+      {
+        $project: {
+          studentName: "$student.name",
+          department: "$student.department",
+          email: "$student.email",
+          total: 1,
+          present: 1,
+          absent: { $subtract: ["$total", "$present"] },
+          percentage: {
+            $multiply: [
+              { $divide: ["$present", "$total"] },
+              100,
+            ],
+          },
+        },
+      },
+    ]);
+
+    res.json({
+      success: true,
+      count: summary.length,
+      data: summary,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

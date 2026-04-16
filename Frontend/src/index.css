@@ -12,9 +12,9 @@
   align-items: center;
 }
 
-/* ::-webkit-scrollbar {
+::-webkit-scrollbar {
   display: none;
-} */
+}
 
 html {
   scroll-behavior: "smooth";
@@ -124,3 +124,8 @@ html {
 /* :where(.css-dev-only-do-not-override-1enej14).ant-badge{
   line-height: normal;
 } */
+
+.input::placeholder{
+  color: rgba(138, 173, 185, 0.603);
+
+}

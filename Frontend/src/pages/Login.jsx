@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useLoginUserMutation } from "../redux/userApi";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/authSlice";
+import {toast} from "react-hot-toast";
 
 function Login() {
   const navigate = useNavigate();
@@ -26,19 +27,28 @@ function Login() {
 
       // Save user + token in Redux
       dispatch(loginSuccess({ user, token }));
-      message.success(res.message || "Login successful");
+      message.success(res.message || "Login successful" , {position: "top-center", duration : 1000});
 
       // Navigate based on role
-      if (user.role === "staff") {
-        navigate("/dashboard/users");
-      } else if (user.role === "student") {
-        navigate("/dashboard/users");
-      } else {
-        navigate("/"); // fallback
+      switch (user.role) {
+        case "superadmin":
+          navigate("/dashboard/dashboardpage"); // Superadmin can manage everything
+          break;
+        case "admin":
+          navigate("/dashboard/dashboardpage"); // Admin can manage staff/student
+          break;
+        case "staff":
+          navigate("/dashboard/dashboardpage"); // Staff can manage students only
+          break;
+        case "student":
+          navigate("/dashboard/dashboardpage"); // Students may just see their info
+          break;
+        default:
+          navigate("/"); // fallback
       }
     } catch (error) {
-      console.log("Login Error:", error);
-      message.error(error?.data?.message || "Login failed");
+      console.error("Login Error:", error);
+      toast.error(error?.data?.message || "Login failed");
     }
   };
 
@@ -53,7 +63,7 @@ function Login() {
             normalize={(value) => value?.trimStart()}
             rules={[
               { required: true, message: "Please enter your email" },
-              { type: "email", message: "Enter valid email" },
+              { type: "email", message: "Enter a valid email" },
             ]}
           >
             <Input placeholder="Enter your email" size="large" />
@@ -69,20 +79,11 @@ function Login() {
             <Input.Password placeholder="Enter your password" size="large" />
           </Form.Item>
 
-          {/* Register link */}
-          <p className="text-gray-500 text-sm mb-3 text-center">
-            If you don't have an account?{" "}
-            <span
-              onClick={() => navigate("/register")}
-              className="text-blue-600 font-semibold cursor-pointer"
-            >
-              Register
-            </span>
-          </p>
-
           {/* Submit Button */}
-          <Button type="primary" htmlType="submit" block size="large" loading={isLoading}>
-            Login
+          <Button  
+          style={{marginTop: "20px"}}
+          type="primary" htmlType="submit" block size="large" loading={isLoading}>
+            {isLoading ? "Logging in..." : "Login"}
           </Button>
         </Form>
       </Card>
