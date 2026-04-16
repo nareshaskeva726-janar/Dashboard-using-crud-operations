@@ -9,6 +9,7 @@ import {
   TableOutlined,
   DashboardOutlined,
   HistoryOutlined,
+  BookOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -57,6 +58,37 @@ function SideBar({ open, setOpen }) {
       hidden: !["superadmin", "admin", "staff", "student"].includes(user?.role),
     },
 
+    ...(user?.role === "superadmin") ?
+      [{
+        key: "attendancesuperadmin",
+        icon: <BookOutlined />,
+        label: "Attendance",
+      }] : [],
+
+    ...(user?.role === "admin") ?
+      [{
+        key: "attendanceadmin",
+        icon: <BookOutlined />,
+        label: "Attendance",
+      }] : [],
+
+    ...(user?.role === "staff") ?
+      [{
+        key: "attendancestaff",
+        icon: <BookOutlined />,
+        label: "Attendance",
+      }] : [],
+
+    ...(user?.role === "student") ?
+      [{
+        key: "attendancestudent",
+        icon: <BookOutlined />,
+        label: "Attendance",
+      }] : [],
+
+
+
+
 
 
     ...(user?.role === "student")
@@ -97,7 +129,7 @@ function SideBar({ open, setOpen }) {
         },
       ] : [],
 
-      
+
     {
       key: "chat",
       icon: <MessageOutlined />,

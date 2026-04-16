@@ -156,7 +156,7 @@ const ChatBot = () => {
                   onClick={() => handleUserSelect(u)}
                   className={`
                     cursor-pointer transition   
-                    ${active ? "bg-gray-300" : "bg-[#f9fafb] hover:bg-[#e5e7eb]"}
+                    ${active ? "bg-blue-300" : "bg-[#f9fafb] hover:bg-[#e2e5eaa4]"}
                   `}
                   style={{ border: "none" }}
                 >
