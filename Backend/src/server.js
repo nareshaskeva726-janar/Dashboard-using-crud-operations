@@ -33,7 +33,7 @@ app.use(cookieParser());
 //ALLOW BY CORS
 app.use(
   cors({
-    origin: "*",
+    origin: ["http://localhost:5173", "https://dashboard-using-crud-operations.vercel.app/"],
     credentials: true,
   })
 );

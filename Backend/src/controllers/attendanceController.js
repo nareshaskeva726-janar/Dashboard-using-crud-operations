@@ -44,6 +44,7 @@ export const markAttendance = async (req, res) => {
 
     /* ================= CURRENT PERIOD ================= */
     const period = getCurrentPeriod();
+    
     console.log(period, "period")
 
     if (!period) {
