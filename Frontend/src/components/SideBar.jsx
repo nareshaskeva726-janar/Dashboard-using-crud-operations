@@ -23,7 +23,7 @@ function SideBar({ open, setOpen }) {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
-  const sidebarColor = "#020024";
+  const sidebarColor = "#0d1e44";
 
   const handleLogout = () => {
     dispatch(logout());

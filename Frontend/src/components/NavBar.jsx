@@ -269,7 +269,7 @@ function NavBar({ setOpen }) {
         justifyContent: "space-between",
         alignItems: "center",
         padding: "0 20px",
-        background: "#020024",
+        background: "#0d1e44",
       }}
     >
       <MenuOutlined
