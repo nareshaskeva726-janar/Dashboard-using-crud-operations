@@ -4,7 +4,7 @@ export const notificationApi = createApi({
   reducerPath: "notificationApi",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api",
+    baseUrl: import.meta.env.VITE_API ,
 
     // ⭐ IMPORTANT
     credentials: "include", // cookies send automatically

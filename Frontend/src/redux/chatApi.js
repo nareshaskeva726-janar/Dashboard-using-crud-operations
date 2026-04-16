@@ -4,7 +4,7 @@ export const chatApi = createApi({
   reducerPath: "chatApi",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/chat",
+    baseUrl: import.meta.env.VITE_API ,
     credentials: "include",
   }),
 

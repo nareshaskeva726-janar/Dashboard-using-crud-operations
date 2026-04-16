@@ -4,7 +4,7 @@ export const attendanceApi = createApi({
   reducerPath: "attendanceApi",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/attendance",
+    baseUrl: import.meta.env.VITE_API,
     credentials: "include",
   }),
 
