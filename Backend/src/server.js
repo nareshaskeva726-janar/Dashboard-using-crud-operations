@@ -33,7 +33,7 @@ app.use(cookieParser());
 //ALLOW BY CORS
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "*",
     credentials: true,
   })
 );
