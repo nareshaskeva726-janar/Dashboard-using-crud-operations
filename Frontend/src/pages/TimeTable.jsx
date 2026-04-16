@@ -134,7 +134,7 @@ const TimeTable = () => {
           dataSource={tableData}
           pagination={false}
           bordered
-          scroll={{ x: 900 }}
+          scroll={{ x: 800 }}
         />
 
         <p className="text-center mt-4 text-gray-500">

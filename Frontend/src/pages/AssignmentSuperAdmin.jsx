@@ -126,6 +126,7 @@ const AssignmentSuperAdmin = () => {
                 dataSource={filteredProjects}
                 rowKey={(record) => record._id}
                 bordered
+                scroll={{x: 300}}
             />
         </div>
     );

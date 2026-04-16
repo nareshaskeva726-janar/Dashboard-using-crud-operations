@@ -14,7 +14,7 @@ import {
 
 import { useSelector, useDispatch } from "react-redux";
 import { setPendingStudents } from "../redux/projectSlice";
-import {toast} from "react-hot-toast"
+import { toast } from "react-hot-toast"
 
 import {
   useGetStaffProjectsQuery,
@@ -70,7 +70,7 @@ const AssignmentCheck = () => {
       .filter(
         (p) =>
           staffSubjects.includes(p.subject) &&
-          p.status === "submitted"   
+          p.status === "submitted"
       )
       .map((p) => ({
         key: p._id,
@@ -162,53 +162,53 @@ const AssignmentCheck = () => {
       </Title>
 
       {/* ANNOUNCE PROJECT */}
-      {user?.role === "staff" && 
-      <Card style={{ marginBottom: 24 }}>
-        <Title level={4}>Announce New Project</Title>
+      {user?.role === "staff" &&
+        <Card style={{ marginBottom: 24 }}>
+          <Title level={4}>Announce New Project</Title>
 
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleAnnounceProject}
-          style={{ width: "45%" }}
-        >
-          <Form.Item
-            name="subject"
-            label="Subject"
-            rules={[{ required: true }]}
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleAnnounceProject}
+            style={{ width: "45%" }}
           >
-            <Select placeholder="Select subject">
-              {staffSubjects.map((s) => (
-                <Option key={s}>{s}</Option>
-              ))}
-            </Select>
-          </Form.Item>
+            <Form.Item
+              name="subject"
+              label="Subject"
+              rules={[{ required: true }]}
+            >
+              <Select placeholder="Select subject">
+                {staffSubjects.map((s) => (
+                  <Option key={s}>{s}</Option>
+                ))}
+              </Select>
+            </Form.Item>
 
-          <Form.Item
-            name="projectName"
-            label="Project Name"
-            normalize={(value) => value?.trimStart()}
-            rules={[{ required: true }]}
-          >
-            <Input placeholder="Enter project name" />
-          </Form.Item>
+            <Form.Item
+              name="projectName"
+              label="Project Name"
+              normalize={(value) => value?.trimStart()}
+              rules={[{ required: true }]}
+            >
+              <Input placeholder="Enter project name" />
+            </Form.Item>
 
-          <Form.Item
-            name="deadline"
-            label="Deadline"
-            rules={[{ required: true }]}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
+            <Form.Item
+              name="deadline"
+              label="Deadline"
+              rules={[{ required: true }]}
+            >
+              <DatePicker style={{ width: "100%" }} />
+            </Form.Item>
 
-          <Button
-            type="primary"
-            htmlType="submit"
-            loading={announcing}>
-            Announce Project
-          </Button>
-        </Form>
-      </Card>}
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={announcing}>
+              Announce Project
+            </Button>
+          </Form>
+        </Card>}
 
 
 
@@ -222,6 +222,7 @@ const AssignmentCheck = () => {
         <Title level={4}>Submitted Projects</Title>
 
         <Table
+          scroll={{ x: 300 }}
           dataSource={submittedProjects}
           rowKey="key"
           columns={[
