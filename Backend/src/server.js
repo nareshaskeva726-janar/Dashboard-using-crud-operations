@@ -21,8 +21,7 @@ import ChatRouter from "./routes/chatRoutes.js";
 import socketHandler from "./socket/chatSocket.js";
 import NotificationSocket from "./socket/notificationSocket.js";
 
-//cron
-import { startPeriodReminder } from "./cron/periodReminder.js";
+
 
 
 // ================= CONFIG =================
@@ -88,8 +87,8 @@ app.set("io", io);
 socketHandler(io);
 NotificationSocket(io);
 
-//cron
-startPeriodReminder(app, io);
+// //cron
+// startPeriodReminder(app, io);
 
 // ================= START SERVER =================
 server.listen(PORT, () => {
