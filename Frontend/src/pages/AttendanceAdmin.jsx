@@ -181,9 +181,9 @@ const AttendanceAdmin = () => {
       render: (value) =>
         value
           ? new Date(value).toLocaleString("en-IN", {
-              dateStyle: "medium",
-              timeStyle: "short",
-            })
+            dateStyle: "medium",
+            timeStyle: "short",
+          })
           : "-",
     },
   ];
@@ -210,16 +210,20 @@ const AttendanceAdmin = () => {
       <Text type="secondary">Attendance analytics dashboard</Text>
 
       {/* STATS */}
-      <Row gutter={16} style={{ marginTop: 16 }}>
-        <Col span={8}>
-          <Card>
+      <Row
+        gutter={[16, 16]}
+        style={{ marginTop: 16 }}
+        align="stretch"
+      >
+        <Col xs={24} sm={24} md={8} style={{ display: "flex" }}>
+          <Card style={{ width: "100%", height: "100%" }}>
             <Title level={5}>Students</Title>
             <Title level={2}>{departmentStats.students}</Title>
           </Card>
         </Col>
 
-        <Col span={8}>
-          <Card>
+        <Col xs={24} sm={24} md={8} style={{ display: "flex" }}>
+          <Card style={{ width: "100%", height: "100%" }}>
             <Title level={5}>Avg Attendance</Title>
             <Title level={2} style={{ color: "#1890ff" }}>
               {departmentStats.avgAttendance}%
@@ -228,8 +232,8 @@ const AttendanceAdmin = () => {
           </Card>
         </Col>
 
-        <Col span={8}>
-          <Card>
+        <Col xs={24} sm={24} md={8} style={{ display: "flex" }}>
+          <Card style={{ width: "100%", height: "100%" }}>
             <Title level={5}>Department Summary</Title>
             <Tag color="green">
               Present: {departmentStats.presentToday}
@@ -244,6 +248,7 @@ const AttendanceAdmin = () => {
       {/* STUDENT TABLE */}
       <Card style={{ marginTop: 20 }} title="Student Attendance Overview">
         <Table
+          scroll={{ x: true }}
           dataSource={studentAttendanceTable}
           rowKey="key"
           pagination={{ pageSize: 8 }}
@@ -269,6 +274,7 @@ const AttendanceAdmin = () => {
       {/* MONTHLY SUBJECT */}
       <Card style={{ marginTop: 20 }} title="Monthly Subject Summary">
         <Table
+          scroll={{ x: true }}
           dataSource={monthlySummary}
           rowKey="key"
           pagination={false}
@@ -292,6 +298,7 @@ const AttendanceAdmin = () => {
       {/* FULL LOG */}
       <Card style={{ marginTop: 20 }} title="All Attendance Records">
         <Table
+          scroll={{ x: true }}
           dataSource={attendanceList}
           rowKey="_id"
           columns={attendanceColumns}

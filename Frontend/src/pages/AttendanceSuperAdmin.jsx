@@ -294,6 +294,7 @@ const AttendanceSuperAdmin = () => {
       {/* DEPARTMENT TABLE */}
       <Card title="Department-wise Attendance" style={{ marginTop: 16 }}>
         <Table
+          scroll={{ x: true }}
           dataSource={departmentData}
           pagination={false}
           bordered
@@ -317,6 +318,7 @@ const AttendanceSuperAdmin = () => {
       {/* LOGS */}
       <Card title="Attendance Logs (Marked by Staff)" style={{ marginTop: 16 }}>
         <Table
+          scroll={{ x: true }}
           dataSource={filteredLogs}
           pagination={{ pageSize: 8 }}
           bordered
@@ -355,6 +357,7 @@ const AttendanceSuperAdmin = () => {
       {/* MONTHLY SUMMARY (NEW) */}
       <Card title="Monthly Summary" style={{ marginTop: 16 }}>
         <Table
+          scroll={{ x: true }}
           dataSource={monthlySummary}
           loading={monthlyLoading}
           pagination={{ pageSize: 6 }}

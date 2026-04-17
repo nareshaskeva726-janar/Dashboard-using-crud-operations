@@ -151,8 +151,8 @@ const AttendanceStaff = () => {
             status === "present"
               ? "green"
               : status === "absent"
-              ? "red"
-              : "default"
+                ? "red"
+                : "default"
           }
         >
           {status}
@@ -261,6 +261,7 @@ const AttendanceStaff = () => {
       {/* MARK TABLE */}
       <Card title="Mark Attendance" style={{ marginTop: 16 }}>
         <Table
+          scroll={{ x: true }}
           loading={isFetching}
           dataSource={tableData}
           columns={columns}
@@ -271,6 +272,7 @@ const AttendanceStaff = () => {
       {/* SUMMARY */}
       <Card title="Monthly Summary" style={{ marginTop: 16 }}>
         <Table
+          scroll={{ x: true }}
           loading={monthlyLoading}
           dataSource={monthlyData?.data || []}
           columns={summaryColumns}
