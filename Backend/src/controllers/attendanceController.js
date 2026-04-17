@@ -84,7 +84,7 @@ export const markAttendance = async (req, res) => {
       },
       {
         status: () => ({
-          json: () => {},
+          json: () => { },
         }),
       }
     );
@@ -299,28 +299,10 @@ export const deleteAttendance = async (req, res) => {
   }
 };
 
-
-
-
-
-
-// GET ALL ATTENDANCE (SUPERADMIN ONLY)
 export const allAttendance = async (req, res) => {
   try {
-    const user = req.user;
-
     // -------------------------
-    // 1. ROLE CHECK
-    // -------------------------
-    if (user.role !== "superadmin") {
-      return res.status(403).json({
-        success: false,
-        message: "Only superadmin can access all attendance",
-      });
-    }
-
-    // -------------------------
-    // 2. QUERY FILTERS
+    // 1. QUERY FILTERS
     // -------------------------
     const {
       page = 1,
@@ -349,12 +331,12 @@ export const allAttendance = async (req, res) => {
     }
 
     // -------------------------
-    // 3. PAGINATION
+    // 2. PAGINATION
     // -------------------------
     const skip = (page - 1) * limit;
 
     // -------------------------
-    // 4. FETCH DATA
+    // 3. FETCH DATA
     // -------------------------
     const attendance = await Attendance.find(filter)
       .populate("studentId", "name email department")
@@ -363,7 +345,6 @@ export const allAttendance = async (req, res) => {
       .skip(skip)
       .limit(Number(limit));
 
-    // total count
     const total = await Attendance.countDocuments(filter);
 
     return res.status(200).json({
@@ -373,15 +354,17 @@ export const allAttendance = async (req, res) => {
       pages: Math.ceil(total / limit),
       data: attendance,
     });
+
   } catch (error) {
     console.log("Error in allAttendance controller", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
 
 // ADMIN (HOD) - DEPARTMENT ATTENDANCE ONLY
 export const adminAttendance = async (req, res) => {
@@ -503,7 +486,7 @@ export const staffAttendance = async (req, res) => {
 
     if (subject) filter.subject = subject;
 
- 
+
     if (date) {
       const d = new Date(date);
       const nextDay = new Date(date);
@@ -635,7 +618,8 @@ export const myAttendance = async (req, res) => {
 };
 
 
-// MONTHLY SUMMARY (GLOBAL - SUPERADMIN)
+
+// MONTHLY SUMMARY (all present absent percenatage calculation - SUPERADMIN)
 export const monthlysummary = async (req, res) => {
   try {
     const user = req.user;
@@ -790,5 +774,283 @@ export const monthlysummary = async (req, res) => {
     });
   }
 };
+
+// MONTHLY SUMMARY (department present absent calculation - SUPERADMIN)
+export const adminMonthlySummary = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (user.role !== "admin" && user.role !== "superadmin") {
+      return res.status(403).json({
+        success: false,
+        message: "Only admin/superadmin can access this",
+      });
+    }
+
+    const { month, year, department } = req.query;
+
+    if (!month || !year || !department) {
+      return res.status(400).json({
+        success: false,
+        message: "month, year, department are required",
+      });
+    }
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    const summary = await Attendance.aggregate([
+      {
+        $match: {
+          department,
+          date: { $gte: startDate, $lte: endDate },
+        },
+      },
+
+      {
+        $group: {
+          _id: "$department",
+          present: {
+            $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] },
+          },
+          absent: {
+            $sum: { $cond: [{ $eq: ["$status", "absent"] }, 1, 0] },
+          },
+          total: { $sum: 1 },
+        },
+      },
+
+      {
+        $project: {
+          department: "$_id",
+          present: 1,
+          absent: 1,
+          total: 1,
+          percentage: {
+            $round: [
+              {
+                $multiply: [
+                  { $divide: ["$present", "$total"] },
+                  100,
+                ],
+              },
+              2,
+            ],
+          },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: summary[0] || {
+        department,
+        present: 0,
+        absent: 0,
+        total: 0,
+        percentage: 0,
+      },
+    });
+  } catch (error) {
+    console.log("Error in adminMonthlySummary", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// MONTHLY SUMMARY (subject present absent calculation - Staff)
+export const staffMonthlySummary = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (user.role !== "staff") {
+      return res.status(403).json({
+        success: false,
+        message: "Only staff can access this",
+      });
+    }
+
+    const { month, year, subject } = req.query;
+
+    if (!month || !year || !subject) {
+      return res.status(400).json({
+        success: false,
+        message: "month, year, subject are required",
+      });
+    }
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    const summary = await Attendance.aggregate([
+      {
+        $match: {
+          subject,
+          date: { $gte: startDate, $lte: endDate },
+        },
+      },
+
+      {
+        $group: {
+          _id: "$subject",
+          present: {
+            $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] },
+          },
+          absent: {
+            $sum: { $cond: [{ $eq: ["$status", "absent"] }, 1, 0] },
+          },
+          total: { $sum: 1 },
+        },
+      },
+
+      {
+        $project: {
+          subject: "$_id",
+          present: 1,
+          absent: 1,
+          total: 1,
+          percentage: {
+            $round: [
+              {
+                $multiply: [
+                  { $divide: ["$present", "$total"] },
+                  100,
+                ],
+              },
+              2,
+            ],
+          },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: summary[0] || {
+        subject,
+        present: 0,
+        absent: 0,
+        total: 0,
+        percentage: 0,
+      },
+    });
+  } catch (error) {
+    console.log("Error in staffMonthlySummary", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// MONTHLY SUMMARY (Present and absented subject calculation - Student)
+export const StudentMonthlySummary = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (user.role !== "student") {
+      return res.status(403).json({
+        success: false,
+        message: "Only students can access this",
+      });
+    }
+
+    const { month, year } = req.query;
+
+    if (!month || !year) {
+      return res.status(400).json({
+        success: false,
+        message: "month and year are required",
+      });
+    }
+
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+
+    const summary = await Attendance.aggregate([
+      {
+        $match: {
+          studentId: user._id,
+          date: { $gte: startDate, $lte: endDate },
+        },
+      },
+
+      {
+        $group: {
+          _id: "$subject",
+          present: {
+            $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] },
+          },
+          absent: {
+            $sum: { $cond: [{ $eq: ["$status", "absent"] }, 1, 0] },
+          },
+          total: { $sum: 1 },
+        },
+      },
+
+      {
+        $project: {
+          subject: "$_id",
+          present: 1,
+          absent: 1,
+          total: 1,
+          percentage: {
+            $round: [
+              {
+                $multiply: [
+                  { $divide: ["$present", "$total"] },
+                  100,
+                ],
+              },
+              2,
+            ],
+          },
+        },
+      },
+
+      { $sort: { percentage: -1 } },
+    ]);
+
+    // overall stats
+    const overall = await Attendance.aggregate([
+      {
+        $match: {
+          studentId: user._id,
+          date: { $gte: startDate, $lte: endDate },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          present: {
+            $sum: {
+              $cond: [{ $eq: ["$status", "present"] }, 1, 0],
+            },
+          },
+          absent: {
+            $sum: {
+              $cond: [{ $eq: ["$status", "absent"] }, 1, 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: summary,
+      globalStats: overall[0] || {
+        total: 0,
+        present: 0,
+        absent: 0,
+      },
+    });
+  } catch (error) {
+    console.log("Error in StudentMonthlySummary", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
+
+
+
 
 

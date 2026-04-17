@@ -12,7 +12,7 @@ import {
 
 import {
   useGetAdminAttendanceQuery,
-  useGetMonthlySummaryQuery,
+  useGetAdminSummaryQuery,
 } from "../redux/attendanceApi";
 
 import {
@@ -24,73 +24,64 @@ const { Title, Text } = Typography;
 
 const AttendanceAdmin = () => {
   /* ================= AUTH ================= */
-  const { data: authRes, isLoading: authLoading } =
-    useCheckAuthQuery();
+  const { data: authRes, isLoading: authLoading } = useCheckAuthQuery();
 
   const user = authRes?.user;
   const department = user?.department;
-
   const isAdmin = user?.role === "admin";
 
   /* ================= USERS ================= */
   const { data: usersRes } = useGetUsersQuery();
 
   const departmentStudents = useMemo(() => {
-    if (!usersRes?.users || !department) return [];
-
-    return usersRes.users.filter(
-      (u) =>
-        u.role === "student" &&
-        u.department === department
+    return (
+      usersRes?.users?.filter(
+        (u) => u.role === "student" && u.department === department
+      ) || []
     );
   }, [usersRes, department]);
 
   /* ================= ATTENDANCE ================= */
-  const {
-    data: attendanceRes,
-    isLoading: attendanceLoading,
-  } = useGetAdminAttendanceQuery(
-    { department },
-    {
-      skip: !department || !isAdmin,
-    }
-  );
+  const { data: attendanceRes, isLoading: attendanceLoading } =
+    useGetAdminAttendanceQuery(
+      { department },
+      { skip: !department || !isAdmin }
+    );
 
   const attendanceList = attendanceRes?.data || [];
 
-  /* ================= MONTHLY ================= */
-  const {
-    data: summaryRes,
-    isLoading: summaryLoading,
-  } = useGetMonthlySummaryQuery(
-    { department },
-    {
-      skip: !department || !isAdmin,
-    }
-  );
+  /* ================= ADMIN SUMMARY (FIXED) ================= */
+  const { data: summaryRes, isLoading: summaryLoading } =
+    useGetAdminSummaryQuery(
+      { department },
+      { skip: !department || !isAdmin }
+    );
 
   const summaryList = summaryRes?.data || [];
 
-  /* ================= STATS ================= */
+  /* ================= DEPARTMENT STATS ================= */
   const departmentStats = useMemo(() => {
-    const total = attendanceList.length;
+    const deptData = attendanceList.filter(
+      (a) => a.department === department
+    );
 
-    const present = attendanceList.filter(
+    const total = deptData.length;
+
+    const present = deptData.filter(
       (a) => a.status === "present"
     ).length;
 
+    const absent = total - present;
+
     return {
       students: departmentStudents.length,
-      avgAttendance:
-        total === 0
-          ? 0
-          : Math.round((present / total) * 100),
+      avgAttendance: total === 0 ? 0 : Math.round((present / total) * 100),
       presentToday: present,
-      absentToday: total - present,
+      absentToday: absent,
     };
-  }, [attendanceList, departmentStudents]);
+  }, [attendanceList, departmentStudents, department]);
 
-  /* ================= TABLE: STUDENTS ================= */
+  /* ================= STUDENT WISE TABLE ================= */
   const studentAttendanceTable = useMemo(() => {
     const grouped = {};
 
@@ -119,13 +110,11 @@ const AttendanceAdmin = () => {
     return Object.values(grouped).map((s) => ({
       ...s,
       percentage:
-        s.total === 0
-          ? 0
-          : Math.round((s.present / s.total) * 100),
+        s.total === 0 ? 0 : Math.round((s.present / s.total) * 100),
     }));
   }, [attendanceList]);
 
-  /* ================= MONTHLY SUBJECT ================= */
+  /* ================= MONTHLY SUBJECT SUMMARY (FIXED) ================= */
   const monthlySummary = useMemo(() => {
     const grouped = {};
 
@@ -134,10 +123,7 @@ const AttendanceAdmin = () => {
       if (!subject) return;
 
       if (!grouped[subject]) {
-        grouped[subject] = {
-          total: 0,
-          present: 0,
-        };
+        grouped[subject] = { total: 0, present: 0 };
       }
 
       grouped[subject].total += 1;
@@ -157,43 +143,48 @@ const AttendanceAdmin = () => {
         total,
         present,
         percentage:
-          total === 0
-            ? 0
-            : Math.round((present / total) * 100),
+          total === 0 ? 0 : Math.round((present / total) * 100),
       };
     });
   }, [summaryList]);
 
-  /* ================= COLUMNS ================= */
-  const studentColumns = [
-    { title: "Student", dataIndex: "name" },
-    { title: "Total", dataIndex: "total" },
-    { title: "Present", dataIndex: "present" },
+  /* ================= TABLE ================= */
+  const attendanceColumns = [
     {
-      title: "Attendance %",
-      dataIndex: "percentage",
-      render: (value) => (
-        <Progress
-          percent={value}
-          size="small"
-          status={value < 75 ? "exception" : "active"}
-        />
-      ),
+      title: "Student",
+      render: (_, r) => r.studentId?.name || "Unknown",
     },
-  ];
-
-  const monthlyColumns = [
     { title: "Subject", dataIndex: "subject" },
-    { title: "Total", dataIndex: "total" },
-    { title: "Present", dataIndex: "present" },
     {
-      title: "Percentage",
-      dataIndex: "percentage",
-      render: (value) => (
-        <Tag color={value >= 75 ? "green" : "red"}>
-          {value}%
+      title: "Status",
+      dataIndex: "status",
+      render: (status) => (
+        <Tag color={status === "present" ? "green" : "red"}>
+          {status?.toUpperCase()}
         </Tag>
       ),
+    },
+    {
+      title: "Marked By (Staff)",
+      render: (_, r) => (
+        <div>
+          <div>{r.staffId?.name || "Unknown Staff"}</div>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {r.staffId?.role || "Staff"}
+          </Text>
+        </div>
+      ),
+    },
+    {
+      title: "Date",
+      dataIndex: "date",
+      render: (value) =>
+        value
+          ? new Date(value).toLocaleString("en-IN", {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })
+          : "-",
     },
   ];
 
@@ -202,7 +193,7 @@ const AttendanceAdmin = () => {
     return <Spin fullscreen />;
   }
 
-  /* ================= BLOCK NON-ADMIN ================= */
+  /* ================= ACCESS CONTROL ================= */
   if (!isAdmin) {
     return (
       <div style={{ padding: 20 }}>
@@ -213,24 +204,17 @@ const AttendanceAdmin = () => {
     );
   }
 
-  /* ================= UI ================= */
   return (
     <div style={{ padding: 16, background: "#f5f7fb" }}>
-      <Title level={3}>
-        {department} Department Attendance
-      </Title>
-      <Text type="secondary">
-        Students attendance analytics
-      </Text>
+      <Title level={3}>{department} Department Attendance</Title>
+      <Text type="secondary">Attendance analytics dashboard</Text>
 
-      {/* CARDS */}
+      {/* STATS */}
       <Row gutter={16} style={{ marginTop: 16 }}>
         <Col span={8}>
           <Card>
             <Title level={5}>Students</Title>
-            <Title level={2}>
-              {departmentStats.students}
-            </Title>
+            <Title level={2}>{departmentStats.students}</Title>
           </Card>
         </Col>
 
@@ -240,44 +224,78 @@ const AttendanceAdmin = () => {
             <Title level={2} style={{ color: "#1890ff" }}>
               {departmentStats.avgAttendance}%
             </Title>
+            <Progress percent={departmentStats.avgAttendance} />
           </Card>
         </Col>
 
         <Col span={8}>
           <Card>
-            <Title level={5}>Today</Title>
+            <Title level={5}>Department Summary</Title>
             <Tag color="green">
               Present: {departmentStats.presentToday}
             </Tag>
-            <br />
-            <Tag color="red">
+            <Tag color="red" style={{ marginLeft: 8 }}>
               Absent: {departmentStats.absentToday}
             </Tag>
           </Card>
         </Col>
       </Row>
 
-      {/* TABLE 1 */}
-      <Card
-        style={{ marginTop: 20 }}
-        title="Student Attendance Overview"
-      >
+      {/* STUDENT TABLE */}
+      <Card style={{ marginTop: 20 }} title="Student Attendance Overview">
         <Table
           dataSource={studentAttendanceTable}
-          columns={studentColumns}
+          rowKey="key"
           pagination={{ pageSize: 8 }}
+          columns={[
+            { title: "Student", dataIndex: "name" },
+            { title: "Total", dataIndex: "total" },
+            { title: "Present", dataIndex: "present" },
+            {
+              title: "Attendance %",
+              dataIndex: "percentage",
+              render: (value) => (
+                <Progress
+                  percent={value}
+                  size="small"
+                  status={value < 75 ? "exception" : "active"}
+                />
+              ),
+            },
+          ]}
         />
       </Card>
 
-      {/* TABLE 2 */}
-      <Card
-        style={{ marginTop: 20 }}
-        title="Monthly Subject Summary"
-      >
+      {/* MONTHLY SUBJECT */}
+      <Card style={{ marginTop: 20 }} title="Monthly Subject Summary">
         <Table
           dataSource={monthlySummary}
-          columns={monthlyColumns}
+          rowKey="key"
           pagination={false}
+          columns={[
+            { title: "Subject", dataIndex: "subject" },
+            { title: "Total", dataIndex: "total" },
+            { title: "Present", dataIndex: "present" },
+            {
+              title: "Percentage",
+              dataIndex: "percentage",
+              render: (value) => (
+                <Tag color={value >= 75 ? "green" : "red"}>
+                  {value}%
+                </Tag>
+              ),
+            },
+          ]}
+        />
+      </Card>
+
+      {/* FULL LOG */}
+      <Card style={{ marginTop: 20 }} title="All Attendance Records">
+        <Table
+          dataSource={attendanceList}
+          rowKey="_id"
+          columns={attendanceColumns}
+          pagination={{ pageSize: 10 }}
         />
       </Card>
     </div>

@@ -185,9 +185,9 @@ function NavBar({ setOpen }) {
   // };
 
   const handleSingleRead = async (id) => {
-  await markSingleReadApi(id).unwrap();
-  dispatch(markAsRead(id));
-};
+    await markSingleReadApi(id).unwrap();
+    dispatch(markAsRead(id));
+  };
 
 
 
@@ -263,63 +263,78 @@ function NavBar({ setOpen }) {
   ============================ */
 
   return (
-    <Header
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "0 20px",
-        background: "#0d1e44",
-      }}
-    >
-      <MenuOutlined
-        className="menuBTN"
-        style={{
-          color: "white",
-          fontSize: 22,
-          cursor: "pointer",
-        }}
-        onClick={() => setOpen(true)}
-      />
+<Header
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "0 20px",
+    background: "#0d1e44",
+    height: 64, // ✅ important for perfect vertical alignment
+    lineHeight: "64px",
+  }}
+>
+  {/* LEFT - MENU */}
+  <MenuOutlined
+    className="menuBTN"
+    style={{
+      color: "white",
+      fontSize: 22,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+    }}
+    onClick={() => setOpen(true)}
+  />
 
-      <div
+  {/* RIGHT SIDE */}
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center", // ✅ fixes vertical misalignment
+      gap: 18,
+      height: "100%",
+    }}
+  >
+    {/* 🔔 Notifications */}
+    <Dropdown
+      trigger={["click"]}
+      placement="bottomRight"
+      dropdownRender={() => notificationMenu}
+    >
+      <span
         style={{
+          cursor: "pointer",
           display: "flex",
           alignItems: "center",
-          gap: 20,
         }}
       >
+        <Badge count={unreadCount} offset={[0, 2]}>
+          <BellOutlined style={{ color: "white", fontSize: 20 }} />
+        </Badge>
+      </span>
+    </Dropdown>
 
+    {/* 👤 User */}
+    <Tooltip title={`${user?.name}-(${user?.role})`}>
+      <span style={{ display: "flex", alignItems: "center" }}>
+        <UserOutlined style={{ color: "white", fontSize: 20 }} />
+      </span>
+    </Tooltip>
 
-
-
-        {/* 🔔 Notifications */}
-        <Dropdown
-          trigger={["click"]}
-          placement="bottomRight"
-          dropdownRender={() => notificationMenu}
-        >
-          <span style={{ cursor: "pointer" }}>
-            <Badge count={unreadCount}>
-              <BellOutlined
-                style={{ color: "white", fontSize: 20 }}
-              />
-            </Badge>
-          </span>
-        </Dropdown>
-
-        {/* 👤 User */}
-        <Tooltip title={`${user?.name}-(${user?.role})`}>
-          <UserOutlined style={{ color: "white", fontSize: 20 }} />
-        </Tooltip>
-
-        {/* 🚪 Logout */}
-        <LogoutOutlined
-          style={{ color: "white", fontSize: 20, cursor: "pointer" }}
-          onClick={handleLogout}
-        />
-      </div>
-    </Header>
+    {/* 🚪 Logout */}
+    <span
+      style={{
+        display: "flex",
+        alignItems: "center",
+        cursor: "pointer",
+      }}
+      onClick={handleLogout}
+    >
+      <LogoutOutlined style={{ color: "white", fontSize: 20 }} />
+    </span>
+  </div>
+</Header>
   );
 }
 

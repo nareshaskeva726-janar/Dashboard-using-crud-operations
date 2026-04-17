@@ -13,7 +13,7 @@ import {
 
 import {
   useGetMyAttendanceQuery,
-  useGetMonthlySummaryQuery,
+  useGetStudentSummaryQuery,
 } from "../redux/attendanceApi";
 
 import { useCheckAuthQuery } from "../redux/userApi";
@@ -21,10 +21,8 @@ import { useCheckAuthQuery } from "../redux/userApi";
 const { Title, Text } = Typography;
 
 const AttendanceStudent = () => {
-
   /* ================= AUTH ================= */
-  const { data: authUser, isLoading: authLoading } =
-    useCheckAuthQuery();
+  const { data: authUser, isLoading: authLoading } = useCheckAuthQuery();
 
   const student = authUser?.user;
   const subjects = student?.subjects || [];
@@ -33,35 +31,41 @@ const AttendanceStudent = () => {
   const {
     data: attendanceRes,
     isLoading: attendanceLoading,
-    error: attendanceError,
-  } = useGetMyAttendanceQuery(undefined, {
-    skip: !student,
-  });
+    error,
+  } = useGetMyAttendanceQuery(undefined, { skip: !student });
 
   const attendanceList = attendanceRes?.data || [];
 
-  /* ================= MONTHLY SUMMARY ================= */
-  const {
-    data: summaryRes,
-    isLoading: summaryLoading,
-  } = useGetMonthlySummaryQuery(undefined, {
-    skip: !student,
-  });
+  /* ================= STUDENT MONTHLY SUMMARY (FIXED) ================= */
+  const { data: summaryRes, isLoading: summaryLoading } =
+    useGetStudentSummaryQuery(undefined, { skip: !student });
 
   const summaryList = summaryRes?.data || [];
 
   /* ================= DAILY TABLE ================= */
   const attendanceData = useMemo(() => {
-    return attendanceList.map((item, index) => ({
-      key: item._id || index,
-      date: new Date(item.date).toLocaleDateString(),
-      subject: item.subject,
-      period: item.period ?? "—",
-      status: item.status,
-    }));
+    return attendanceList.map((item, index) => {
+      const dateObj = item?.date ? new Date(item.date) : null;
+
+      return {
+        key: item._id || index,
+        date: dateObj ? dateObj.toLocaleDateString("en-IN") : "-",
+        time: dateObj
+          ? dateObj.toLocaleTimeString("en-IN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "-",
+        subject: item.subject || "-",
+        department: item.department || "-",
+        status: item.status || "-",
+        staffName: item?.staffId?.name || "Unknown",
+        staffRole: item?.staffId?.role || "Staff",
+      };
+    });
   }, [attendanceList]);
 
-  /* ================= MONTHLY TABLE ================= */
+  /* ================= MONTHLY ================= */
   const monthlyData = useMemo(() => {
     return summaryList.map((item, index) => ({
       key: index,
@@ -72,42 +76,32 @@ const AttendanceStudent = () => {
     }));
   }, [summaryList]);
 
-  /* ================= OVERALL % ================= */
+  /* ================= OVERALL ================= */
   const overallPercentage = useMemo(() => {
     if (!monthlyData.length) return 0;
 
-    const total = monthlyData.reduce(
-      (sum, s) => sum + s.totalClasses,
-      0
-    );
-
-    const attended = monthlyData.reduce(
-      (sum, s) => sum + s.attended,
-      0
-    );
+    const total = monthlyData.reduce((s, i) => s + i.totalClasses, 0);
+    const attended = monthlyData.reduce((s, i) => s + i.attended, 0);
 
     return total ? Math.round((attended / total) * 100) : 0;
   }, [monthlyData]);
 
   const riskStatus =
-    overallPercentage >= 75
-      ? "Good Standing"
-      : "Low Attendance";
+    overallPercentage >= 75 ? "Good Standing" : "Low Attendance";
 
-  /* ================= TABLE COLUMNS ================= */
-
+  /* ================= COLUMNS ================= */
   const monthlyColumns = [
     { title: "Subject", dataIndex: "subject" },
-    { title: "Total Classes", dataIndex: "totalClasses" },
+    { title: "Total", dataIndex: "totalClasses" },
     { title: "Attended", dataIndex: "attended" },
     {
       title: "Attendance %",
       dataIndex: "percent",
-      render: (value) => (
+      render: (v) => (
         <Progress
-          percent={value}
+          percent={v}
           size="small"
-          status={value < 75 ? "exception" : "active"}
+          status={v < 75 ? "exception" : "active"}
         />
       ),
     },
@@ -115,8 +109,13 @@ const AttendanceStudent = () => {
 
   const attendanceColumns = [
     { title: "Date", dataIndex: "date" },
+    { title: "Time", dataIndex: "time" },
     { title: "Subject", dataIndex: "subject" },
-    { title: "Period", dataIndex: "period" },
+    {
+      title: "Dept",
+      dataIndex: "department",
+      responsive: ["md"],
+    },
     {
       title: "Status",
       dataIndex: "status",
@@ -126,46 +125,54 @@ const AttendanceStudent = () => {
         </Tag>
       ),
     },
+    {
+      title: "Marked By",
+      render: (_, r) => (
+        <div>
+          <div style={{ fontWeight: 600 }}>{r.staffName}</div>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {r.staffRole}
+          </Text>
+        </div>
+      ),
+    },
   ];
 
   /* ================= LOADING ================= */
   if (authLoading || attendanceLoading || summaryLoading)
     return <Spin fullscreen />;
 
-  /* ================= ACCESS ERROR ================= */
-  if (attendanceError)
-    return <Empty description="Login as Student to view attendance" />;
+  if (error) return <Empty description="No attendance data found" />;
 
-  /* ================= UI ================= */
+  /* ================= CARD STYLE ================= */
+  const cardStyle = {
+    height: "100%",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+  };
+
   return (
-    <div
-      style={{
-        padding: 20,
-        background: "#f5f7fb",
-        minHeight: "100vh",
-      }}
-    >
+    <div style={{ padding: 16, background: "#f5f7fb", minHeight: "100vh" }}>
       {/* HEADER */}
-      <Row justify="space-between">
-        <Col>
-          <Title level={3}>My Attendance</Title>
-          <Text type="secondary">
-            Track your attendance performance
-          </Text>
-        </Col>
-      </Row>
+      <div style={{ marginBottom: 16 }}>
+        <Title level={3} style={{ marginBottom: 0 }}>
+          My Attendance
+        </Title>
+        <Text type="secondary">Track your attendance performance</Text>
+      </div>
 
-      {/* SUMMARY CARDS */}
-      <Row gutter={16} style={{ marginTop: 16 }}>
-        <Col xs={24} md={8}>
-          <Card>
+      {/* CARDS */}
+      <Row gutter={[16, 16]} align="stretch">
+        <Col xs={24} sm={12} md={8}>
+          <Card style={cardStyle}>
             <Title level={5}>Total Subjects</Title>
             <Title level={2}>{subjects.length}</Title>
           </Card>
         </Col>
 
-        <Col xs={24} md={8}>
-          <Card>
+        <Col xs={24} sm={12} md={8}>
+          <Card style={cardStyle}>
             <Title level={5}>Overall Attendance</Title>
             <Title level={2} style={{ color: "#1890ff" }}>
               {overallPercentage}%
@@ -173,12 +180,10 @@ const AttendanceStudent = () => {
           </Card>
         </Col>
 
-        <Col xs={24} md={8}>
-          <Card>
+        <Col xs={24} sm={12} md={8}>
+          <Card style={cardStyle}>
             <Title level={5}>Status</Title>
-            <Tag
-              color={overallPercentage >= 75 ? "green" : "red"}
-            >
+            <Tag color={overallPercentage >= 75 ? "green" : "red"}>
               {riskStatus}
             </Tag>
           </Card>
@@ -192,22 +197,24 @@ const AttendanceStudent = () => {
             dataSource={monthlyData}
             columns={monthlyColumns}
             pagination={false}
+            scroll={{ x: true }}
           />
         ) : (
-          <Empty description="No summary available" />
+          <Empty />
         )}
       </Card>
 
       {/* DAILY ATTENDANCE */}
-      <Card style={{ marginTop: 16 }} title="Attendance Details">
+      <Card style={{ marginTop: 16 }} title="Attendance Records">
         {attendanceData.length ? (
           <Table
             dataSource={attendanceData}
             columns={attendanceColumns}
-            pagination={{ pageSize: 5 }}
+            pagination={{ pageSize: 6 }}
+            scroll={{ x: "max-content" }}
           />
         ) : (
-          <Empty description="No attendance records" />
+          <Empty />
         )}
       </Card>
     </div>

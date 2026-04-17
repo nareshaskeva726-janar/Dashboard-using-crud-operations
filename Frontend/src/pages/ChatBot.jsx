@@ -185,7 +185,16 @@ const ChatBot = () => {
 
           {/* HEADER */}
           <div className="flex items-center gap-3 p-3 bg-[#0d1e44] sticky top-0 z-10 border-b border-gray-300">
-            <Button icon={<ArrowLeftOutlined />} onClick={handleBack} />
+            <Button
+              icon={<ArrowLeftOutlined style={{ color: "white" }} />}
+              onClick={handleBack}
+              style={{
+                backgroundColor: "#0d1e44",
+                border: "none",
+                outline: "none",
+                color: "white",
+              }}
+            />
             <Avatar icon={<UserOutlined />} />
             <div>
               <div className="text-gray-100 font-semibold">
@@ -251,7 +260,6 @@ const ChatBot = () => {
           </div>
         </Content>
       )}
-
       <ToastContainer />
     </Layout>
   );

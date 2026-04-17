@@ -20,7 +20,7 @@ import {
   useMarkAttendanceMutation,
   useDeleteAttendanceMutation,
   useGetStaffAttendanceQuery,
-  useGetMonthlySummaryQuery,
+  useGetStaffSummaryQuery,
 } from "../redux/attendanceApi";
 
 import { useGetUsersQuery, useCheckAuthQuery } from "../redux/userApi";
@@ -62,8 +62,11 @@ const AttendanceStaff = () => {
     { skip: !staffDepartment || !subject }
   );
 
-  // ================= SUMMARY =================
-  const { data: monthlyData } = useGetMonthlySummaryQuery(
+  // ================= STAFF MONTHLY SUMMARY (FIXED) =================
+  const {
+    data: monthlyData,
+    isLoading: monthlyLoading,
+  } = useGetStaffSummaryQuery(
     {
       department: staffDepartment,
       subject,
@@ -91,7 +94,7 @@ const AttendanceStaff = () => {
       }));
   }, [usersData, staffDepartment]);
 
-  // ================= ATTENDANCE MAP (FIXED) =================
+  // ================= ATTENDANCE MAP =================
   const attendanceMap = useMemo(() => {
     const map = {};
 
@@ -199,7 +202,7 @@ const AttendanceStaff = () => {
     },
   ];
 
-  // ================= SUMMARY =================
+  // ================= SUMMARY COLUMNS =================
   const summaryColumns = [
     { title: "Student", dataIndex: "studentName" },
     { title: "Total", dataIndex: "total" },
@@ -268,6 +271,7 @@ const AttendanceStaff = () => {
       {/* SUMMARY */}
       <Card title="Monthly Summary" style={{ marginTop: 16 }}>
         <Table
+          loading={monthlyLoading}
           dataSource={monthlyData?.data || []}
           columns={summaryColumns}
           pagination={false}

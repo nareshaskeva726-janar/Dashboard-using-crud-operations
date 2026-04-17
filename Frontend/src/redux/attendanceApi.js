@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const attendanceApi = createApi({
   reducerPath: "attendanceApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API+"/api/attendance",
+    baseUrl: import.meta.env.VITE_API + "/api/attendance",
     credentials: "include",
   }),
   tagTypes: ["Attendance"],
@@ -83,6 +83,29 @@ export const attendanceApi = createApi({
       providesTags: ["Attendance"],
     }),
 
+    getAdminSummary: builder.query({
+      query: (params) => ({
+        url: "/admin-summary",
+        params,
+      }),
+      providesTags: ["Attendance"],
+    }),
+
+    getStaffSummary: builder.query({
+      query: (params) => ({
+        url: "/staff-summary",
+        params,
+      }),
+      providesTags: ["Attendance"],
+    }),
+
+    getStudentSummary: builder.query({
+      query: (params) => ({
+        url: "/student-summary",
+        params,
+      }),
+      providesTags: ["Attendance"],
+    }),
   }),
 });
 
@@ -90,9 +113,15 @@ export const {
   useMarkAttendanceMutation,
   useUpdateAttendanceMutation,
   useDeleteAttendanceMutation,
+
   useGetAllAttendanceQuery,
   useGetStaffAttendanceQuery,
   useGetAdminAttendanceQuery,
   useGetMyAttendanceQuery,
+
   useGetMonthlySummaryQuery,
+  useGetStaffSummaryQuery,
+  useGetStudentSummaryQuery,
+  useGetAdminSummaryQuery,
+  
 } = attendanceApi;

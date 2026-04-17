@@ -1,135 +1,190 @@
 import React, { useState, useMemo } from "react";
-import { Table, Select, Spin, Tag } from "antd";
+import {
+  Table,
+  Select,
+  Spin,
+  Tag,
+  Card,
+  Row,
+  Col,
+  Typography,
+  Empty,
+} from "antd";
 import { useGetAllProjectsSuperadminQuery } from "../redux/projectApi";
 
 const { Option } = Select;
+const { Title, Text } = Typography;
 
 const AssignmentSuperAdmin = () => {
-    const { data, isLoading } = useGetAllProjectsSuperadminQuery();
+  const { data, isLoading } = useGetAllProjectsSuperadminQuery();
 
-    console.log("API DATA:", data);
+  const projects = Array.isArray(data?.data) ? data.data : [];
+  const [departmentFilter, setDepartmentFilter] = useState("");
 
+  /* ================= DEPARTMENTS ================= */
+  const departments = useMemo(() => {
+    return [...new Set(projects.map((p) => p.department))];
+  }, [projects]);
 
-    // ✅ FIXED HERE
-    const projects = Array.isArray(data?.data) ? data.data : [];
+  /* ================= FILTER ================= */
+  const filteredProjects = useMemo(() => {
+    return projects.filter((p) => {
+      const filePath = p.projectFile?.path || p.projectFile;
+      const isSubmitted = p.student && filePath;
 
-    const [departmentFilter, setDepartmentFilter] = useState("");
+      const matchesDepartment =
+        !departmentFilter || p.department === departmentFilter;
 
-    /* ================= UNIQUE DEPARTMENTS ================= */
-    const departments = useMemo(() => {
-        const deptSet = new Set(projects.map((p) => p.department));
-        return Array.from(deptSet);
-    }, [projects]);
+      return isSubmitted && matchesDepartment;
+    });
+  }, [projects, departmentFilter]);
 
-    /* ================= FILTERED DATA ================= */
-    const filteredProjects = useMemo(() => {
-        return projects.filter((p) => {
-            const filePath =
-                p.projectFile?.path || p.projectFile;
+  /* ================= STATS ================= */
+  const stats = useMemo(() => {
+    const total = projects.length;
 
-            const isSubmitted =
-                p.student && filePath;
+    const submitted = projects.filter((p) => {
+      const filePath = p.projectFile?.path || p.projectFile;
+      return p.student && filePath;
+    }).length;
 
-            const matchesDepartment =
-                !departmentFilter || p.department === departmentFilter;
+    const pending = total - submitted;
 
-            return isSubmitted && matchesDepartment;
-        });
-    }, [projects, departmentFilter]);
+    return { total, submitted, pending };
+  }, [projects]);
 
-    console.log(filteredProjects)
+  /* ================= COLUMNS ================= */
+  const columns = [
+    {
+      title: "Student",
+      render: (_, record) => record.student?.name || "-",
+    },
+    {
+      title: "Project",
+      dataIndex: "projectName",
+    },
+    {
+      title: "Department",
+      dataIndex: "department",
+      render: (dept) => <Tag color="blue">{dept}</Tag>,
+    },
+    {
+      title: "Subject",
+      dataIndex: "subject",
+    },
+    {
+      title: "File",
+      render: (_, record) => {
+        const filePath =
+          record.projectFile?.path || record.projectFile;
 
-    
-    /* ================= TABLE COLUMNS ================= */
-    const columns = [
-        {
-            title: "Student Name",
-            key: "student",
-            render: (_, record) => record.student?.name || "Not Submitted",
-        },
+        if (!filePath) {
+          return <Tag color="red">Not Uploaded</Tag>;
+        }
 
-        {
-            title: "Project Name",
-            dataIndex: "projectName",
-            key: "projectName",
-        },
-        {
-            title: "Department",
-            dataIndex: "department",
-            key: "department",
-            render: (dept) => <Tag color="blue">{dept}</Tag>,
-        },
-        {
-            title: "Subject",
-            dataIndex: "subject",
-            key: "subject",
-        },
-        {
-            title: "File",
-            key: "file",
-            render: (_, record) => {
-                const filePath =
-                    record.projectFile?.path ||   // if object
-                    record.projectFile;           // if string
-
-                if (!filePath) return "No File";
-
-                const fullUrl = filePath;
-
-                return (
-                    <a href={fullUrl} target="_blank" rel="noreferrer">
-                        View File
-                    </a>
-                );
-            },
-        },
-        {
-            title: "Created At",
-            dataIndex: "createdAt",
-            key: "createdAt",
-            render: (date) =>
-                date ? new Date(date).toLocaleString() : "-",
-        },
-    ];
-
-    if (isLoading) {
         return (
-            <div className="flex justify-center mt-20">
-                <Spin size="large" />
-            </div>
+          <a href={filePath} target="_blank" rel="noreferrer">
+            View File
+          </a>
         );
-    }
+      },
+    },
+    {
+      title: "Created",
+      dataIndex: "createdAt",
+      render: (date) =>
+        date ? new Date(date).toLocaleString("en-IN") : "-",
+    },
+  ];
 
+  /* ================= LOADING ================= */
+  if (isLoading) {
     return (
-        <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">All Projects</h2>
-
-            {/* FILTER */}
-            <div className="mb-4">
-                <Select
-                    placeholder="Filter by Department"
-                    allowClear
-                    style={{ width: 250 }}
-                    onChange={(value) => setDepartmentFilter(value)}
-                >
-                    {departments.map((dept) => (
-                        <Option key={dept} value={dept}>
-                            {dept}
-                        </Option>
-                    ))}
-                </Select>
-            </div>
-
-            {/* TABLE */}
-            <Table
-                columns={columns}
-                dataSource={filteredProjects}
-                rowKey={(record) => record._id}
-                bordered
-                scroll={{x: 300}}
-            />
-        </div>
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 80 }}>
+        <Spin size="large" />
+      </div>
     );
+  }
+
+  return (
+    <div style={{ padding: 16, background: "#f5f7fb", minHeight: "100vh" }}>
+      {/* HEADER */}
+      <Title level={3} style={{ marginBottom: 4 }}>
+        Project Submissions
+      </Title>
+      <Text type="secondary">
+        Super Admin dashboard for all student projects
+      </Text>
+
+      {/* ================= STATS CARDS ================= */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} md={8}>
+          <Card>
+            <Title level={5}>Total Projects</Title>
+            <Title level={2}>{stats.total}</Title>
+          </Card>
+        </Col>
+
+        <Col xs={24} md={8}>
+          <Card>
+            <Title level={5}>Submitted</Title>
+            <Title level={2} style={{ color: "green" }}>
+              {stats.submitted}
+            </Title>
+          </Card>
+        </Col>
+
+        <Col xs={24} md={8}>
+          <Card>
+            <Title level={5}>Pending</Title>
+            <Title level={2} style={{ color: "red" }}>
+              {stats.pending}
+            </Title>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* ================= FILTER ================= */}
+      <Card style={{ marginTop: 16, marginBottom: 16 }}>
+        <Row justify="space-between" align="middle">
+          <Col>
+            <Text strong>Filter by Department</Text>
+          </Col>
+
+          <Col>
+            <Select
+              placeholder="Select Department"
+              allowClear
+              style={{ width: 220 }}
+              onChange={(value) => setDepartmentFilter(value)}
+            >
+              {departments.map((dept) => (
+                <Option key={dept} value={dept}>
+                  {dept}
+                </Option>
+              ))}
+            </Select>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* ================= TABLE ================= */}
+      <Card>
+        {filteredProjects.length ? (
+          <Table
+            columns={columns}
+            dataSource={filteredProjects}
+            rowKey={(record) => record._id}
+            bordered
+            pagination={{ pageSize: 8 }}
+            scroll={{ x: "max-content" }}
+          />
+        ) : (
+          <Empty description="No projects found" />
+        )}
+      </Card>
+    </div>
+  );
 };
 
 export default AssignmentSuperAdmin;

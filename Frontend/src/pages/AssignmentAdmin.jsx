@@ -1,8 +1,10 @@
 import React, { useMemo } from "react";
-import { Table, Spin, Tag } from "antd";
+import { Table, Spin, Tag, Card, Row, Col, Typography, Empty } from "antd";
 import { useSelector } from "react-redux";
 import { selectUser } from "../redux/authSlice";
 import { useGetAllProjectsSuperadminQuery } from "../redux/projectApi";
+
+const { Title, Text } = Typography;
 
 const AssignmentAdmin = () => {
   const { data, isLoading } = useGetAllProjectsSuperadminQuery();
@@ -10,11 +12,10 @@ const AssignmentAdmin = () => {
 
   const projects = Array.isArray(data?.data) ? data.data : [];
 
+  /* ================= FILTER ================= */
   const filteredProjects = useMemo(() => {
     return projects.filter((p) => {
-      const filePath =
-        p.projectFile?.path || p.projectFile;
-
+      const filePath = p.projectFile?.path || p.projectFile;
       const hasFile = Boolean(filePath);
 
       return (
@@ -24,16 +25,33 @@ const AssignmentAdmin = () => {
     });
   }, [projects, user]);
 
+  /* ================= STATS ================= */
+  const stats = useMemo(() => {
+    const total = projects.filter(
+      (p) => p.department === user?.department
+    ).length;
+
+    const submitted = filteredProjects.length;
+
+    const pending = total - submitted;
+
+    return { total, submitted, pending };
+  }, [projects, filteredProjects, user]);
+
+  /* ================= COLUMNS ================= */
   const columns = [
     {
-      title: "Student Name",
-      key: "student",
-      render: (_, record) => record.student?.name || "Not Submitted",
+      title: "Student",
+      render: (_, record) =>
+        record.student?.name || "Not Submitted",
     },
-
     {
-      title: "Project Name",
+      title: "Project",
       dataIndex: "projectName",
+    },
+    {
+      title: "Subject",
+      dataIndex: "subject",
     },
     {
       title: "Department",
@@ -41,25 +59,19 @@ const AssignmentAdmin = () => {
       render: (dept) => <Tag color="blue">{dept}</Tag>,
     },
     {
-      title: "Subject",
-      dataIndex: "subject",
-    },
-    {
       title: "File",
       render: (_, record) => {
-        let filePath =
+        const filePath =
           typeof record.projectFile === "string"
             ? record.projectFile
             : record.projectFile?.path;
 
-        if (!filePath) return "No File";
+        if (!filePath) {
+          return <Tag color="red">No File</Tag>;
+        }
 
         return (
-          <a
-            href={filePath}
-            target="_blank"
-            rel="noreferrer"
-          >
+          <a href={filePath} target="_blank" rel="noreferrer">
             View File
           </a>
         );
@@ -69,37 +81,73 @@ const AssignmentAdmin = () => {
       title: "Created At",
       dataIndex: "createdAt",
       render: (date) =>
-        date ? new Date(date).toLocaleString() : "-",
+        date ? new Date(date).toLocaleString("en-IN") : "-",
     },
   ];
 
+  /* ================= LOADING ================= */
   if (isLoading) {
     return (
-      <div className="flex justify-center mt-20">
+      <div style={{ display: "flex", justifyContent: "center", marginTop: 80 }}>
         <Spin size="large" />
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">
+    <div style={{ padding: 16, background: "#f5f7fb", minHeight: "100vh" }}>
+      {/* HEADER */}
+      <Title level={3} style={{ marginBottom: 4 }}>
         {user?.department} Department Projects
-      </h2>
+      </Title>
 
-      {filteredProjects.length === 0 && (
-        <div className="text-red-500">
-          No projects found for your department
-        </div>
-      )}
+      <Text type="secondary">
+        Manage and view submitted student assignments
+      </Text>
 
-      <Table
-        columns={columns}
-        dataSource={filteredProjects}
-        rowKey={(record) => record._id}
-        bordered
-        scroll={{ x: 300 }}
-      />
+      {/* ================= STATS ================= */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} md={8}>
+          <Card>
+            <Title level={5}>Total Projects</Title>
+            <Title level={2}>{stats.total}</Title>
+          </Card>
+        </Col>
+
+        <Col xs={24} md={8}>
+          <Card>
+            <Title level={5}>Submitted</Title>
+            <Title level={2} style={{ color: "green" }}>
+              {stats.submitted}
+            </Title>
+          </Card>
+        </Col>
+
+        <Col xs={24} md={8}>
+          <Card>
+            <Title level={5}>Pending</Title>
+            <Title level={2} style={{ color: "red" }}>
+              {stats.pending}
+            </Title>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* ================= TABLE ================= */}
+      <Card style={{ marginTop: 16 }}>
+        {filteredProjects.length ? (
+          <Table
+            columns={columns}
+            dataSource={filteredProjects}
+            rowKey={(record) => record._id}
+            bordered
+            pagination={{ pageSize: 8 }}
+            scroll={{ x: "max-content" }}
+          />
+        ) : (
+          <Empty description="No projects found for your department" />
+        )}
+      </Card>
     </div>
   );
 };
