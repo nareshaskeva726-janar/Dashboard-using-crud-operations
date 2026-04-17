@@ -28,7 +28,7 @@ function SideBar({ open, setOpen }) {
 
   const handleLogout = () => {
     dispatch(logout());
-    toast.success("Logout successfully", { position: "top-center", duration: 5000 });
+    toast.success("Logout successfully");
     navigate("/");
   };
 

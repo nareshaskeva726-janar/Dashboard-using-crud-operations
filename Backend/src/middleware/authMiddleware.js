@@ -5,6 +5,11 @@ const userAuth = async (req, res, next) => {
   try {
     const token = req.cookies?.token; 
 
+    console.log(req.cookies, "req.cookies");
+    console.log(token, "Token")
+
+    console.log("Middleware working perfectly")
+
     if (!token) {
       return res.status(401).json({ success: false, message: "Not authorized. Please login again" });
     }

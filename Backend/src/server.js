@@ -10,6 +10,7 @@ import connectDB from "./config/database.js";
 
 // Routes
 import Userrouter from "./routes/userRoutes.js";
+import AttendanceRouter from "./routes/attendanceRoutes.js";
 import reminderRouter from "./routes/reminderRoutes.js";
 import seedRouter from "./routes/seedRoutes.js";
 import NotificationRouter from "./routes/notficationRoutes.js";
@@ -19,6 +20,10 @@ import ChatRouter from "./routes/chatRoutes.js";
 // Sockets
 import socketHandler from "./socket/chatSocket.js";
 import NotificationSocket from "./socket/notificationSocket.js";
+
+//cron
+import { startPeriodReminder } from "./cron/periodReminder.js";
+
 
 // ================= CONFIG =================
 dotenv.config();
@@ -56,8 +61,9 @@ app.get("/", (req, res) => {
 
 app.use("/api/seed", seedRouter);
 app.use("/api/users", Userrouter);
-app.use("/api/chat", ChatRouter);
+app.use("/api/attendance", AttendanceRouter)
 app.use("/api/projects", Projectrouter);
+app.use("/api/chat", ChatRouter);
 app.use("/api/notifications", NotificationRouter);
 app.use("/api/reminders", reminderRouter);
 
@@ -81,6 +87,9 @@ app.set("io", io);
 // Socket handlers
 socketHandler(io);
 NotificationSocket(io);
+
+//cron
+startPeriodReminder(app, io);
 
 // ================= START SERVER =================
 server.listen(PORT, () => {

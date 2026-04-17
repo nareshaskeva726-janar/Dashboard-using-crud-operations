@@ -11,23 +11,22 @@ import { userApi } from "./userApi";
 import { projectApi } from "./projectApi";
 import { notificationApi } from "./notificationApi";
 import { chatApi } from "./chatApi";
-
-
+import { attendanceApi } from "./attendanceApi";
 
 export const store = configureStore({
   reducer: {
-
     // Custom reducers
     auth: authReducer,
     chat: chatReducer,
     project: projectReducer,
     notification: notificationReducer,
 
-    //  RTK Query reducers
+    // RTK Query reducers
     [userApi.reducerPath]: userApi.reducer,
     [projectApi.reducerPath]: projectApi.reducer,
     [notificationApi.reducerPath]: notificationApi.reducer,
     [chatApi.reducerPath]: chatApi.reducer,
+    [attendanceApi.reducerPath]: attendanceApi.reducer, // ✅ ADD THIS
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -36,6 +35,7 @@ export const store = configureStore({
       projectApi.middleware,
       notificationApi.middleware,
       chatApi.middleware,
+      attendanceApi.middleware // ✅ ADD THIS
     ),
 
   devTools: process.env.NODE_ENV !== "production",

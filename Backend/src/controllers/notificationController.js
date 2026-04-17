@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import Notification from "../models/notificationModel.js";
 import User from "../models/userModel.js";
 
+
+
 // ---------------- SEND NOTIFICATIONS ----------------
 export const sendNotifications = async (req, res) => {
   try {

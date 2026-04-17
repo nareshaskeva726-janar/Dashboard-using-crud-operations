@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useLoginUserMutation } from "../redux/userApi";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/authSlice";
-import {toast} from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 function Login() {
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ function Login() {
 
       // Save user + token in Redux
       dispatch(loginSuccess({ user, token }));
-      message.success(res.message || "Login successful" , {position: "top-center", duration : 1000});
+      toast.success(res.message);
 
       // Navigate based on role
       switch (user.role) {
@@ -80,9 +80,9 @@ function Login() {
           </Form.Item>
 
           {/* Submit Button */}
-          <Button  
-          style={{marginTop: "20px"}}
-          type="primary" htmlType="submit" block size="large" loading={isLoading}>
+          <Button
+            style={{ marginTop: "20px" }}
+            type="primary" htmlType="submit" block size="large" loading={isLoading}>
             {isLoading ? "Logging in..." : "Login"}
           </Button>
         </Form>

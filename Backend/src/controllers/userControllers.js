@@ -21,11 +21,23 @@ export const loginUser = async (req, res) => {
 
     const token = generateToken(user);
 
+    console.log(token, "Token");
+
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   // secure: process.env.NODE_ENV === "production",
+    //   secure: true,
+    //   sameSite: "none",
+    //   maxAge: 7 * 24 * 60 * 60 * 1000,
+    //   path: "/",
+    // });
+
+    const isProd = process.env.NODE_ENV === "production";
+
     res.cookie("token", token, {
       httpOnly: true,
-      // secure: process.env.NODE_ENV === "production",
-      secure : true,
-      sameSite: "none",
+      secure: isProd,        // false in localhost
+      sameSite: isProd ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/",
     });
@@ -54,7 +66,7 @@ export const getMe = async (req, res) => {
 // CREATE USER
 export const createUser = async (req, res) => {
   try {
-    const { name, email, password, role, department, subjects , contact} = req.body;
+    const { name, email, password, role, department, subjects, contact } = req.body;
 
     const creatorRole = req.user.role;
 
@@ -93,6 +105,7 @@ export const createUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 // UPDATE USER
 export const updateUser = async (req, res) => {

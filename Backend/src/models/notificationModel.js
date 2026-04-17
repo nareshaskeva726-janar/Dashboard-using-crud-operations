@@ -17,6 +17,7 @@ const notificationSchema = new mongoose.Schema(
         "reminder",
         "hod-reminder",
         "warning",
+        "attendance"
       ],
       default: "general",
     },
