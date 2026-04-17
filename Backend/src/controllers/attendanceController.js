@@ -7,14 +7,20 @@ import { sendNotifications } from "./notificationController.js";
 export const markAttendance = async (req, res) => {
   try {
     const staffId = req.user._id;
+    const userRole = req.user.role;
+    const userDepartment = req.user.department;
 
-    const {
-      date,
-      department,
-      subject,
-      period,
-      students,
-    } = req.body;
+    const { date, department, subject, students } = req.body;
+
+    // ==========================
+    // ROLE + DEPARTMENT CHECK
+    // ==========================
+    if (userRole === "staff" && department !== userDepartment) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only mark attendance for your own department",
+      });
+    }
 
     if (!students || !students.length) {
       return res.status(400).json({
@@ -33,7 +39,6 @@ export const markAttendance = async (req, res) => {
         filter: {
           studentId: new mongoose.Types.ObjectId(s.studentId),
           date: attendanceDate,
-          period,
           subject,
         },
         update: {
@@ -43,7 +48,6 @@ export const markAttendance = async (req, res) => {
             date: attendanceDate,
             department,
             subject,
-            period,
             status: s.status,
             markedAt: new Date(),
           },
@@ -55,52 +59,44 @@ export const markAttendance = async (req, res) => {
     await Attendance.bulkWrite(bulkOps);
 
     // ==========================
-    // 2. PREPARE NOTIFICATION
+    // 2. NOTIFICATION DATA
     // ==========================
     const studentIds = students.map((s) => s.studentId);
 
-    const presentCount = students.filter(
-      (s) => s.status === "present"
-    ).length;
-
+    const presentCount = students.filter((s) => s.status === "present").length;
     const absentCount = students.length - presentCount;
 
-    const message = `Attendance marked for ${subject} (Period ${period}) - Present: ${presentCount}, Absent: ${absentCount}`;
+    const message = `Attendance marked for ${subject} - Present: ${presentCount}, Absent: ${absentCount}`;
 
     // ==========================
-    // 3. CALL NOTIFICATION CONTROLLER
+    // 3. SEND NOTIFICATION
+    // ==========================
+    await sendNotifications(
+      {
+        user: req.user,
+        body: {
+          message,
+          receiverIds: studentIds,
+          department,
+          type: "attendance",
+        },
+        app: req.app,
+      },
+      {
+        status: () => ({
+          json: () => {},
+        }),
+      }
+    );
+
+    // ==========================
+    // 4. SOCKET UPDATE
     // ==========================
     const io = req.app.get("io");
 
-    const fakeReq = {
-      user: req.user,
-      body: {
-        message,
-        receiverIds: studentIds,
-        department,
-        type: "attendance",
-      },
-      app: {
-        get: () => io,
-      },
-    };
-
-    // prevent controller from sending HTTP response twice
-    const fakeRes = {
-      status: () => ({
-        json: () => {},
-      }),
-    };
-
-    await sendNotifications(fakeReq, fakeRes);
-
-    // ==========================
-    // 4. SOCKET LIVE UPDATE
-    // ==========================
     if (io) {
       io.to(`department-${department}`).emit("attendance-updated", {
         subject,
-        period,
         date: attendanceDate,
       });
     }
@@ -110,19 +106,18 @@ export const markAttendance = async (req, res) => {
     // ==========================
     return res.status(200).json({
       success: true,
-      message: "Attendance marked and notifications sent",
+      message: "Attendance marked successfully",
     });
 
   } catch (error) {
     console.log("Error in markAttendance controller", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
 
 // UPDATE ATTENDANCE (STAFF ONLY)
 export const updateAttendance = async (req, res) => {
@@ -159,7 +154,7 @@ export const updateAttendance = async (req, res) => {
     }
 
     // -------------------------
-    // 3. FIND & UPDATE
+    // 3. FIND ATTENDANCE
     // -------------------------
     const attendance = await Attendance.findById(attendanceId);
 
@@ -170,36 +165,44 @@ export const updateAttendance = async (req, res) => {
       });
     }
 
-    // optional: ensure staff can only update their own class
-    if (attendance.staffId.toString() !== user._id.toString()) {
+    // -------------------------
+    // 4. DEPARTMENT ACCESS CHECK (IMPORTANT)
+    // -------------------------
+    if (attendance.department !== user.department) {
       return res.status(403).json({
         success: false,
-        message: "You are not allowed to update this attendance",
+        message: "You can only update your department attendance",
       });
     }
 
+
+
+    // -------------------------
+    // 5. UPDATE
+    // -------------------------
     attendance.status = status;
     attendance.markedAt = new Date();
 
     await attendance.save();
 
     // -------------------------
-    // 4. SOCKET UPDATE (OPTIONAL)
+    // 6. SOCKET UPDATE
     // -------------------------
     const io = req.app.get("io");
 
     if (io) {
-      io.to(attendance.studentId.toString()).emit(
-        "attendance-updated",
-        {
-          attendanceId,
-          status,
-          subject: attendance.subject,
-          period: attendance.period,
-        }
-      );
+      io.to(attendance.studentId.toString()).emit("attendance-updated", {
+        attendanceId,
+        status,
+        subject: attendance.subject,
+        period: attendance.period,
+        department: attendance.department,
+      });
     }
 
+    // -------------------------
+    // RESPONSE
+    // -------------------------
     return res.status(200).json({
       success: true,
       message: "Attendance updated successfully",
@@ -208,13 +211,12 @@ export const updateAttendance = async (req, res) => {
   } catch (error) {
     console.log("Error in updateAttendance controller", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
 
 // DELETE ATTENDANCE (STAFF ONLY)
 export const deleteAttendance = async (req, res) => {
@@ -253,12 +255,12 @@ export const deleteAttendance = async (req, res) => {
     }
 
     // -------------------------
-    // 3. OWNERSHIP CHECK
+    // 3. DEPARTMENT CHECK (IMPORTANT)
     // -------------------------
-    if (attendance.staffId.toString() !== user._id.toString()) {
+    if (attendance.department !== user.department) {
       return res.status(403).json({
         success: false,
-        message: "You are not allowed to delete this attendance",
+        message: "You can only delete attendance from your department",
       });
     }
 
@@ -268,34 +270,39 @@ export const deleteAttendance = async (req, res) => {
     await Attendance.findByIdAndDelete(attendanceId);
 
     // -------------------------
-    // 5. SOCKET UPDATE (OPTIONAL)
+    // 5. SOCKET UPDATE
     // -------------------------
     const io = req.app.get("io");
 
     if (io) {
-      io.to(attendance.studentId.toString()).emit(
-        "attendance-deleted",
-        {
-          attendanceId,
-          subject: attendance.subject,
-          period: attendance.period,
-        }
-      );
+      io.to(attendance.studentId.toString()).emit("attendance-deleted", {
+        attendanceId,
+        subject: attendance.subject,
+      });
     }
 
+    // -------------------------
+    // RESPONSE
+    // -------------------------
     return res.status(200).json({
       success: true,
       message: "Attendance deleted successfully",
     });
+
   } catch (error) {
     console.log("Error in deleteAttendance controller", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
+
+
+
+
 
 // GET ALL ATTENDANCE (SUPERADMIN ONLY)
 export const allAttendance = async (req, res) => {

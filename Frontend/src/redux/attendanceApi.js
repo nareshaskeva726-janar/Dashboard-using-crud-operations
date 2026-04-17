@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const attendanceApi = createApi({
   reducerPath: "attendanceApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://localhost:5000/api/attendance",
+    baseUrl: import.meta.env.VITE_API+"/api/attendance",
     credentials: "include",
   }),
   tagTypes: ["Attendance"],
@@ -22,7 +22,7 @@ export const attendanceApi = createApi({
     // ---------------- UPDATE ATTENDANCE ----------------
     updateAttendance: builder.mutation({
       query: (data) => ({
-        url: "/update-attendance",
+        url: `/update-attendance/${attendanceId}`,
         method: "PUT",
         body: data,
       }),

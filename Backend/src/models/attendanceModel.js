@@ -18,11 +18,6 @@ const attendanceSchema = new mongoose.Schema(
       required: true,
     },
 
-    period: {
-      type: Number, 
-      required: true,
-    },
-
     staffId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -51,7 +46,7 @@ const attendanceSchema = new mongoose.Schema(
 
 
 attendanceSchema.index(
-  { studentId: 1, date: 1, period: 1, subject: 1 },
+  { studentId: 1, date: 1, subject: 1 },
   { unique: true }
 );
 

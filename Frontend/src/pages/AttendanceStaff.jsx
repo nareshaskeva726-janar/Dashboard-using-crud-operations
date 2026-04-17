@@ -15,7 +15,7 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 
-// ---------- RTK ----------
+// RTK
 import {
   useMarkAttendanceMutation,
   useDeleteAttendanceMutation,
@@ -23,42 +23,32 @@ import {
   useGetMonthlySummaryQuery,
 } from "../redux/attendanceApi";
 
-import {
-  useGetUsersQuery,
-  useCheckAuthQuery,
-} from "../redux/userApi";
+import { useGetUsersQuery, useCheckAuthQuery } from "../redux/userApi";
 
 const { Title, Text } = Typography;
 
 const AttendanceStaff = () => {
+  // ================= AUTH =================
+  const { data: authUser, isLoading: authLoading } = useCheckAuthQuery();
 
-  // =============================
-  // AUTH USER
-  // =============================
-  const { data: authUser, isLoading: authLoading } =
-    useCheckAuthQuery();
+  const staff = authUser?.user;
+  const staffDepartment = staff?.department;
+  const staffSubjects = staff?.subjects || [];
 
-  const staffDepartment = authUser?.user?.department;
-  const staffSubjects = authUser?.user?.subjects || [];
-
+  // ================= STATE =================
   const [subject, setSubject] = useState("");
   const [date, setDate] = useState(dayjs());
 
-  // auto select first subject
   useEffect(() => {
     if (staffSubjects.length && !subject) {
       setSubject(staffSubjects[0]);
     }
   }, [staffSubjects, subject]);
 
-  // =============================
-  // USERS LIST
-  // =============================
+  // ================= USERS =================
   const { data: usersData = [] } = useGetUsersQuery();
 
-  // =============================
-  // STAFF ATTENDANCE DATA
-  // =============================
+  // ================= ATTENDANCE =================
   const {
     data: staffData,
     refetch,
@@ -72,9 +62,7 @@ const AttendanceStaff = () => {
     { skip: !staffDepartment || !subject }
   );
 
-  // =============================
-  // MONTHLY SUMMARY
-  // =============================
+  // ================= SUMMARY =================
   const { data: monthlyData } = useGetMonthlySummaryQuery(
     {
       department: staffDepartment,
@@ -85,24 +73,17 @@ const AttendanceStaff = () => {
     { skip: !staffDepartment || !subject }
   );
 
-  // =============================
-  // MUTATIONS
-  // =============================
+  // ================= MUTATIONS =================
   const [markAttendance, { isLoading: marking }] =
     useMarkAttendanceMutation();
 
-  const [deleteAttendance] =
-    useDeleteAttendanceMutation();
+  const [deleteAttendance] = useDeleteAttendanceMutation();
 
-  // =============================
-  // FILTER STUDENTS
-  // =============================
+  // ================= STUDENTS =================
   const studentsList = useMemo(() => {
     return usersData
       .filter(
-        (u) =>
-          u.role === "student" &&
-          u.department === staffDepartment
+        (u) => u.role === "student" && u.department === staffDepartment
       )
       .map((u) => ({
         _id: u._id,
@@ -110,44 +91,36 @@ const AttendanceStaff = () => {
       }));
   }, [usersData, staffDepartment]);
 
-  // =============================
-  // ATTENDANCE MAP
-  // =============================
+  // ================= ATTENDANCE MAP (FIXED) =================
   const attendanceMap = useMemo(() => {
     const map = {};
+
     staffData?.data?.forEach((a) => {
-      map[a.studentId._id] = a;
+      const key = a.studentId?._id || a.studentId;
+      map[key] = a;
     });
+
     return map;
   }, [staffData]);
 
-  // =============================
-  // MARK ATTENDANCE
-  // =============================
+  // ================= MARK =================
   const handleMark = async (studentId, status) => {
     try {
       await markAttendance({
         department: staffDepartment,
         subject,
         date: date.toISOString(),
-        students: [
-          {
-            studentId,
-            status,
-          },
-        ],
+        students: [{ studentId, status }],
       }).unwrap();
 
-      message.success("Attendance updated");
+      message.success("Attendance marked");
       refetch();
     } catch (err) {
       message.error(err?.data?.message || "Failed");
     }
   };
 
-  // =============================
-  // TABLE DATA
-  // =============================
+  // ================= TABLE DATA =================
   const tableData = studentsList.map((student) => {
     const record = attendanceMap[student._id];
 
@@ -160,10 +133,8 @@ const AttendanceStaff = () => {
     };
   });
 
-  // =============================
-  // MARK TABLE COLUMNS
-  // =============================
-  const markColumns = [
+  // ================= COLUMNS =================
+  const columns = [
     {
       title: "Student",
       dataIndex: "name",
@@ -193,9 +164,7 @@ const AttendanceStaff = () => {
             size="small"
             type="primary"
             loading={marking}
-            onClick={() =>
-              handleMark(record.studentId, "present")
-            }
+            onClick={() => handleMark(record.studentId, "present")}
           >
             Present
           </Button>
@@ -204,21 +173,22 @@ const AttendanceStaff = () => {
             size="small"
             danger
             loading={marking}
-            onClick={() =>
-              handleMark(record.studentId, "absent")
-            }
+            onClick={() => handleMark(record.studentId, "absent")}
           >
             Absent
           </Button>
 
-          {record.attendanceId && (
+          {record?.attendanceId && (
             <Button
               size="small"
               onClick={async () => {
-                await deleteAttendance(
-                  record.attendanceId
-                );
-                refetch();
+                try {
+                  await deleteAttendance(record.attendanceId).unwrap();
+                  message.success("Deleted");
+                  refetch();
+                } catch (err) {
+                  message.error("Delete failed");
+                }
               }}
             >
               Delete
@@ -229,19 +199,15 @@ const AttendanceStaff = () => {
     },
   ];
 
-  // =============================
-  // MONTHLY SUMMARY COLUMNS
-  // =============================
+  // ================= SUMMARY =================
   const summaryColumns = [
     { title: "Student", dataIndex: "studentName" },
-    { title: "Total Classes", dataIndex: "total" },
-    { title: "Attended", dataIndex: "present" },
+    { title: "Total", dataIndex: "total" },
+    { title: "Present", dataIndex: "present" },
     {
       title: "Percentage",
       render: (_, record) => (
-        <Tag
-          color={record.percentage >= 75 ? "green" : "red"}
-        >
+        <Tag color={record.percentage >= 75 ? "green" : "red"}>
           {record.percentage}%
         </Tag>
       ),
@@ -251,25 +217,17 @@ const AttendanceStaff = () => {
   if (authLoading) return <Spin fullscreen />;
 
   return (
-    <div
-      style={{
-        padding: 16,
-        background: "#f5f7fb",
-        minHeight: "100vh",
-      }}
-    >
+    <div style={{ padding: 16, background: "#f5f7fb", minHeight: "100vh" }}>
       {/* HEADER */}
-      <Row justify="space-between" align="middle">
+      <Row justify="space-between">
         <Col>
           <Title level={3}>Attendance Management</Title>
-          <Text type="secondary">
-            Department: {staffDepartment}
-          </Text>
+          <Text>Department: {staffDepartment}</Text>
         </Col>
       </Row>
 
       {/* FILTER */}
-      <Card style={{ marginTop: 16, borderRadius: 12 }}>
+      <Card style={{ marginTop: 16 }}>
         <Row gutter={16}>
           <Col xs={24} md={12}>
             <Text>Subject</Text>
@@ -278,9 +236,9 @@ const AttendanceStaff = () => {
               onChange={setSubject}
               style={{ width: "100%" }}
             >
-              {staffSubjects.map((sub) => (
-                <Select.Option key={sub} value={sub}>
-                  {sub}
+              {staffSubjects.map((s) => (
+                <Select.Option key={s} value={s}>
+                  {s}
                 </Select.Option>
               ))}
             </Select>
@@ -297,24 +255,18 @@ const AttendanceStaff = () => {
         </Row>
       </Card>
 
-      {/* MARK ATTENDANCE */}
-      <Card
-        style={{ marginTop: 16, borderRadius: 12 }}
-        title={<b>Mark Attendance</b>}
-      >
+      {/* MARK TABLE */}
+      <Card title="Mark Attendance" style={{ marginTop: 16 }}>
         <Table
           loading={isFetching}
           dataSource={tableData}
-          columns={markColumns}
+          columns={columns}
           pagination={false}
         />
       </Card>
 
-      {/* MONTHLY SUMMARY */}
-      <Card
-        style={{ marginTop: 16, borderRadius: 12 }}
-        title={<b>Monthly Summary</b>}
-      >
+      {/* SUMMARY */}
+      <Card title="Monthly Summary" style={{ marginTop: 16 }}>
         <Table
           dataSource={monthlyData?.data || []}
           columns={summaryColumns}
