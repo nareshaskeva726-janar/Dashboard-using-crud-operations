@@ -29,7 +29,8 @@ const { Title, Text } = Typography;
 
 const AttendanceStaff = () => {
   // ================= AUTH =================
-  const { data: authUser, isLoading: authLoading } = useCheckAuthQuery();
+  const { data: authUser, isLoading: authLoading } =
+    useCheckAuthQuery();
 
   const staff = authUser?.user;
   const staffDepartment = staff?.department;
@@ -46,7 +47,11 @@ const AttendanceStaff = () => {
   }, [staffSubjects, subject]);
 
   // ================= USERS =================
-  const { data: usersData = [] } = useGetUsersQuery();
+  const { data: usersRes } = useGetUsersQuery();
+
+  const usersData = Array.isArray(usersRes)
+    ? usersRes
+    : usersRes?.users || [];
 
   // ================= ATTENDANCE =================
   const {
@@ -62,7 +67,7 @@ const AttendanceStaff = () => {
     { skip: !staffDepartment || !subject }
   );
 
-  // ================= STAFF MONTHLY SUMMARY (FIXED) =================
+  // ================= MONTHLY SUMMARY =================
   const {
     data: monthlyData,
     isLoading: monthlyLoading,
@@ -84,9 +89,13 @@ const AttendanceStaff = () => {
 
   // ================= STUDENTS =================
   const studentsList = useMemo(() => {
+    if (!Array.isArray(usersData)) return [];
+
     return usersData
       .filter(
-        (u) => u.role === "student" && u.department === staffDepartment
+        (u) =>
+          u.role === "student" &&
+          u.department === staffDepartment
       )
       .map((u) => ({
         _id: u._id,
@@ -98,7 +107,11 @@ const AttendanceStaff = () => {
   const attendanceMap = useMemo(() => {
     const map = {};
 
-    staffData?.data?.forEach((a) => {
+    const attendanceArray = Array.isArray(staffData?.data)
+      ? staffData.data
+      : [];
+
+    attendanceArray.forEach((a) => {
       const key = a.studentId?._id || a.studentId;
       map[key] = a;
     });
@@ -124,17 +137,30 @@ const AttendanceStaff = () => {
   };
 
   // ================= TABLE DATA =================
-  const tableData = studentsList.map((student) => {
-    const record = attendanceMap[student._id];
+  const tableData = useMemo(() => {
+    return studentsList.map((student) => {
+      const record = attendanceMap[student._id];
 
-    return {
-      key: student._id,
-      studentId: student._id,
-      name: student.name,
-      status: record?.status || "Not Marked",
-      attendanceId: record?._id,
-    };
-  });
+      return {
+        key: student._id,
+        studentId: student._id,
+        name: student.name,
+        status: record?.status || "Not Marked",
+        attendanceId: record?._id,
+      };
+    });
+  }, [studentsList, attendanceMap]);
+
+  // ================= SAFE MONTHLY ARRAY =================
+  const monthlySummaryList = useMemo(() => {
+    if (!monthlyData?.data) return [];
+
+    if (Array.isArray(monthlyData.data)) {
+      return monthlyData.data;
+    }
+
+    return [monthlyData.data];
+  }, [monthlyData]);
 
   // ================= COLUMNS =================
   const columns = [
@@ -151,8 +177,8 @@ const AttendanceStaff = () => {
             status === "present"
               ? "green"
               : status === "absent"
-                ? "red"
-                : "default"
+              ? "red"
+              : "default"
           }
         >
           {status}
@@ -167,7 +193,9 @@ const AttendanceStaff = () => {
             size="small"
             type="primary"
             loading={marking}
-            onClick={() => handleMark(record.studentId, "present")}
+            onClick={() =>
+              handleMark(record.studentId, "present")
+            }
           >
             Present
           </Button>
@@ -176,7 +204,9 @@ const AttendanceStaff = () => {
             size="small"
             danger
             loading={marking}
-            onClick={() => handleMark(record.studentId, "absent")}
+            onClick={() =>
+              handleMark(record.studentId, "absent")
+            }
           >
             Absent
           </Button>
@@ -186,10 +216,12 @@ const AttendanceStaff = () => {
               size="small"
               onClick={async () => {
                 try {
-                  await deleteAttendance(record.attendanceId).unwrap();
+                  await deleteAttendance(
+                    record.attendanceId
+                  ).unwrap();
                   message.success("Deleted");
                   refetch();
-                } catch (err) {
+                } catch {
                   message.error("Delete failed");
                 }
               }}
@@ -204,9 +236,11 @@ const AttendanceStaff = () => {
 
   // ================= SUMMARY COLUMNS =================
   const summaryColumns = [
-    { title: "Student", dataIndex: "studentName" },
+    { title: "subject", dataIndex: "subject" },
     { title: "Total", dataIndex: "total" },
     { title: "Present", dataIndex: "present" },
+    {title: "absent", dataIndex: "absent"},
+
     {
       title: "Percentage",
       render: (_, record) => (
@@ -220,7 +254,13 @@ const AttendanceStaff = () => {
   if (authLoading) return <Spin fullscreen />;
 
   return (
-    <div style={{ padding: 16, background: "#f5f7fb", minHeight: "100vh" }}>
+    <div
+      style={{
+        padding: 16,
+        background: "#f5f7fb",
+        minHeight: "100vh",
+      }}
+    >
       {/* HEADER */}
       <Row justify="space-between">
         <Col>
@@ -274,7 +314,7 @@ const AttendanceStaff = () => {
         <Table
           scroll={{ x: true }}
           loading={monthlyLoading}
-          dataSource={monthlyData?.data || []}
+          dataSource={monthlySummaryList}
           columns={summaryColumns}
           pagination={false}
         />

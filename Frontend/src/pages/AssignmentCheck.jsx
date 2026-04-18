@@ -210,13 +210,6 @@ const AssignmentCheck = () => {
           </Form>
         </Card>}
 
-
-
-
-
-
-
-
       {/* SUBMITTED PROJECTS */}
       <Card style={{ marginBottom: 24 }}>
         <Title level={4}>Submitted Projects</Title>

@@ -840,16 +840,20 @@ export const adminMonthlySummary = async (req, res) => {
         },
       },
     ]);
-
     return res.status(200).json({
       success: true,
-      data: summary[0] || {
-        department,
-        present: 0,
-        absent: 0,
-        total: 0,
-        percentage: 0,
-      },
+      data:
+        summary.length > 0
+          ? summary
+          : [
+            {
+              department,
+              present: 0,
+              absent: 0,
+              total: 0,
+              percentage: 0,
+            },
+          ],
     });
   } catch (error) {
     console.log("Error in adminMonthlySummary", error);

@@ -11,6 +11,8 @@ import {
   Empty,
 } from "antd";
 
+import dayjs from "dayjs";
+
 import {
   useGetMyAttendanceQuery,
   useGetStudentSummaryQuery,
@@ -22,25 +24,39 @@ const { Title, Text } = Typography;
 
 const AttendanceStudent = () => {
   /* ================= AUTH ================= */
-  const { data: authUser, isLoading: authLoading } = useCheckAuthQuery();
+  const { data: authUser, isLoading: authLoading } =
+    useCheckAuthQuery();
 
   const student = authUser?.user;
   const subjects = student?.subjects || [];
+
+  /* ================= CURRENT MONTH ================= */
+  const month = dayjs().month() + 1;
+  const year = dayjs().year();
 
   /* ================= ATTENDANCE ================= */
   const {
     data: attendanceRes,
     isLoading: attendanceLoading,
     error,
-  } = useGetMyAttendanceQuery(undefined, { skip: !student });
+  } = useGetMyAttendanceQuery(undefined, {
+    skip: !student,
+  });
 
-  const attendanceList = attendanceRes?.data || [];
+  const attendanceList = Array.isArray(attendanceRes?.data)
+    ? attendanceRes.data
+    : [];
 
   /* ================= STUDENT MONTHLY SUMMARY (FIXED) ================= */
   const { data: summaryRes, isLoading: summaryLoading } =
-    useGetStudentSummaryQuery(undefined, { skip: !student });
+    useGetStudentSummaryQuery(
+      { month, year }, // ⭐ FIXED HERE
+      { skip: !student }
+    );
 
-  const summaryList = summaryRes?.data || [];
+  const summaryList = Array.isArray(summaryRes?.data)
+    ? summaryRes.data
+    : [];
 
   /* ================= DAILY TABLE ================= */
   const attendanceData = useMemo(() => {
@@ -49,7 +65,9 @@ const AttendanceStudent = () => {
 
       return {
         key: item._id || index,
-        date: dateObj ? dateObj.toLocaleDateString("en-IN") : "-",
+        date: dateObj
+          ? dateObj.toLocaleDateString("en-IN")
+          : "-",
         time: dateObj
           ? dateObj.toLocaleTimeString("en-IN", {
               hour: "2-digit",
@@ -72,7 +90,7 @@ const AttendanceStudent = () => {
       subject: item.subject,
       totalClasses: item.total,
       attended: item.present,
-      percent: Number(item.percentage),
+      percent: Number(item.percentage) || 0,
     }));
   }, [summaryList]);
 
@@ -80,14 +98,25 @@ const AttendanceStudent = () => {
   const overallPercentage = useMemo(() => {
     if (!monthlyData.length) return 0;
 
-    const total = monthlyData.reduce((s, i) => s + i.totalClasses, 0);
-    const attended = monthlyData.reduce((s, i) => s + i.attended, 0);
+    const total = monthlyData.reduce(
+      (s, i) => s + i.totalClasses,
+      0
+    );
 
-    return total ? Math.round((attended / total) * 100) : 0;
+    const attended = monthlyData.reduce(
+      (s, i) => s + i.attended,
+      0
+    );
+
+    return total
+      ? Math.round((attended / total) * 100)
+      : 0;
   }, [monthlyData]);
 
   const riskStatus =
-    overallPercentage >= 75 ? "Good Standing" : "Low Attendance";
+    overallPercentage >= 75
+      ? "Good Standing"
+      : "Low Attendance";
 
   /* ================= COLUMNS ================= */
   const monthlyColumns = [
@@ -129,7 +158,9 @@ const AttendanceStudent = () => {
       title: "Marked By",
       render: (_, r) => (
         <div>
-          <div style={{ fontWeight: 600 }}>{r.staffName}</div>
+          <div style={{ fontWeight: 600 }}>
+            {r.staffName}
+          </div>
           <Text type="secondary" style={{ fontSize: 12 }}>
             {r.staffRole}
           </Text>
@@ -142,7 +173,8 @@ const AttendanceStudent = () => {
   if (authLoading || attendanceLoading || summaryLoading)
     return <Spin fullscreen />;
 
-  if (error) return <Empty description="No attendance data found" />;
+  if (error)
+    return <Empty description="No attendance data found" />;
 
   /* ================= CARD STYLE ================= */
   const cardStyle = {
@@ -153,13 +185,21 @@ const AttendanceStudent = () => {
   };
 
   return (
-    <div style={{ padding: 16, background: "#f5f7fb", minHeight: "100vh" }}>
+    <div
+      style={{
+        padding: 16,
+        background: "#f5f7fb",
+        minHeight: "100vh",
+      }}
+    >
       {/* HEADER */}
       <div style={{ marginBottom: 16 }}>
         <Title level={3} style={{ marginBottom: 0 }}>
           My Attendance
         </Title>
-        <Text type="secondary">Track your attendance performance</Text>
+        <Text type="secondary">
+          Track your attendance performance
+        </Text>
       </div>
 
       {/* CARDS */}
@@ -183,7 +223,11 @@ const AttendanceStudent = () => {
         <Col xs={24} sm={12} md={8}>
           <Card style={cardStyle}>
             <Title level={5}>Status</Title>
-            <Tag color={overallPercentage >= 75 ? "green" : "red"}>
+            <Tag
+              color={
+                overallPercentage >= 75 ? "green" : "red"
+              }
+            >
               {riskStatus}
             </Tag>
           </Card>

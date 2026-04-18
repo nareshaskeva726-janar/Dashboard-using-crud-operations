@@ -28,36 +28,51 @@ const AttendanceAdmin = () => {
 
   const user = authRes?.user;
   const department = user?.department;
-  const isAdmin = user?.role === "admin";
+
+  /* ================= CURRENT MONTH ================= */
+  const today = new Date();
+  const month = today.getMonth() + 1;
+  const year = today.getFullYear();
 
   /* ================= USERS ================= */
   const { data: usersRes } = useGetUsersQuery();
+const departmentStudents = useMemo(() => {
+  const users =
+    usersRes?.users ||
+    usersRes?.data ||
+    usersRes ||
+    [];
 
-  const departmentStudents = useMemo(() => {
-    return (
-      usersRes?.users?.filter(
-        (u) => u.role === "student" && u.department === department
-      ) || []
-    );
-  }, [usersRes, department]);
+  return users.filter(
+    (u) =>
+      u.role?.toLowerCase() === "student" &&
+      u.department === department
+  );
+}, [usersRes, department]);
+
+  console.log(departmentStudents, "departmentStundets")
 
   /* ================= ATTENDANCE ================= */
   const { data: attendanceRes, isLoading: attendanceLoading } =
     useGetAdminAttendanceQuery(
       { department },
-      { skip: !department || !isAdmin }
+      { skip: !department }
     );
 
   const attendanceList = attendanceRes?.data || [];
 
-  /* ================= ADMIN SUMMARY (FIXED) ================= */
+  console.log(attendanceList, "attendanceList")
+
+  /* ================= MONTHLY SUMMARY (FIXED) ================= */
   const { data: summaryRes, isLoading: summaryLoading } =
     useGetAdminSummaryQuery(
-      { department },
-      { skip: !department || !isAdmin }
+      { department, month, year },
+      { skip: !department }
     );
 
-  const summaryList = summaryRes?.data || [];
+  const summaryList = Array.isArray(summaryRes?.data)
+    ? summaryRes.data
+    : summaryRes?.summary || [];
 
   /* ================= DEPARTMENT STATS ================= */
   const departmentStats = useMemo(() => {
@@ -75,13 +90,14 @@ const AttendanceAdmin = () => {
 
     return {
       students: departmentStudents.length,
-      avgAttendance: total === 0 ? 0 : Math.round((present / total) * 100),
+      avgAttendance:
+        total === 0 ? 0 : Math.round((present / total) * 100),
       presentToday: present,
       absentToday: absent,
     };
   }, [attendanceList, departmentStudents, department]);
 
-  /* ================= STUDENT WISE TABLE ================= */
+  /* ================= STUDENT TABLE ================= */
   const studentAttendanceTable = useMemo(() => {
     const grouped = {};
 
@@ -110,43 +126,31 @@ const AttendanceAdmin = () => {
     return Object.values(grouped).map((s) => ({
       ...s,
       percentage:
-        s.total === 0 ? 0 : Math.round((s.present / s.total) * 100),
+        s.total === 0
+          ? 0
+          : Math.round((s.present / s.total) * 100),
     }));
   }, [attendanceList]);
 
-  /* ================= MONTHLY SUBJECT SUMMARY (FIXED) ================= */
-  const monthlySummary = useMemo(() => {
-    const grouped = {};
+  /* ================= MONTHLY SUBJECT SUMMARY ================= */
+const monthlySummary = useMemo(() => {
+  if (!summaryRes?.data) return [];
 
-    summaryList.forEach((rec) => {
-      const subject = rec?.subject;
-      if (!subject) return;
+  const data = summaryRes.data;
 
-      if (!grouped[subject]) {
-        grouped[subject] = { total: 0, present: 0 };
-      }
+  return [
+    {
+      key: data.department,
+      department: data.department,
+      present: data.present,
+      absent: data.absent,
+      total: data.total,
+      percentage: data.percentage,
+    },
+  ];
+}, [summaryRes]);
 
-      grouped[subject].total += 1;
-
-      if (rec.status === "present") {
-        grouped[subject].present += 1;
-      }
-    });
-
-    return Object.keys(grouped).map((subject) => {
-      const total = grouped[subject].total;
-      const present = grouped[subject].present;
-
-      return {
-        key: subject,
-        subject,
-        total,
-        present,
-        percentage:
-          total === 0 ? 0 : Math.round((present / total) * 100),
-      };
-    });
-  }, [summaryList]);
+console.log(monthlySummary, "monthlySummary")
 
   /* ================= TABLE ================= */
   const attendanceColumns = [
@@ -165,26 +169,21 @@ const AttendanceAdmin = () => {
       ),
     },
     {
-      title: "Marked By (Staff)",
+      title: "Marked By",
       render: (_, r) => (
-        <div>
-          <div>{r.staffId?.name || "Unknown Staff"}</div>
+        <>
+          <div>{r.staffId?.name}</div>
           <Text type="secondary" style={{ fontSize: 12 }}>
-            {r.staffId?.role || "Staff"}
+            {r.staffId?.department}
           </Text>
-        </div>
+        </>
       ),
     },
     {
       title: "Date",
       dataIndex: "date",
       render: (value) =>
-        value
-          ? new Date(value).toLocaleString("en-IN", {
-            dateStyle: "medium",
-            timeStyle: "short",
-          })
-          : "-",
+        new Date(value).toLocaleString("en-IN"),
     },
   ];
 
@@ -193,60 +192,50 @@ const AttendanceAdmin = () => {
     return <Spin fullscreen />;
   }
 
-  /* ================= ACCESS CONTROL ================= */
-  if (!isAdmin) {
-    return (
-      <div style={{ padding: 20 }}>
-        <Title level={4} type="danger">
-          Access Denied (Admin Only)
-        </Title>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ padding: 16, background: "#f5f7fb" }}>
-      <Title level={3}>{department} Department Attendance</Title>
-      <Text type="secondary">Attendance analytics dashboard</Text>
+    <div style={{ padding: 16 }}>
+      <Title level={3}>
+        {department} Department Attendance
+      </Title>
 
-      {/* STATS */}
-      <Row
-        gutter={[16, 16]}
-        style={{ marginTop: 16 }}
-        align="stretch"
+      {/* ================= STATS ================= */}
+   <Row gutter={[16, 16]} align="stretch">
+
+  <Col xs={24} md={8} style={{ display: "flex" }}>
+    <Card style={{ width: "100%", height: "100%" }}>
+      <Title level={5}>Students</Title>
+      <Title level={2}>
+        {departmentStats.students}
+      </Title>
+    </Card>
+  </Col>
+
+  <Col xs={24} md={8} style={{ display: "flex" }}>
+    <Card style={{ width: "100%", height: "100%" }}>
+      <Title level={5}>Avg Attendance</Title>
+      <Progress percent={departmentStats.avgAttendance} />
+    </Card>
+  </Col>
+
+  <Col xs={24} md={8} style={{ display: "flex" }}>
+    <Card style={{ width: "100%", height: "100%" }}>
+      <Tag color="green">
+        Present: {departmentStats.presentToday}
+      </Tag>
+
+      <Tag color="red" style={{ marginLeft: 8 }}>
+        Absent: {departmentStats.absentToday}
+      </Tag>
+    </Card>
+  </Col>
+
+</Row>
+
+      {/* ================= STUDENT OVERVIEW ================= */}
+      <Card
+        style={{ marginTop: 20 }}
+        title="Student Attendance Overview"
       >
-        <Col xs={24} sm={24} md={8} style={{ display: "flex" }}>
-          <Card style={{ width: "100%", height: "100%" }}>
-            <Title level={5}>Students</Title>
-            <Title level={2}>{departmentStats.students}</Title>
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={24} md={8} style={{ display: "flex" }}>
-          <Card style={{ width: "100%", height: "100%" }}>
-            <Title level={5}>Avg Attendance</Title>
-            <Title level={2} style={{ color: "#1890ff" }}>
-              {departmentStats.avgAttendance}%
-            </Title>
-            <Progress percent={departmentStats.avgAttendance} />
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={24} md={8} style={{ display: "flex" }}>
-          <Card style={{ width: "100%", height: "100%" }}>
-            <Title level={5}>Department Summary</Title>
-            <Tag color="green">
-              Present: {departmentStats.presentToday}
-            </Tag>
-            <Tag color="red" style={{ marginLeft: 8 }}>
-              Absent: {departmentStats.absentToday}
-            </Tag>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* STUDENT TABLE */}
-      <Card style={{ marginTop: 20 }} title="Student Attendance Overview">
         <Table
           scroll={{ x: true }}
           dataSource={studentAttendanceTable}
@@ -271,15 +260,17 @@ const AttendanceAdmin = () => {
         />
       </Card>
 
-      {/* MONTHLY SUBJECT */}
-      <Card style={{ marginTop: 20 }} title="Monthly Subject Summary">
+      {/* ================= MONTHLY SUBJECT ================= */}
+      <Card
+        style={{ marginTop: 20 }}
+        title="Monthly Subject Summary"
+      >
         <Table
-          scroll={{ x: true }}
           dataSource={monthlySummary}
           rowKey="key"
           pagination={false}
           columns={[
-            { title: "Subject", dataIndex: "subject" },
+            { title: "department", dataIndex: "department" },
             { title: "Total", dataIndex: "total" },
             { title: "Present", dataIndex: "present" },
             {
@@ -295,8 +286,11 @@ const AttendanceAdmin = () => {
         />
       </Card>
 
-      {/* FULL LOG */}
-      <Card style={{ marginTop: 20 }} title="All Attendance Records">
+      {/* ================= FULL LOG ================= */}
+      <Card
+        style={{ marginTop: 20 }}
+        title="All Attendance Records"
+      >
         <Table
           scroll={{ x: true }}
           dataSource={attendanceList}

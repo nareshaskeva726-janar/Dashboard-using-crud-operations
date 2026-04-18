@@ -145,12 +145,14 @@ function SideBar({ open, setOpen }) {
 
 
 
-    ...(user?.role !== "superadmin") ? [
-      {
-        key: "timetable",
-        icon: <TableOutlined />,
-        label: "TimeTable",
-      },] : [],
+    // ...(user?.role !== "superadmin") ? [
+    //   {
+    //     key: "timetable",
+    //     icon: <TableOutlined />,
+    //     label: "TimeTable",
+    //   },] : [],
+
+
     {
       key: "settings",
       icon: <SettingOutlined />,
@@ -165,7 +167,6 @@ function SideBar({ open, setOpen }) {
 
   return (
     <>
-      {/* DESKTOP SIDEBAR */}
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
@@ -190,7 +191,7 @@ function SideBar({ open, setOpen }) {
         />
       </Sider>
 
-      {/* MOBILE DRAWER */}
+
       <Drawer
         placement="left"
         size={250}

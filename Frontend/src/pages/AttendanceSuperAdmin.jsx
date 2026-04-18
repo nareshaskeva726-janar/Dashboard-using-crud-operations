@@ -46,7 +46,17 @@ const AttendanceSuperAdmin = () => {
     });
 
   const attendanceList = attendanceRes?.data || [];
-  const users = usersRes?.users || [];
+  const users = useMemo(() => {
+    if (!usersRes) return [];
+
+    if (Array.isArray(usersRes)) return usersRes;
+    if (Array.isArray(usersRes.users)) return usersRes.users;
+    if (Array.isArray(usersRes.data)) return usersRes.data;
+
+    return [];
+  }, [usersRes]);
+
+  
   const monthlyList = monthlyRes?.data || [];
 
   // ================= STUDENTS =================
@@ -54,6 +64,8 @@ const AttendanceSuperAdmin = () => {
     () => users.filter((u) => u.role === "student"),
     [users]
   );
+
+  console.log(students, "students") // empty array
 
   // ================= DEPARTMENTS =================
   const departments = useMemo(() => {
@@ -188,8 +200,13 @@ const AttendanceSuperAdmin = () => {
     }));
   }, [monthlyList]);
 
+  console.log(monthlyList, "monthlyList")
+  console.log(monthlySummary, "monthly summary")
+
   // ================= KPI =================
+
   const totalStudents = students.length;
+  console.log(totalStudents, "total students") // empty array
 
   const totalPresent = attendanceList.filter(
     (a) => a.status?.toLowerCase() === "present"
@@ -367,7 +384,7 @@ const AttendanceSuperAdmin = () => {
               title: "Subject / Dept",
               dataIndex: "subject",
               render: (t, r) => (
-                <Tag color="purple">{r.subject || r.department}</Tag>
+                <Tag color="purple">{r.key || r.department}</Tag>
               ),
             },
             { title: "Total", dataIndex: "total" },
