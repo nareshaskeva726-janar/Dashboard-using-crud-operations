@@ -8,7 +8,6 @@ import ProtectedRoute from "../components/ProtectedRoute";
 import ChatBot from "../pages/ChatBot";
 import Assignments from "../pages/Assignments";
 import AssignmentCheck from "../pages/AssignmentCheck";
-import TimeTable from "../pages/TimeTable";
 import DashBoardPage from "../pages/DashBoardPage";
 import ChatList from "../pages/ChatList";
 import AssignmentAdmin from "../pages/AssignmentAdmin";
@@ -43,10 +42,6 @@ const LayoutRouter = () => {
                     <Route path="assignments" element={<Assignments />} />
                     <Route path="assignmentcheck" element={<AssignmentCheck />} />
 
-
-
-
-                    <Route path="timetable" element={<TimeTable />} />
                     <Route path="settings" element={<Settings />} />
                 </Route>
             </Route>
