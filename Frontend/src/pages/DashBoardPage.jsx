@@ -264,20 +264,20 @@ const DashBoardPage = () => {
 
   return (
     <div className="px-3 sm:px-6 md:px-8 py-4">
-      <div className="mb-6 border-b pb-4">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-          Welcome, <span className="text-blue-600">{user.name}</span>
+      <div style={{ marginBottom: 24, borderBottom: "1px solid #eee", paddingBottom: 12 }}>
+        <h1 style={{ fontSize: 26, fontWeight: 600 }}>
+          Welcome, <span style={{ color: "#1677ff" }}>{user.name}</span>
         </h1>
 
-        <h3 className="text-lg md:text-xl font-semibold text-gray-600 mt-1">
-          Role : <span className="capitalize">{user.role}</span>
+        <h3 style={{ fontSize: 18, color: "#555", marginTop: 4 }}>
+          Role : {user.role}
         </h3>
 
         <Title
           level={3}
           style={{
             marginTop: 16,
-            marginBottom: 0,
+            borderBottom: "3px solid #1677ff",
             display: "inline-block",
             paddingBottom: 6,
           }}
