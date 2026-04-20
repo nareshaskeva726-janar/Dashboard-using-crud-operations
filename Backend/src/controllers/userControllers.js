@@ -197,3 +197,53 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+export const bulkwritetheusers = async (req, res) => {
+  try {
+    const { users } = req.body;
+
+    if (!users || !users.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No users provided",
+      });
+    }
+
+    // ✅ Create bulk operations
+    const operations = users.map((user) => ({
+      updateOne: {
+        filter: { email: user.email }, // duplicate check
+        update: {
+          $setOnInsert: {
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            department: user.department,
+            contact: user.contact,
+            subjects: user.subjects || [],
+          },
+        },
+        upsert: true, // insert if not exists
+      },
+    }));
+
+    // ✅ BULK WRITE
+    const result = await User.bulkWrite(operations);
+
+    return res.status(200).json({
+      success: true,
+      message: "Bulk users imported",
+      inserted: result.upsertedCount,
+      matched: result.matchedCount,
+    });
+
+  } catch (error) {
+    console.log("error in the bulkwriteUsers controller", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

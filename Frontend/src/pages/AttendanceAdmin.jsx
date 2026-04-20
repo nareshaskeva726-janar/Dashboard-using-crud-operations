@@ -21,8 +21,13 @@ import {
 } from "../redux/userApi";
 
 const { Title, Text } = Typography;
+import { useTheme } from "../context/ThemeContext";
 
 const AttendanceAdmin = () => {
+
+  const { theme, toggleTheme } = useTheme();
+
+
   /* ================= AUTH ================= */
   const { data: authRes, isLoading: authLoading } = useCheckAuthQuery();
 
@@ -36,19 +41,19 @@ const AttendanceAdmin = () => {
 
   /* ================= USERS ================= */
   const { data: usersRes } = useGetUsersQuery();
-const departmentStudents = useMemo(() => {
-  const users =
-    usersRes?.users ||
-    usersRes?.data ||
-    usersRes ||
-    [];
+  const departmentStudents = useMemo(() => {
+    const users =
+      usersRes?.users ||
+      usersRes?.data ||
+      usersRes ||
+      [];
 
-  return users.filter(
-    (u) =>
-      u.role?.toLowerCase() === "student" &&
-      u.department === department
-  );
-}, [usersRes, department]);
+    return users.filter(
+      (u) =>
+        u.role?.toLowerCase() === "student" &&
+        u.department === department
+    );
+  }, [usersRes, department]);
 
   console.log(departmentStudents, "departmentStundets")
 
@@ -133,24 +138,20 @@ const departmentStudents = useMemo(() => {
   }, [attendanceList]);
 
   /* ================= MONTHLY SUBJECT SUMMARY ================= */
-const monthlySummary = useMemo(() => {
-  if (!summaryRes?.data) return [];
+  const monthlySummary = useMemo(() => {
+    if (!summaryRes?.data || !Array.isArray(summaryRes.data)) return [];
 
-  const data = summaryRes.data;
+    return summaryRes.data.map((item, index) => ({
+      key: item.department || index,
+      department: item.department ?? "-",
+      present: item.present ?? 0,
+      absent: item.absent ?? 0,
+      total: item.total ?? 0,
+      percentage: item.percentage ?? 0,
+    }));
+  }, [summaryRes]);
 
-  return [
-    {
-      key: data.department,
-      department: data.department,
-      present: data.present,
-      absent: data.absent,
-      total: data.total,
-      percentage: data.percentage,
-    },
-  ];
-}, [summaryRes]);
-
-console.log(monthlySummary, "monthlySummary")
+  console.log(monthlySummary, "monthlySummary")
 
   /* ================= TABLE ================= */
   const attendanceColumns = [
@@ -194,49 +195,61 @@ console.log(monthlySummary, "monthlySummary")
 
   return (
     <div style={{ padding: 16 }}>
-      <Title level={3}>
+      <Title level={3}
+        style={{ color: theme === "dark" ? "#fff" : "#000" }}
+      >
         {department} Department Attendance
       </Title>
 
       {/* ================= STATS ================= */}
-   <Row gutter={[16, 16]} align="stretch">
+      <Row gutter={[16, 16]} align="stretch">
 
-  <Col xs={24} md={8} style={{ display: "flex" }}>
-    <Card style={{ width: "100%", height: "100%" }}>
-      <Title level={5}>Students</Title>
-      <Title level={2}>
-        {departmentStats.students}
-      </Title>
-    </Card>
-  </Col>
+        <Col xs={24} md={8} style={{ display: "flex" }}>
+          <Card style={{
+            width: "100%", height: "100%",
+            background: theme === "dark" ? "#333" : "#fff"
 
-  <Col xs={24} md={8} style={{ display: "flex" }}>
-    <Card style={{ width: "100%", height: "100%" }}>
-      <Title level={5}>Avg Attendance</Title>
-      <Progress percent={departmentStats.avgAttendance} />
-    </Card>
-  </Col>
+          }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Students</Title>
+            <Title level={2} style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>
+              {departmentStats.students}
+            </Title>
+          </Card>
+        </Col>
 
-  <Col xs={24} md={8} style={{ display: "flex" }}>
-    <Card style={{ width: "100%", height: "100%" }}>
-      <Tag color="green">
-        Present: {departmentStats.presentToday}
-      </Tag>
+        <Col xs={24} md={8} style={{ display: "flex" }}>
+          <Card style={{ width: "100%", height: "100%", background: theme === "dark" ? "#333" : "#fff" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Avg Attendance</Title>
+            <Progress percent={departmentStats.avgAttendance} style={{ color: theme === "dark" ? "#fff" : "#000" }} className={theme === "dark" ? "dark-indicator" : ""} />
+          </Card>
+        </Col>
 
-      <Tag color="red" style={{ marginLeft: 8 }}>
-        Absent: {departmentStats.absentToday}
-      </Tag>
-    </Card>
-  </Col>
+        <Col xs={24} md={8} style={{ display: "flex" }}>
+          <Card style={{ width: "100%", height: "100%", background: theme === "dark" ? "#333" : "#fff" }}>
+            <Tag color="green">
+              Present: {departmentStats.presentToday}
+            </Tag>
 
-</Row>
+            <Tag color="red" style={{ marginLeft: 8 }}>
+              Absent: {departmentStats.absentToday}
+            </Tag>
+          </Card>
+        </Col>
+
+      </Row>
 
       {/* ================= STUDENT OVERVIEW ================= */}
       <Card
-        style={{ marginTop: 20 }}
-        title="Student Attendance Overview"
+        className={theme === "dark" ? "dark-card" : ""}
+        style={{ marginTop: 20, }}
+        title={
+          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+            Student Attendance Overview
+          </span>
+        }
       >
         <Table
+          className={theme === "dark" ? "dark-table" : ""}
           scroll={{ x: true }}
           dataSource={studentAttendanceTable}
           rowKey="key"
@@ -250,6 +263,7 @@ console.log(monthlySummary, "monthlySummary")
               dataIndex: "percentage",
               render: (value) => (
                 <Progress
+                className={theme === "dark" ? "dark-indicator" : ""}
                   percent={value}
                   size="small"
                   status={value < 75 ? "exception" : "active"}
@@ -262,10 +276,16 @@ console.log(monthlySummary, "monthlySummary")
 
       {/* ================= MONTHLY SUBJECT ================= */}
       <Card
+        className={theme === "dark" ? "dark-card" : ""}
         style={{ marginTop: 20 }}
-        title="Monthly Subject Summary"
+        title={
+          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+            Monthly Subject Summary
+          </span>
+        }
       >
         <Table
+          className={theme === "dark" ? "dark-table" : ""}
           dataSource={monthlySummary}
           rowKey="key"
           pagination={false}
@@ -288,13 +308,19 @@ console.log(monthlySummary, "monthlySummary")
 
       {/* ================= FULL LOG ================= */}
       <Card
+        className={theme === "dark" ? "dark-card" : ""}
         style={{ marginTop: 20 }}
-        title="All Attendance Records"
+        title={
+          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+            All Attendance Records
+          </span>
+        }
       >
         <Table
           scroll={{ x: true }}
           dataSource={attendanceList}
           rowKey="_id"
+          className={theme === "dark" ? "dark-table" : ""}
           columns={attendanceColumns}
           pagination={{ pageSize: 10 }}
         />

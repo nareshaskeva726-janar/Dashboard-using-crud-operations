@@ -1,13 +1,16 @@
 import { Card, Form, Input, Button, message } from "antd";
 import { useState } from "react";
-import { CloseOutlined } from "@ant-design/icons";
+import { CloseOutlined, EyeOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 
 import { useResetPasswordMutation } from "../redux/userApi";
 import { toast } from "react-hot-toast";
+import { useTheme } from "../context/ThemeContext";
 
 
 
 function Settings() {
+
+  const { theme, toggleTheme } = useTheme();
 
   const [showForm, setShowForm] = useState(false);
   const [form] = Form.useForm();
@@ -53,11 +56,20 @@ function Settings() {
 
         {/* USER DETAILS */}
 
-        <Card title="User Details" className="w-full shadow-sm">
+        <Card
+          title={
+            <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+              User Details
+            </span>
+          }
+
+
+
+          className="w-full shadow-sm" style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
 
           <div className="space-y-2 text-sm md:text-base">
-            <p><b>Name :</b> {user.name}</p>
-            <p className="break-all"><b>Email :</b> {user.email}</p>
+            <p style={{ color: theme === "dark" ? "#fff" : "#000" }} ><b>Name :</b> {user.name}</p>
+            <p className="break-all" style={{ color: theme === "dark" ? "#fff" : "#000" }}><b>Email :</b> {user.email}</p>
           </div>
 
           {!showForm && (
@@ -77,15 +89,24 @@ function Settings() {
 
         {showForm && (
 
-          <Card title="Reset Password" className="w-full shadow-sm">
+          <Card
+            style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}
+            title={
+              <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+                Reset Password
+              </span>
+            } className="w-full shadow-sm">
 
             <Form
+              style={{ color: theme === "dark" ? "#fff" : "#000" }}
               form={form}
               layout="vertical"
               onFinish={updatePassword}
+              className={theme === "dark" ? "dark-form" : ""}
             >
 
               <Form.Item
+                style={{ color: theme === "dark" ? "#fff" : "#000" }}
                 label="New Password"
                 name="newPassword"
                 normalize={(value) => value.replace(/^\s+/, "")}
@@ -94,8 +115,20 @@ function Settings() {
                   { min: 6, message: "Minimum 6 characters" }
                 ]}
               >
-                <Input.Password placeholder="Enter new password" />
+                 <Input.Password
+                  placeholder="New password"
+                  iconRender={(visible) =>
+                    visible ? (
+                      <EyeOutlined style={{ color: "#fff" }} />
+                    ) : (
+                      <EyeInvisibleOutlined style={{ color: "#fff" }} />
+                    )
+                  }
+                />
               </Form.Item>
+
+
+
 
               <Form.Item
                 label="Confirm Password"
@@ -106,20 +139,24 @@ function Settings() {
                   { required: true, message: "Confirm password" },
                   ({ getFieldValue }) => ({
                     validator(_, value) {
-
                       if (!value || getFieldValue("newPassword") === value) {
                         return Promise.resolve();
                       }
-
-                      return Promise.reject(
-                        new Error("Passwords do not match")
-                      );
-
-                    }
-                  })
+                      return Promise.reject(new Error("Passwords do not match"));
+                    },
+                  }),
                 ]}
               >
-                <Input.Password placeholder="Confirm password" />
+                <Input.Password
+                  placeholder="Confirm password"
+                  iconRender={(visible) =>
+                    visible ? (
+                      <EyeOutlined style={{ color: "#fff" }} />
+                    ) : (
+                      <EyeInvisibleOutlined style={{ color: "#fff" }} />
+                    )
+                  }
+                />
               </Form.Item>
 
               <div className="flex flex-col sm:flex-row gap-3 sm:justify-between">
@@ -134,6 +171,7 @@ function Settings() {
                 </Button>
 
                 <Button
+                  style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000" }}
                   onClick={() => setShowForm(false)}
                   className="w-full sm:w-auto "
                 >

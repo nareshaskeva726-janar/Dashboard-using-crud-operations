@@ -22,7 +22,14 @@ import { useCheckAuthQuery } from "../redux/userApi";
 
 const { Title, Text } = Typography;
 
+import { useTheme } from "../context/ThemeContext";
+
+
 const AttendanceStudent = () => {
+
+
+  const { theme, toggleTheme } = useTheme();
+
   /* ================= AUTH ================= */
   const { data: authUser, isLoading: authLoading } =
     useCheckAuthQuery();
@@ -70,9 +77,9 @@ const AttendanceStudent = () => {
           : "-",
         time: dateObj
           ? dateObj.toLocaleTimeString("en-IN", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
+            hour: "2-digit",
+            minute: "2-digit",
+          })
           : "-",
         subject: item.subject || "-",
         department: item.department || "-",
@@ -128,6 +135,7 @@ const AttendanceStudent = () => {
       dataIndex: "percent",
       render: (v) => (
         <Progress
+          className={theme === "dark" ? "dark-indicator" : ""}
           percent={v}
           size="small"
           status={v < 75 ? "exception" : "active"}
@@ -188,16 +196,20 @@ const AttendanceStudent = () => {
     <div
       style={{
         padding: 16,
-        background: "#f5f7fb",
         minHeight: "100vh",
       }}
     >
       {/* HEADER */}
       <div style={{ marginBottom: 16 }}>
-        <Title level={3} style={{ marginBottom: 0 }}>
+        <Title level={3} 
+          style={{ color: theme === "dark" ? "#fff" : "#000", marginBottom: 0 }}
+        >
           My Attendance
         </Title>
-        <Text type="secondary">
+
+        <Text type="secondary"
+          style={{ color: theme === "dark" ? "#fff" : "#000" }}
+        >
           Track your attendance performance
         </Text>
       </div>
@@ -205,15 +217,15 @@ const AttendanceStudent = () => {
       {/* CARDS */}
       <Row gutter={[16, 16]} align="stretch">
         <Col xs={24} sm={12} md={8}>
-          <Card style={cardStyle}>
-            <Title level={5}>Total Subjects</Title>
-            <Title level={2}>{subjects.length}</Title>
+          <Card style={{ background: theme === "dark" ? "#333" : "#fff", height: "100%" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Total Subjects</Title>
+            <Title level={2} style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>{subjects.length}</Title>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} md={8}>
-          <Card style={cardStyle}>
-            <Title level={5}>Overall Attendance</Title>
+          <Card style={{ background: theme === "dark" ? "#333" : "#fff", height: "100%" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Overall Attendance</Title>
             <Title level={2} style={{ color: "#1890ff" }}>
               {overallPercentage}%
             </Title>
@@ -221,8 +233,8 @@ const AttendanceStudent = () => {
         </Col>
 
         <Col xs={24} sm={12} md={8}>
-          <Card style={cardStyle}>
-            <Title level={5}>Status</Title>
+          <Card style={{ background: theme === "dark" ? "#333" : "#fff", height: "100%" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Status</Title>
             <Tag
               color={
                 overallPercentage >= 75 ? "green" : "red"
@@ -235,9 +247,13 @@ const AttendanceStudent = () => {
       </Row>
 
       {/* MONTHLY SUMMARY */}
-      <Card style={{ marginTop: 16 }} title="Monthly Summary">
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+
+        style={{ marginTop: 16 }} title={<span style={{ color: theme === "dark" ? "#fff" : "#000" }}>Monthly Summary</span>}>
         {monthlyData.length ? (
           <Table
+            className={theme === "dark" ? "dark-table" : ""}
             dataSource={monthlyData}
             columns={monthlyColumns}
             pagination={false}
@@ -249,9 +265,14 @@ const AttendanceStudent = () => {
       </Card>
 
       {/* DAILY ATTENDANCE */}
-      <Card style={{ marginTop: 16 }} title="Attendance Records">
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+
+        style={{ marginTop: 16 }} title={<span style={{ color: theme === "dark" ? "#fff" : "#000" }}>Attendance Records</span>}>
         {attendanceData.length ? (
           <Table
+            className={theme === "dark" ? "dark-table" : ""}
+
             dataSource={attendanceData}
             columns={attendanceColumns}
             pagination={{ pageSize: 6 }}

@@ -6,11 +6,15 @@ import { useCheckAuthQuery, useGetUsersQuery } from "../redux/userApi";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { useTheme } from "../context/ThemeContext";
 
 const { Text } = Typography;
 const { Content } = Layout;
 
 const ChatList = () => {
+
+  const { theme, toggleTheme } = useTheme();
+
   const chatEndRef = useRef(null);
 
   const { data: usersData } = useGetUsersQuery();
@@ -59,11 +63,10 @@ const ChatList = () => {
         <div
           className={`px-4 py-2 rounded-2xl break-words text-sm sm:text-base shadow-sm
           max-w-[85%] sm:max-w-[70%]
-          ${
-            isSender
+          ${isSender
               ? "bg-blue-500 text-white rounded-br-md"
               : "bg-white text-blue-900 border border-blue-100 rounded-bl-md"
-          }`}
+            }`}
         >
           {msg.message}
         </div>
@@ -74,13 +77,21 @@ const ChatList = () => {
   /* ================= CHAT VIEW ================= */
   if (chatOpen) {
     return (
-      <Layout className="h-screen bg-blue-50 flex flex-col overflow-hidden">
+      <Layout
+        style={{ background: theme === 'dark' ? "#333" : "#fff" }}
+        className="h-full flex flex-col overflow-hidden">
+
 
         {/* HEADER */}
-        <div className="p-3 sm:p-4 bg-white border-b flex items-center gap-3 shadow-sm">
+        <div className="p-3 sm:p-4  border-b flex items-center gap-3 shadow-sm"
+          style={{ background: theme === 'dark' ? "#333" : "#fff" }}
+        >
           <Button
-            className="bg-blue-100 text-blue-600 border-none"
-            icon={<ArrowLeftOutlined />}
+            className=" text-blue-600 border-none"
+            style={{ background: theme === "dark" ? "#333" : "#fff" }}
+            icon={<ArrowLeftOutlined
+              style={{ color: theme === "dark" ? "#fff" : "#000" }}
+            />}
             onClick={() => {
               setUserA(null);
               setUserB(null);
@@ -90,10 +101,12 @@ const ChatList = () => {
           <Avatar className="bg-blue-400" icon={<UserOutlined />} />
 
           <div className="min-w-0">
-            <div className="font-semibold text-blue-900 text-sm sm:text-base truncate">
+            <div className="font-semibold  text-sm sm:text-base truncate"
+              style={{ color: theme === "dark" ? "#fff" : "#000" }}
+            >
               {userA.name} & {userB.name}
             </div>
-            <Text className="text-blue-500 text-xs">
+            <Text style={{ color: theme === "dark" ? "#fff" : "#000" }}>
               Active conversation
             </Text>
           </div>
@@ -112,11 +125,11 @@ const ChatList = () => {
   return (
     <Layout className="h-screen bg-gradient-to-br from-blue-50 to-slate-100 overflow-hidden">
 
-      <Content className="p-3 sm:p-6 lg:p-8 overflow-y-auto">
+      <Content className="p-3 sm:p-6 lg:p-8 overflow-y-auto" style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
 
         {/* TITLE */}
         <div className="mb-5">
-          <h2 className="text-xl sm:text-2xl font-bold text-blue-900">
+          <h2 className="text-xl sm:text-2xl font-bold " style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>
             Select Users
           </h2>
           <p className="text-blue-500 text-xs sm:text-sm">
@@ -124,8 +137,12 @@ const ChatList = () => {
           </p>
         </div>
 
+
+
+
         {/* ✅ PURE GRID (FIXED HEIGHT CARDS) */}
         <div
+          style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}
           className="
             grid gap-3 sm:gap-4
             grid-cols-1
@@ -142,6 +159,7 @@ const ChatList = () => {
               <div
                 key={u._id}
                 onClick={() => handleUserClick(u)}
+                style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}
                 className={`
                   cursor-pointer
                   h-full
@@ -152,10 +170,9 @@ const ChatList = () => {
                   transition-all duration-200
                   active:scale-95
 
-                  ${
-                    selected
-                      ? "bg-blue-200 border-blue-400"
-                      : "bg-white hover:bg-blue-50 border-blue-100"
+                  ${selected
+                    ? "bg-blue-200 border-blue-400"
+                    : "bg-white hover:bg-blue-50 border-blue-100"
                   }
                 `}
               >
@@ -163,12 +180,13 @@ const ChatList = () => {
                 {/* AVATAR */}
                 <Avatar
                   size={52}
-                  className="bg-gradient-to-br from-blue-400 to-blue-600 mb-3"
+                  style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}
+                  className="  mb-3"
                   icon={<UserOutlined />}
                 />
 
                 {/* NAME */}
-                <div className="font-semibold text-blue-900 text-sm sm:text-base text-center">
+                <div className="font-semibold text-blue-200 text-sm sm:text-base text-center" style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>
                   {u.name}
                 </div>
 

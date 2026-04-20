@@ -28,10 +28,17 @@ import {
   useGetStudentSummaryQuery,
   useGetAdminSummaryQuery,
 } from "../redux/attendanceApi";
+import { useTheme } from "../context/ThemeContext";
 
 const { Title } = Typography;
 
 const DashBoardPage = () => {
+
+  const { theme, toggleTheme } = useTheme();
+
+
+
+
   const user = JSON.parse(localStorage.getItem("user")) || {};
 
   const today = new Date();
@@ -264,12 +271,13 @@ const DashBoardPage = () => {
 
   return (
     <div className="px-3 sm:px-6 md:px-8 py-4">
+
       <div style={{ marginBottom: 24, borderBottom: "1px solid #eee", paddingBottom: 12 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 600 }}>
+        <h1 style={{ fontSize: 26, fontWeight: 600, }}>
           Welcome, <span style={{ color: "#1677ff" }}>{user.name}</span>
         </h1>
 
-        <h3 style={{ fontSize: 18, color: "#555", marginTop: 4 }}>
+        <h3 style={{ fontSize: 18, marginTop: 4 }}>
           Role : {user.role}
         </h3>
 
@@ -280,6 +288,7 @@ const DashBoardPage = () => {
             borderBottom: "3px solid #1677ff",
             display: "inline-block",
             paddingBottom: 6,
+            color: theme === "dark" ? "#fff" : "#000",
           }}
         >
           Dashboard Overview
@@ -288,37 +297,70 @@ const DashBoardPage = () => {
 
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Title level={5}>Total Users</Title>
-            <Title level={2}>{users?.length || 0}</Title>
+          <Card
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              color: theme === "dark" ? "#fff" : "#000",
+            }}
+          >
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }} >Total Users</Title>
+            <Title level={2} style={{ color: theme === "dark" ? "#fff" : "#000" }} >{users?.length || 0}</Title>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Title level={5}>Attendance %</Title>
-            <Title level={2}>{attendancePercent}%</Title>
+          <Card
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              color: theme === "dark" ? "#fff" : "#000",
+            }}
+          >
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }} >Attendance %</Title>
+            <Title level={2} style={{ color: theme === "dark" ? "#fff" : "#000" }} >{attendancePercent}%</Title>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Title level={5}>Messages</Title>
-            <Title level={2}>{messagesArray.length}</Title>
+          <Card
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              color: theme === "dark" ? "#fff" : "#000",
+            }}
+          >
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Messages</Title>
+            <Title level={2} style={{ color: theme === "dark" ? "#fff" : "#000" }}>{messagesArray.length}</Title>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <Card>
-            <Title level={5}>Projects</Title>
-            <Title level={2}>{submittedProjects.length}</Title>
+          <Card
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              color: theme === "dark" ? "#fff" : "#000",
+            }}
+
+          >
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Projects</Title>
+            <Title level={2} style={{ color: theme === "dark" ? "#fff" : "#000" }}>{submittedProjects.length}</Title>
           </Card>
         </Col>
       </Row>
 
       <Row gutter={[16, 16]} className="mt-5">
         <Col xs={24} md={12}>
-          <Card title="User Distribution">
+          <Card
+
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              color: theme === "dark" ? "#fff" : "#000",
+            }}
+
+            title={
+              <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+                User Distribution
+              </span>
+            }>
+
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie data={userData} dataKey="value" outerRadius={80} label>
@@ -332,8 +374,25 @@ const DashBoardPage = () => {
           </Card>
         </Col>
 
+
+
+
         <Col xs={24} md={12}>
-          <Card title="Monthly Summary">
+
+
+          <Card
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              color: theme === "dark" ? "#fff" : "#000",
+            }}
+
+            title={
+              <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+                Monthly Summary
+              </span>
+            }>
+
+
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyChartData}>
                 <XAxis dataKey="name" />
@@ -345,8 +404,24 @@ const DashBoardPage = () => {
           </Card>
         </Col>
 
+
+
         <Col xs={24} md={12}>
-          <Card title="Chat Stats">
+          <Card
+
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              color: theme === "dark" ? "#fff" : "#000",
+            }}
+
+
+
+            title={
+              <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+                Chat stats
+              </span>
+            }>
+
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie data={chatData} dataKey="value" outerRadius={80} label>
@@ -360,8 +435,21 @@ const DashBoardPage = () => {
           </Card>
         </Col>
 
+
         <Col xs={24} md={12}>
-          <Card title="Project Status">
+          <Card
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              color: theme === "dark" ? "#fff" : "#000",
+            }}
+
+
+              title={
+              <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+                Project stats
+              </span>
+            }>
+              
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie data={assignmentData} dataKey="value" outerRadius={80} label>

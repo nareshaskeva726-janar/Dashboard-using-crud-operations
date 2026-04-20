@@ -22,12 +22,16 @@ import {
   useGetStaffAttendanceQuery,
   useGetStaffSummaryQuery,
 } from "../redux/attendanceApi";
+import { useTheme } from "../context/ThemeContext";
 
 import { useGetUsersQuery, useCheckAuthQuery } from "../redux/userApi";
 
 const { Title, Text } = Typography;
 
 const AttendanceStaff = () => {
+
+  const { theme, toggleTheme } = useTheme();
+
   // ================= AUTH =================
   const { data: authUser, isLoading: authLoading } =
     useCheckAuthQuery();
@@ -177,8 +181,8 @@ const AttendanceStaff = () => {
             status === "present"
               ? "green"
               : status === "absent"
-              ? "red"
-              : "default"
+                ? "red"
+                : "default"
           }
         >
           {status}
@@ -239,7 +243,7 @@ const AttendanceStaff = () => {
     { title: "subject", dataIndex: "subject" },
     { title: "Total", dataIndex: "total" },
     { title: "Present", dataIndex: "present" },
-    {title: "absent", dataIndex: "absent"},
+    { title: "absent", dataIndex: "absent" },
 
     {
       title: "Percentage",
@@ -257,27 +261,30 @@ const AttendanceStaff = () => {
     <div
       style={{
         padding: 16,
-        background: "#f5f7fb",
         minHeight: "100vh",
       }}
     >
       {/* HEADER */}
       <Row justify="space-between">
         <Col>
-          <Title level={3}>Attendance Management</Title>
-          <Text>Department: {staffDepartment}</Text>
+          <Title level={3} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Attendance Management</Title>
+          <Text style={{ color: theme === "dark" ? "#fff" : "#000" }}>Department: {staffDepartment}</Text>
         </Col>
       </Row>
 
       {/* FILTER */}
-      <Card style={{ marginTop: 16 }}>
+      <Card style={{ marginTop: 16 }}
+        className={theme === "dark" ? "dark-card" : ""}
+      >
         <Row gutter={16}>
           <Col xs={24} md={12}>
-            <Text>Subject</Text>
+            <Text style={{ color: theme === "dark" ? "#fff" : "#000" }}>Subject</Text>
             <Select
               value={subject}
               onChange={setSubject}
-              style={{ width: "100%" }}
+              style={{ width: "100%", color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#333" : "#fff" }}
+              className={theme === "dark" ? "dark-select" : "light-select"}
+              popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
             >
               {staffSubjects.map((s) => (
                 <Select.Option key={s} value={s}>
@@ -288,19 +295,26 @@ const AttendanceStaff = () => {
           </Col>
 
           <Col xs={24} md={12}>
-            <Text>Date</Text>
+            <Text style={{ color: theme === "dark" ? "#fff" : "#000" }}>Date</Text>
             <DatePicker
               value={date}
               onChange={setDate}
-              style={{ width: "100%" }}
+              style={{
+                width: "100%",
+                background: theme === "dark" ? "#333" : "#fff",
+                color: theme === "dark" ? "#fff" : "#000"
+              }}
             />
           </Col>
         </Row>
       </Card>
 
       {/* MARK TABLE */}
-      <Card title="Mark Attendance" style={{ marginTop: 16 }}>
+      <Card title={<span style={{ color: theme === 'dark' ? "#fff" : "#000" }}>Mark Attendance</span>} style={{ marginTop: 16 }}
+        className={theme === "dark" ? "dark-card" : ""}
+      >
         <Table
+          className={theme === "dark" ? "dark-table" : ""}
           scroll={{ x: true }}
           loading={isFetching}
           dataSource={tableData}
@@ -310,8 +324,11 @@ const AttendanceStaff = () => {
       </Card>
 
       {/* SUMMARY */}
-      <Card title="Monthly Summary" style={{ marginTop: 16 }}>
+      <Card title={<span style={{ color: theme === 'dark' ? "#fff" : "#000" }}>Monthly Summary</span>} style={{ marginTop: 16 }}
+        className={theme === "dark" ? "dark-card" : ""}
+      >
         <Table
+          className={theme === "dark" ? "dark-table" : ""}
           scroll={{ x: true }}
           loading={monthlyLoading}
           dataSource={monthlySummaryList}

@@ -8,8 +8,11 @@ import {
   getMe,
   createUser,
   getAllUsers,
+  bulkwritetheusers,
 } from "../controllers/userControllers.js";
 import userAuth from "../middleware/authMiddleware.js";
+import {checkRole} from "../middleware/checkRole.js"
+
 
 const Userrouter = express.Router();
 
@@ -26,5 +29,7 @@ Userrouter.put("/updateUser/:id",userAuth, updateUser);
 Userrouter.delete("/deleteUser/:id",userAuth, deleteUser);
 
 Userrouter.get("/me",userAuth,  getMe);
+
+Userrouter.post("/bulk-write", userAuth, checkRole("superadmin"), bulkwritetheusers);
 
 export default Userrouter;

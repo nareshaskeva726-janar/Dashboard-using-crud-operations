@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { ToastContainer} from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 
 import { useCheckAuthQuery } from "./redux/userApi";
 import { useDispatch } from "react-redux";

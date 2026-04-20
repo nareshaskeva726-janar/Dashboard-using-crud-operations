@@ -16,11 +16,17 @@ import { setMessages, addMessage, setActiveChatUser } from "../redux/chatSlice";
 import { skipToken } from "@reduxjs/toolkit/query";
 
 import socket from "../socket/socket";
+import { useTheme } from "../context/ThemeContext";
 
 const { Content } = Layout;
 const { Text } = Typography;
 
 const ChatBot = () => {
+
+
+  const { theme, toggleTheme } = useTheme();
+
+
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
   const { messages, activeChatUser } = useSelector((state) => state.chat);
@@ -135,37 +141,44 @@ const ChatBot = () => {
   }
 
   return (
-    <Layout className="h-[86vh] bg-[#f3f4f6] rounded-2xl overflow-hidden flex border border-gray-300">
+
+
+    <Layout className="h-[86vh]  rounded-2xl overflow-hidden flex border border-gray-300" style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
 
       {/* ================= CHAT LIST ================= */}
       {!activeChatUser && (
-        <div className="w-full h-full overflow-y-auto bg-[#f3f4f6]">
-          <div className="sticky top-0 z-10 bg-[#0d1e44] p-5 text-[#fff] text-xl font-bold border-b border-gray-300">
+        <div className="w-full h-full overflow-y-auto bg-white">
+          <div className="sticky top-0 z-10  p-5  text-xl font-bold border-b border-gray-300"
+            style={{ color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#1f1f1f" : "#fff" }}
+          >
             Chats
           </div>
 
-
           <List
+            className={theme === "dark" ? "dark-user-list" : ""}
             dataSource={usersWithLastMessage}
             renderItem={(u) => {
               const active = activeChatUser?._id === u._id;
 
               return (
-
                 <List.Item
                   onClick={() => handleUserSelect(u)}
                   className={`
-                    cursor-pointer transition   
-                    ${active ? "bg-blue-300" : "bg-[#f9fafb] hover:bg-[#e2e5eaa4]"}
-                  `}
+          cursor-pointer transition
+          ${active ? "active-chat" : "chat-item"}
+        `}
                   style={{ border: "none" }}
                 >
                   <List.Item.Meta
                     className="p-3"
                     avatar={<Avatar icon={<UserOutlined />} />}
-                    title={<span className="text-gray-900 font-medium">{u.name}</span>}
+                    title={
+                      <span className={theme === "dark" ? "text-white" : "text-gray-900 font-medium"}>
+                        {u.name}
+                      </span>
+                    }
                     description={
-                      <span className="text-gray-600 text-xs truncate">
+                      <span className={theme === "dark" ? "text-gray-300" : "text-gray-600 text-xs truncate"}>
                         {u.lastMessage || u.role}
                       </span>
                     }
@@ -174,22 +187,23 @@ const ChatBot = () => {
               );
             }}
           />
-
-
         </div>
       )}
 
+
+
+
       {/* ================= CHAT SCREEN ================= */}
       {activeChatUser && (
-        <Content className="flex flex-col w-full h-full bg-[#f9fafb]">
+        <Content className="flex flex-col w-full h-full " style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000" }}>
 
           {/* HEADER */}
-          <div className="flex items-center gap-3 p-3 bg-[#0d1e44] sticky top-0 z-10 border-b border-gray-300">
+          <div className="flex items-center gap-3 p-3  sticky top-0 z-10 border-b border-gray-300" style={{ color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#1f1f1f" : "#fff" }} >
             <Button
-              icon={<ArrowLeftOutlined style={{ color: "white" }} />}
+              icon={<ArrowLeftOutlined style={{ color: theme === "dark" ? "#fff" : "#000" }} />}
               onClick={handleBack}
               style={{
-                backgroundColor: "#0d1e44",
+                background: theme === "dark" ? "#1f1f1f" : "#fff",
                 border: "none",
                 outline: "none",
                 color: "white",
@@ -197,11 +211,11 @@ const ChatBot = () => {
             />
             <Avatar icon={<UserOutlined />} />
             <div>
-              <div className="text-gray-100 font-semibold">
+              <div className=" font-semibold" style={{ color: theme === "dark" ? "#fff" : "#000" }}>
                 {activeChatUser.name}
               </div>
-              <Text style={{ color: "lightgray", fontSize: 12 }}>
-                Online chat
+              <Text style={{ color: "darkgray", fontSize: 12 }}>
+                chat
               </Text>
             </div>
           </div>
@@ -210,7 +224,7 @@ const ChatBot = () => {
 
 
           {/* MESSAGES */}
-          <div className="flex-1 overflow-y-auto p-4 bg-[#f3f4f6]">
+          <div className="flex-1 overflow-y-auto p-4" style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
             {messages.map((msg, i) => {
               const isSender = msg.sender?._id === user._id;
 
@@ -240,8 +254,11 @@ const ChatBot = () => {
 
 
           {/* INPUT */}
-          <div className="p-3 flex gap-2 border-t border-gray-300 bg-[#e5e7eb]">
+          <div className="p-3 flex gap-2 border-t border-gray-300 " style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000" }}>
+
+
             <Input
+              style={{background: theme === "dark" ? "#333" : "#fff", color: theme === "dark" ? "#fff" : "#333", fontWeight: 600}}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onPressEnter={handleSend}
@@ -251,8 +268,10 @@ const ChatBot = () => {
 
 
             <Button
-              type="primary"
-              icon={<SendOutlined />}
+              style={{background: theme === "dark" ? "#333" : "#fff", borderColor: theme === "dark" ? "#fff" : "lightgray"}}
+              icon={<SendOutlined 
+                style={{color : theme === "dark" ? "#fff" : "#333"}}
+                />}
               onClick={handleSend}
             />
 

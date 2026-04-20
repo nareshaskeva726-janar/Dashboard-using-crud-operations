@@ -11,7 +11,10 @@ import {
   Spin,
   Space,
   Input,
+  Button
 } from "antd";
+
+import { SearchOutlined } from "@ant-design/icons"
 
 import {
   useGetAllAttendanceQuery,
@@ -19,6 +22,9 @@ import {
 } from "../redux/attendanceApi";
 
 import { useGetUsersQuery } from "../redux/userApi";
+
+
+import { useTheme } from "../context/ThemeContext";
 
 const { Title, Text } = Typography;
 const { Search } = Input;
@@ -28,9 +34,15 @@ const cardStyle = {
   boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
 };
 
+
+
+
+
 const AttendanceSuperAdmin = () => {
   const [view, setView] = useState("ALL");
   const [search, setSearch] = useState("");
+
+  const { theme, toggleTheme } = useTheme();
 
   // ================= API =================
   const { data: attendanceRes, isLoading } = useGetAllAttendanceQuery();
@@ -56,7 +68,7 @@ const AttendanceSuperAdmin = () => {
     return [];
   }, [usersRes]);
 
-  
+
   const monthlyList = monthlyRes?.data || [];
 
   // ================= STUDENTS =================
@@ -228,21 +240,41 @@ const AttendanceSuperAdmin = () => {
     );
   }
 
+
+
+
+
+
   return (
-    <div style={{ padding: 16, background: "#f5f7fb", minHeight: "100vh" }}>
+    <div style={{ padding: 16, minHeight: "100vh", color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
       {/* HEADER */}
-      <Card style={cardStyle}>
+      <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000" }}>
+
+
         <Row align="middle" justify="space-between" gutter={[12, 12]}>
           <Col xs={24} md={12}>
             <Space direction="vertical" size={0}>
-              <Title level={3} style={{ margin: 0 }}>
+
+
+
+              <Title
+                level={3}
+                style={{
+                  margin: 0,
+                  color: theme === "dark" ? "#fff" : "#000",
+                }}
+              >
                 Attendance Panel
               </Title>
-              <Text type="secondary">
+
+              <Text type="secondary" style={{ color: theme === "dark" ? "#fff" : "#000" }}>
                 Attendance analytics, department overview & logs
               </Text>
             </Space>
           </Col>
+
+
+
 
           <Col xs={24} md={12}>
             <Space
@@ -251,38 +283,66 @@ const AttendanceSuperAdmin = () => {
               style={{ width: "100%", justifyContent: "flex-end" }}
               wrap
             >
+
+
               <Search
                 placeholder="Search name or email"
-                allowClear
-                style={{ width: 220 }}
                 onChange={(e) => setSearch(e.target.value)}
+                style={{ width: 220 }}
+                className={theme === "dark" ? "dark-search" : "light-search"}
+                enterButton={
+                  <Button
+                    icon={<SearchOutlined />}
+                    style={{
+                      background: theme === "dark" ? "#141414" : "#fff",
+                      color: theme === "dark" ? "#fff" : "#000",
+                      borderColor: theme === "dark" ? "#333" : "#d9d9d9",
+                    }}
+                  />
+                }
               />
 
-              <Select value={view} onChange={setView} style={{ width: 200 }}>
+              <Select
+                placeholder="select anything"
+                value={view}
+                onChange={setView}
+                style={{ width: 200, background: theme === "dark" ? "#141414" : "#fff", color: theme === "dark" ? "#bbb" : "#000", borderColor: theme === "dark" ? "#333" : "#d9d9d9" }}
+                className={theme === "dark" ? "dark-select" : "light-select"}
+
+
+                popupClassName={theme === "dark" ? "dark-select-dropdown" : "light-select-dropdown"}
+              >
                 <Select.Option value="ALL">ALL Departments</Select.Option>
+
                 {departments.map((d) => (
                   <Select.Option key={d} value={d}>
                     {d}
                   </Select.Option>
                 ))}
               </Select>
+
+
             </Space>
           </Col>
         </Row>
       </Card>
 
+
+
       {/* KPI */}
       <Row gutter={[12, 12]} style={{ marginTop: 16 }}>
         <Col xs={24} sm={12} md={6}>
-          <Card style={cardStyle}>
-            <Title level={5}>Total Students</Title>
-            <Title level={2}>{totalStudents}</Title>
+
+
+          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Total Students</Title>
+            <Title level={2} style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>{totalStudents}</Title>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <Card style={cardStyle}>
-            <Title level={5}>Present</Title>
+          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Present</Title>
             <Title level={2} style={{ color: "#52c41a" }}>
               {totalPresent}
             </Title>
@@ -290,8 +350,8 @@ const AttendanceSuperAdmin = () => {
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <Card style={cardStyle}>
-            <Title level={5}>Absent</Title>
+          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Absent</Title>
             <Title level={2} style={{ color: "#ff4d4f" }}>
               {totalAbsent}
             </Title>
@@ -299,8 +359,8 @@ const AttendanceSuperAdmin = () => {
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <Card style={cardStyle}>
-            <Title level={5}>Avg Attendance</Title>
+          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Avg Attendance</Title>
             <Title level={2} style={{ color: "#1890ff" }}>
               {avgAttendance}%
             </Title>
@@ -309,8 +369,16 @@ const AttendanceSuperAdmin = () => {
       </Row>
 
       {/* DEPARTMENT TABLE */}
-      <Card title="Department-wise Attendance" style={{ marginTop: 16 }}>
+      <Card title={
+        <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+          Department-wise Attendance
+        </span>
+      }
+
+
+        style={{ marginTop: 16, background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
         <Table
+          className={theme === "dark" ? "dark-table" : ""}
           scroll={{ x: true }}
           dataSource={departmentData}
           pagination={false}
@@ -333,8 +401,18 @@ const AttendanceSuperAdmin = () => {
       </Card>
 
       {/* LOGS */}
-      <Card title="Attendance Logs (Marked by Staff)" style={{ marginTop: 16 }}>
+      <Card
+        title={
+          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+            Attendance Logs (Marked by Staff)
+          </span>
+        }
+
+
+
+        style={{ marginTop: 16, background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
         <Table
+          className={theme === "dark" ? "dark-table" : ""}
           scroll={{ x: true }}
           dataSource={filteredLogs}
           pagination={{ pageSize: 8 }}
@@ -372,8 +450,16 @@ const AttendanceSuperAdmin = () => {
       </Card>
 
       {/* MONTHLY SUMMARY (NEW) */}
-      <Card title="Monthly Summary" style={{ marginTop: 16 }}>
+      <Card
+        title={
+          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+            Monthly Summary
+          </span>
+        }
+
+        style={{ marginTop: 16, background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
         <Table
+          className={theme === "dark" ? "dark-table" : ""}
           scroll={{ x: true }}
           dataSource={monthlySummary}
           loading={monthlyLoading}

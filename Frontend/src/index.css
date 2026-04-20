@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap');
 @import "tailwindcss";
 
@@ -12,6 +11,34 @@
   align-items: center;
 }
 
+
+.dark-search .ant-input {
+  background: #141414 !important;
+  color: #fff !important;
+  border-color: #333 !important;
+}
+
+/* SEARCH BUTTON */
+.dark-search .ant-input-search-button {
+  background: #141414 !important;
+  border-color: #333 !important;
+  color: #fff !important;
+}
+
+/* hover */
+.dark-search .ant-input-search-button:hover {
+  background: #1f1f1f !important;
+}
+
+
+
+
+
+
+
+
+
+
 ::-webkit-scrollbar {
   display: none;
 }
@@ -23,6 +50,7 @@ html {
 .menuButton {
   padding-top: 5px !important;
 }
+
 
 
 
@@ -125,12 +153,345 @@ html {
   line-height: normal;
 } */
 
-.input::placeholder{
+.input::placeholder {
   color: rgba(138, 173, 185, 0.603);
 
 }
 
-.users-list{
-  padding: 20px ;
+.users-list {
+  padding: 20px;
+}
+
+
+
+
+
+
+body[data-theme="light"] {
+  background: #ffffff;
+  color: #000;
+}
+
+body[data-theme="dark"] {
+  background: #141414;
+  color: #ffffff;
+}
+
+
+body[data-theme="dark"] .ant-input::placeholder {
+  color: #bbb !important;
+}
+
+
+/* DARK MODE DROPDOWN */
+.dark-select-dropdown .ant-select-item {
+  color: #fff !important;
+}
+
+
+
+
+
+/* selected item */
+.dark-select-dropdown .ant-select-item-option-selected {
+  background-color: #333 !important;
+  color: #fff !important;
+}
+
+/* hover */
+.dark-select-dropdown .ant-select-item-option-active {
+  background-color: #444 !important;
+}
+
+/* dropdown background */
+.dark-select-dropdown {
+  background-color: #333 !important;
+}
+
+/* selected value text (inside input box) */
+.dark-select .ant-select-selector {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+  border-color: #333 !important;
+}
+
+
+/* CARD DARK MODE */
+.dark-card {
+  background: #1f1f1f !important;
+  color: #fff !important;
+  border: 1px solid #333;
+}
+
+.dark-card .ant-card-head {
+  border-bottom: 1px solid #333;
+}
+
+/* TABLE DARK MODE */
+.dark-table .ant-table {
+  background: #1f1f1f !important;
+  color: #fff !important;
+}
+
+/* table header */
+.dark-table .ant-table-thead > tr > th {
+  background: #2a2a2a !important;
+  color: #fff !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+/* table rows */
+.dark-table .ant-table-tbody > tr > td {
+  background: #1f1f1f !important;
+  color: #fff !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+/* row hover */
+.dark-table .ant-table-tbody > tr:hover > td {
+  background: #2a2a2a !important;
+}
+
+/* pagination */
+.dark-table .ant-pagination {
+  color: #fff !important;
+}
+
+.dark-table .ant-pagination-item a {
+  color: #fff !important;
+}
+
+.dark-table .ant-pagination-item-active {
+  background: #333 !important;
+  border-color: #555 !important;
+}
+
+
+.dark-table .ant-pagination-item a {
+    color: #000 !important;
+}
+
+/* FORM LABEL */
+.dark-form .ant-form-item-label > label {
+  color: #fff !important;
+}
+
+/* INPUT */
+.dark-form .ant-input,
+.dark-form .ant-input-password {
+  background-color: #1f1f1f !important;
+  color: #fff !important;
+  border-color: #333 !important;
+}
+
+/* INPUT PLACEHOLDER */
+.dark-form input::placeholder {
+  color: #888 !important;
+}
+
+/* PASSWORD ICON AREA */
+.dark-form .ant-input-affix-wrapper {
+  background-color: #1f1f1f !important;
+  border-color: #333 !important;
+}
+
+/* HOVER / FOCUS */
+.dark-form .ant-input-affix-wrapper-focused {
+  border-color: #555 !important;
+  box-shadow: none !important;
+}
+
+/* list background */
+.dark-user-list {
+  background: #1f1f1f;
+}
+
+/* normal item */
+.dark-user-list .chat-item {
+  background: #1f1f1f;
+  color: #fff;
+}
+
+.dark-user-list .chat-item:hover {
+  background: #2a2a2a;
+}
+
+/* active chat */
+.dark-user-list .active-chat {
+  background: #333 !important;
+}
+
+/* remove default borders */
+.dark-user-list .ant-list-item {
+  border: none !important;
+}
+
+/* MODAL DARK */
+.dark-modal .ant-modal-content {
+  background: #1f1f1f !important;
+  color: #fff !important;
+}
+
+.dark-modal .ant-modal-header {
+  background: #1f1f1f !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+.dark-modal .ant-modal-title {
+  color: #fff !important;
+}
+
+.dark-modal .ant-modal-close {
+  color: #fff !important;
+}
+
+/* FORM LABELS */
+.dark-form .ant-form-item-label > label {
+  color: #fff !important;
+}
+
+/* INPUTS */
+.dark-form .ant-input,
+.dark-form .ant-input-password,
+.dark-form .ant-select-selector {
+  background: #2a2a2a !important;
+  color: #fff !important;
+  border-color: #444 !important;
+}
+
+/* PLACEHOLDER */
+.dark-form input::placeholder {
+  color: #888 !important;
+}
+
+/* SELECT DROPDOWN */
+.dark-form .ant-select-dropdown {
+  background: #1f1f1f !important;
+}
+
+
+
+/* placeholder text */
+.dark-select .ant-select-selection-placeholder {
+  color: #bbb !important;
+}
+
+.light-select .ant-select-selection-placeholder {
+  color: #000!important;
+}
+
+
+
+
+.dark-select .ant-select-selector {
+  background-color: #333 !important;
+  color: #fff !important;
+}
+
+.dark-select-dropdown {
+  background-color: #333 !important;
+}
+
+.dark-select-dropdown .ant-select-item {
+  color: #fff !important;
+}
+
+.dark-select-dropdown .ant-select-item-option-selected {
+  background-color: #555 !important;
+}
+
+
+
+
+:where(.css-dev-only-do-not-override-1enej14).dark-indicator .ant-progress-indicator{
+  color: #fff;
+}
+
+:where(.css-dev-only-do-not-override-1enej14).light-indicator .ant-progress-indicator{
+  color: #000;
+}
+
+
+/* DARK MODE placeholder */
+.dark-select .ant-select-selection-placeholder {
+  color: #fff !important;
+}
+
+/* LIGHT MODE placeholder */
+.light-select .ant-select-selection-placeholder {
+  color: #000 !important;
+}
+
+
+
+:where(.css-dev-only-do-not-override-1enej14).light-select .ant-select-placeholder{
+  color: #000;
+}
+
+:where(.css-dev-only-do-not-override-1enej14).dark-select .ant-select-placeholder{
+  color: #888;
+}
+
+
+:where(.css-dev-only-do-not-override-1enej14).dark-modal .ant-modal-container{
+  background: #222;
+}
+
+/* LIGHT THEME */
+.light .anticon svg{
+  color: #000;
+}
+
+/* DARK THEME */
+.dark .anticon svg{
+  color: #fff;
+}
+
+
+
+
+
+
+/* FULL PAGE CENTER */
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* CARD */
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* DARK CARD */
+.dark-card {
+  background: #1f1f1f !important;
+  border-color: #333 !important;
+}
+
+/* DARK INPUT */
+.dark-input {
+  background: #2a2a2a !important;
+  color: #fff !important;
+  border-color: #444 !important;
+}
+
+.dark-input input {
+  background: transparent !important;
+  color: #fff !important;
+}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 576px) {
+  .login-card {
+    max-width: 100%;
+    border-radius: 10px;
+  }
 }
 

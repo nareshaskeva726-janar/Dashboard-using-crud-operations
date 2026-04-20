@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: import.meta.env.VITE_API+"/api" ,
+    baseUrl: import.meta.env.VITE_API + "/api",
     credentials: "include",
   }),
   tagTypes: ["Users"],
@@ -62,10 +62,19 @@ export const userApi = createApi({
         body: data,
       }),
     }),
+
+    bulkWriteUsers: builder.mutation({
+      query: (users) => ({
+        url: "/bulk-write",
+        method: "POST",
+        body: { users },
+      }),
+    }),
   }),
 });
 
 export const {
+  useBulkWriteUsersMutation,
   useLoginUserMutation,
   useCheckAuthQuery,
   useGetUsersQuery,

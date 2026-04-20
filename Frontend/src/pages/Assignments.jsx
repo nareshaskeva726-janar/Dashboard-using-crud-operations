@@ -11,10 +11,11 @@ import {
   message,
   Tag,
   Typography,
-  Input
+  Input,
+  Empty,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
-import {toast} from "react-hot-toast";
+import { toast } from "react-hot-toast";
 
 import {
   useSubmitProjectMutation,
@@ -24,6 +25,7 @@ import {
 import { useGetNotificationsQuery } from "../redux/notificationApi";
 
 import socket from "../socket/socket";
+import { useTheme } from "../context/ThemeContext";
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -38,6 +40,9 @@ const departmentSubjectsMap = {
 };
 
 const Assignments = () => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
 
@@ -45,46 +50,57 @@ const Assignments = () => {
   const subjectsList = departmentSubjectsMap[user?.department] || [];
 
   const { data, refetch } = useGetMyProjectsQuery();
-  const projects = data?.projects || [];
+  const projects = data?.projects ?? [];
 
-  const { data: notificationData, refetch: refetchAnnouncements } = useGetNotificationsQuery();
+  const { data: notificationData, refetch: refetchAnnouncements } =
+    useGetNotificationsQuery();
+
   const announcedProjects =
-    notificationData?.notifications?.filter(n => n.type === "PROJECT_ANNOUNCEMENT") || [];
-    console.log(announcedProjects, "data");
+    notificationData?.notifications?.filter(
+      (n) => n.type === "PROJECT_ANNOUNCEMENT"
+    ) ?? [];
 
   const [submitProject, { isLoading }] = useSubmitProjectMutation();
 
+  /* ================= SOCKET ================= */
   useEffect(() => {
-    socket.on("projectAnnounced", () => {
+    const handleAnnounce = () => {
       refetchAnnouncements();
-      toast.info(" New project announced!");
-    });
+      toast.info("New project announced!");
+    };
 
-    socket.on("marksUpdated", () => {
+    const handleMarks = () => {
       refetch();
       toast.success("Marks updated!");
-    });
+    };
+
+    socket.on("projectAnnounced", handleAnnounce);
+    socket.on("marksUpdated", handleMarks);
 
     return () => {
-      socket.off("projectAnnounced");
-      socket.off("marksUpdated");
+      socket.off("projectAnnounced", handleAnnounce);
+      socket.off("marksUpdated", handleMarks);
     };
   }, [refetch, refetchAnnouncements]);
 
+  /* ================= SUBMIT ================= */
   const onFinish = async (values) => {
     try {
       const fileObj = values.file?.[0]?.originFileObj;
-      if (!fileObj) return message.error("Upload project file");
+
+      if (!fileObj) {
+        return message.error("Upload project file");
+      }
 
       const formData = new FormData();
-      formData.append("projectName", values.projectName || fileObj.name);
+      formData.append("projectName", values.projectName);
       formData.append("subject", values.subject);
-      formData.append("email", values.email);
+      formData.append("email", user?.email || "");
       formData.append("projectFile", fileObj);
 
       await submitProject(formData).unwrap();
 
-      toast.success(" Project submitted successfully");
+      toast.success("Project submitted successfully");
       refetch();
       form.resetFields();
       setOpen(false);
@@ -93,18 +109,29 @@ const Assignments = () => {
     }
   };
 
+  /* ================= THEME STYLE ================= */
+  const pageStyle = {
+    padding: 24,
+    maxWidth: 1200,
+    margin: "0 auto",
+    background: isDark ? "#141414" : "#fff",
+    minHeight: "100vh",
+  };
+
+  const cardStyle = {
+    background: isDark ? "#1f1f1f" : "#fff",
+    color: isDark ? "#fff" : "#000",
+  };
+
   return (
-    <div style={{ padding: 24, maxWidth: 1200, margin: "0 auto" }}>
-      {/* ===== SUBMIT BUTTON ===== */}
-      <Card
-        style={{
-          textAlign: "center",
-          marginBottom: 30,
-          borderRadius: 12,
-          boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-        }}
-      >
-        <Title level={3}>Submit Your Assignment</Title>
+    <div style={pageStyle}>
+
+      {/* ===== HEADER ===== */}
+      <Card style={{ ...cardStyle, textAlign: "center", marginBottom: 20 }}>
+        <Title level={3} style={{ color: isDark ? "#fff" : "#000" }}>
+          Submit Your Assignment
+        </Title>
+
         <Button type="primary" size="large" onClick={() => setOpen(true)}>
           Submit Project
         </Button>
@@ -112,24 +139,26 @@ const Assignments = () => {
 
       {/* ===== MODAL ===== */}
       <Modal
-        title={<Title level={4}>Submit Project</Title>}
+        title="Submit Project"
         open={open}
         footer={null}
         destroyOnClose
         onCancel={() => setOpen(false)}
-        bodyStyle={{ padding: 24 }}
+        styles={{
+          body: { background: isDark ? "#1f1f1f" : "#fff" },
+          header: { background: isDark ? "#1f1f1f" : "#fff" },
+        }}
       >
         <Form form={form} layout="vertical" onFinish={onFinish}>
+
           <Form.Item
             label="Subject"
             name="subject"
             rules={[{ required: true, message: "Select subject" }]}
           >
-            <Select placeholder="Select subject" size="large">
+            <Select placeholder="Select subject">
               {subjectsList.map((s) => (
-                <Option key={s} value={s}>
-                  {s}
-                </Option>
+                <Option key={s} value={s}>{s}</Option>
               ))}
             </Select>
           </Form.Item>
@@ -137,9 +166,9 @@ const Assignments = () => {
           <Form.Item
             label="Project Name"
             name="projectName"
-            rules={[{ required: true, type: "text", message: "Enter valid email" }]}
+            rules={[{ required: true, message: "Enter project name" }]}
           >
-            <Input placeholder="projectName" />
+            <Input placeholder="Enter project name" />
           </Form.Item>
 
           <Form.Item
@@ -150,7 +179,7 @@ const Assignments = () => {
             rules={[{ required: true, message: "Upload file" }]}
           >
             <Upload beforeUpload={() => false} maxCount={1}>
-              <Button icon={<UploadOutlined />} type="dashed" block>
+              <Button icon={<UploadOutlined />} block>
                 Upload File
               </Button>
             </Upload>
@@ -161,71 +190,69 @@ const Assignments = () => {
             htmlType="submit"
             loading={isLoading}
             block
-            size="large"
-            style={{ borderRadius: 8 }}
           >
             Submit
           </Button>
         </Form>
       </Modal>
 
-      {/* ===== SUBMITTED PROJECTS ===== */}
+      {/* ===== PROJECT LIST ===== */}
       <Card
-        title={<Title level={4}>My Submitted Projects</Title>}
-        style={{ borderRadius: 12, boxShadow: "0 4px 15px rgba(0,0,0,0.05)" }}
+        style={cardStyle}
+        title={<span style={{ color: isDark ? "#fff" : "#000" }}>My Submitted Projects</span>}
       >
-        <Row gutter={[20, 20]}>
-          {projects.length ? (
+        <Row gutter={[16, 16]}>
+          {projects.length > 0 ? (
             projects.map((p) => (
               <Col xs={24} sm={12} md={8} lg={6} key={p._id}>
                 <Card
                   hoverable
                   style={{
-                    borderRadius: 12,
-                    boxShadow: "0 3px 10px rgba(0,0,0,0.08)",
-                    transition: "transform 0.2s",
+                    ...cardStyle,
+                    height: 180,          // ✅ fixed height
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
                   }}
-                  bodyStyle={{ padding: 16 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.03)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                 >
-                  <Text strong>Subject:</Text> {p.subject || "-"} <br />
-                  <Text strong>Project:</Text> {p.projectName || "-"} <br />
+                  {/* TOP CONTENT */}
+                  <div>
+                    <Text strong style={{color: theme === "dark" ? "#fff" : "#000"}}>Subject:</Text> {p.subject || "-"} <br />
+                    <Text strong style={{color: theme === "dark" ? "#fff" : "#000"}}>Project:</Text> {p.projectName || "-"} <br />
 
-                  <Tag color={p.status === "Submitted" ? "green" : "orange"} style={{ marginTop: 8 }}>
-                    {p.status || "Pending"}
-                  </Tag>
-                  <br />
-
-                  {p.projectFile && (
-                    <a
-                      href={p.projectFile}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ display: "block", marginTop: 8 }}
+                    <Tag
+                      color={p.status === "Submitted" ? "green" : "orange"}
+                      style={{ marginTop: 8 }}
                     >
-                      View File
-                    </a>
-                  )}
-
-                  {p.marks !== undefined && (
-                    <Tag color="blue" style={{ marginTop: 8 }}>
-                      Marks: {p.marks}
+                      {p.status || "Pending"}
                     </Tag>
-                  )}
+                  </div>
+
+                  {/* BOTTOM CONTENT (always aligned) */}
+                  <div>
+                    {p.projectFile && (
+                      <a href={p.projectFile} target="_blank" rel="noreferrer">
+                        View File
+                      </a>
+                    )}
+
+                    {p.marks !== undefined && (
+                      <Tag color="blue" style={{ marginTop: 8 }}>
+                        Marks: {p.marks}
+                      </Tag>
+                    )}
+                  </div>
                 </Card>
               </Col>
             ))
           ) : (
-            <p>No submissions yet</p>
+            <Empty description="No submissions yet" />
           )}
         </Row>
       </Card>
+
     </div>
   );
 };
-
-
-
 
 export default Assignments;

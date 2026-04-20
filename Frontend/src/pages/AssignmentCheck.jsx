@@ -22,6 +22,7 @@ import {
   useStaffReminderMutation,
   useGetPendingStudentsQuery,
 } from "../redux/projectApi";
+import { useTheme } from "../context/ThemeContext";
 
 import dayjs from "dayjs";
 
@@ -29,6 +30,9 @@ const { Title, Paragraph } = Typography;
 const { Option } = Select;
 
 const AssignmentCheck = () => {
+
+  const { theme, toggleTheme } = useTheme();
+
   const dispatch = useDispatch();
   const [form] = Form.useForm();
 
@@ -157,48 +161,74 @@ const AssignmentCheck = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <Title level={3} style={{ textAlign: "center" }}>
+      <Title level={3} style={{
+        textAlign: "center",
+        color: theme === "dark" ? "#fff" : "#000"
+      }}>
         Assignment Submission – {staffSubjects.join(", ")}
       </Title>
 
       {/* ANNOUNCE PROJECT */}
       {user?.role === "staff" &&
-        <Card style={{ marginBottom: 24 }}>
-          <Title level={4}>Announce New Project</Title>
+        <Card
+          className={theme === "dark" ? "dark-card" : ""}
+          style={{ marginBottom: 24 }}>
+          <Title level={4}
+            style={{ color: theme === "dark" ? "#fff" : "#000" }}
+          >Announce New Project</Title>
 
           <Form
             form={form}
             layout="vertical"
             onFinish={handleAnnounceProject}
             style={{ width: "45%" }}
+            className={theme === "dark" ? "dark-form" : ""}
           >
             <Form.Item
               name="subject"
               label="Subject"
               rules={[{ required: true }]}
             >
-              <Select placeholder="Select subject">
+
+              <Select
+                placeholder="Select subject"
+                style={{ background: theme === "dark" ? "#2a2a2a " : "#fff", borderColor: theme === "dark" ? "#444 " : "#ccc" }}
+                className={theme === "dark" ? "dark-select" : "light-select"}
+                popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
+              >
                 {staffSubjects.map((s) => (
-                  <Option key={s}>{s}</Option>
+                  <Select.Option key={s} value={s}>
+                    {s}
+                  </Select.Option>
                 ))}
               </Select>
             </Form.Item>
 
-            <Form.Item
-              name="projectName"
-              label="Project Name"
-              normalize={(value) => value?.trimStart()}
-              rules={[{ required: true }]}
-            >
-              <Input placeholder="Enter project name" />
-            </Form.Item>
+
+
+
+     <Form.Item
+  name="projectName"
+  label="Project Name"
+  normalize={(value) => value?.trimStart()}
+  rules={[{ required: true }]}
+>
+  <Input
+    placeholder="Enter project name"
+    style={{
+      color: theme === "dark" ? "#fff" : "#000",
+      background: theme === "dark" ? "#1f1f1f" : "#fff",
+      borderColor: theme === "dark" ? "red" : "#d9d9d9",
+    }}
+  />
+</Form.Item>
 
             <Form.Item
               name="deadline"
               label="Deadline"
               rules={[{ required: true }]}
             >
-              <DatePicker style={{ width: "100%" }} />
+              <DatePicker style={{ width: "100%", background: theme === "dark" ? "#2a2a2a" : "#fff", color: theme === "dark" ? "#fff" : "#000",borderColor: theme === "dark" ? "#444 " : "#ccc" }} />
             </Form.Item>
 
             <Button
@@ -211,10 +241,16 @@ const AssignmentCheck = () => {
         </Card>}
 
       {/* SUBMITTED PROJECTS */}
-      <Card style={{ marginBottom: 24 }}>
-        <Title level={4}>Submitted Projects</Title>
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+        style={{ marginBottom: 24 }}>
+        <Title level={4}
+          style={{ color: theme === "dark" ? "#fff" : "#000" }}
+
+        >Submitted Projects</Title>
 
         <Table
+          className={theme === "dark" ? "dark-table" : ""}
           scroll={{ x: 300 }}
           dataSource={submittedProjects}
           rowKey="key"
@@ -260,8 +296,13 @@ const AssignmentCheck = () => {
       </Card>
 
       {/* REMINDER */}
-      <Card style={{ textAlign: "center" }}>
-        <Paragraph>
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+        style={{ textAlign: "center" }}>
+        <Paragraph
+          style={{ color: theme === "dark" ? "#fff" : "#000" }}
+
+        >
           Send reminders to students who have not submitted.
         </Paragraph>
 

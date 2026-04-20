@@ -1,19 +1,14 @@
 import React, { useEffect, useRef } from "react";
-import {
-  Layout,
-  Badge,
-  Dropdown,
-  Button,
-  Checkbox,
-  Tooltip,
-} from "antd";
+import { Layout, Badge, Dropdown, Button, Checkbox, Tooltip } from "antd";
 import {
   BellOutlined,
   LogoutOutlined,
   MenuOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import { MoonOutlined, SunOutlined } from "@ant-design/icons";
 
+import { useTheme } from "../context/ThemeContext";
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser, logout } from "../redux/authSlice";
 import { useNavigate } from "react-router-dom";
@@ -38,6 +33,9 @@ import {
 const { Header } = Layout;
 
 function NavBar({ setOpen }) {
+  
+  const { theme, toggleTheme } = useTheme();
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector(selectUser);
@@ -45,14 +43,7 @@ function NavBar({ setOpen }) {
   const role = user?.role;
   const socketInitialized = useRef(false);
 
-  /* ============================
-        RTK QUERY
-  ============================ */
-
-  const {
-    data: notifData,
-    refetch,
-  } = useGetNotificationsQuery(undefined, {
+  const { data: notifData } = useGetNotificationsQuery(undefined, {
     skip: !user?._id,
   });
 
@@ -63,10 +54,7 @@ function NavBar({ setOpen }) {
     (state) => state.notification
   );
 
-  /* ============================
-        API → REDUX SYNC
-  ============================ */
-
+  /* ================= API SYNC ================= */
   useEffect(() => {
     if (!notifData?.notifications) return;
 
@@ -77,10 +65,7 @@ function NavBar({ setOpen }) {
     dispatch(setNotifications(filtered));
   }, [notifData, role, dispatch]);
 
-  /* ============================
-        SOCKET.IO REALTIME
-  ============================ */
-
+  /* ================= SOCKET ================= */
   useEffect(() => {
     if (!user?._id || socketInitialized.current) return;
 
@@ -92,32 +77,19 @@ function NavBar({ setOpen }) {
 
     const shownIds = new Set();
 
-
-
-
-
-    /* NEW LIVE NOTIFICATION */
     const handleNotification = (notif) => {
       if (!notif?._id) return;
       if (shownIds.has(notif._id)) return;
       if (notif.receiverRole !== role) return;
 
       shownIds.add(notif._id);
-
       toast.success(notif.message || "New Notification");
-
       dispatch(addNotification(notif));
     };
 
-    /* OFFLINE NOTIFICATIONS */
     const handleOffline = (notifs = []) => {
-      const filtered = notifs.filter(
-        (n) => n.receiverRole === role
-      );
-
+      const filtered = notifs.filter((n) => n.receiverRole === role);
       dispatch(mergeNotifications(filtered));
-
-      filtered.forEach((n) => shownIds.add(n._id));
     };
 
     socket.on("newNotification", handleNotification);
@@ -129,13 +101,7 @@ function NavBar({ setOpen }) {
     };
   }, [user?._id, role, dispatch]);
 
-  /* ============================
-        LOGOUT
-  ============================ */
-
-
-
-
+  /* ================= ACTIONS ================= */
   const handleLogout = () => {
     dispatch(logout());
     socket.disconnect();
@@ -143,59 +109,17 @@ function NavBar({ setOpen }) {
     navigate("/");
   };
 
-
-
-
-  /* ============================
-        MARK ALL READ
-  ============================ */
-
-
-
-  // const handleMarkAllRead = async () => {
-  //   try {
-  //     await markAllReadApi().unwrap();
-  //     dispatch(markAllAsRead());
-  //     refetch();
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
   const handleMarkAllRead = async () => {
     await markAllReadApi().unwrap();
     dispatch(markAllAsRead());
   };
-
-
-
-
-  /* ============================
-        MARK SINGLE READ
-  ============================ */
-
-
-  // const handleSingleRead = async (id) => {
-  //   try {
-  //     await markSingleReadApi(id).unwrap();
-  //     dispatch(markAsRead(id));
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
 
   const handleSingleRead = async (id) => {
     await markSingleReadApi(id).unwrap();
     dispatch(markAsRead(id));
   };
 
-
-
-
-  /* ============================
-        DROPDOWN UI
-  ============================ */
-
+  /* ================= NOTIFICATION UI ================= */
   const notificationMenu = (
     <div
       style={{
@@ -203,8 +127,9 @@ function NavBar({ setOpen }) {
         maxHeight: 400,
         overflowY: "auto",
         padding: 12,
-        background: "#fff",
+        background: theme === "dark" ? "#1f1f1f" : "#fff",
         borderRadius: 10,
+        color: theme === "dark" ? "#fff" : "#000",
       }}
     >
       <div
@@ -225,7 +150,7 @@ function NavBar({ setOpen }) {
       </div>
 
       {notifications.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#888" }}>
+        <p style={{ textAlign: "center", opacity: 0.6 }}>
           No Notifications
         </p>
       ) : (
@@ -234,7 +159,7 @@ function NavBar({ setOpen }) {
             key={n._id}
             style={{
               padding: "8px 0",
-              borderBottom: "1px solid #eee",
+              borderBottom: `1px solid ${theme === "dark" ? "#333" : "#eee"}`,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -244,12 +169,7 @@ function NavBar({ setOpen }) {
               checked={n.isRead}
               onChange={() => !n.isRead && handleSingleRead(n._id)}
             />
-
-            <span
-              style={{
-                fontWeight: n.isRead ? "normal" : "bold",
-              }}
-            >
+            <span style={{ fontWeight: n.isRead ? "normal" : "bold" }}>
               {n.message}
             </span>
           </div>
@@ -258,83 +178,89 @@ function NavBar({ setOpen }) {
     </div>
   );
 
-  /* ============================
-        JSX
-  ============================ */
-
+  /* ================= UI ================= */
   return (
-<Header
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "0 20px",
-    background: "#0d1e44",
-    height: 64, // ✅ important for perfect vertical alignment
-    lineHeight: "64px",
-  }}
->
-  {/* LEFT - MENU */}
-  <MenuOutlined
-    className="menuBTN"
-    style={{
-      color: "white",
-      fontSize: 22,
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-    }}
-    onClick={() => setOpen(true)}
-  />
-
-  {/* RIGHT SIDE */}
-  <div
-    style={{
-      display: "flex",
-      alignItems: "center", // ✅ fixes vertical misalignment
-      gap: 18,
-      height: "100%",
-    }}
-  >
-    {/* 🔔 Notifications */}
-    <Dropdown
-      trigger={["click"]}
-      placement="bottomRight"
-      dropdownRender={() => notificationMenu}
-    >
-      <span
-        style={{
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <Badge count={unreadCount} offset={[0, 2]}>
-          <BellOutlined style={{ color: "white", fontSize: 20 }} />
-        </Badge>
-      </span>
-    </Dropdown>
-
-    {/* 👤 User */}
-    <Tooltip title={`${user?.name}-(${user?.role})`}>
-      <span style={{ display: "flex", alignItems: "center" }}>
-        <UserOutlined style={{ color: "white", fontSize: 20 }} />
-      </span>
-    </Tooltip>
-
-    {/* 🚪 Logout */}
-    <span
+    <Header
       style={{
         display: "flex",
+        justifyContent: "space-between",
         alignItems: "center",
-        cursor: "pointer",
+        padding: "0 20px",
+        background: theme === "dark" ? "#1f1f1f" : "#ffffff",
+        color: theme === "dark" ? "#ffffff" : "#000000",
+        borderBottom: `1px solid ${theme === "dark" ? "#333" : "#b3cccc"}`,
+        height: 64,
       }}
-      onClick={handleLogout}
     >
-      <LogoutOutlined style={{ color: "white", fontSize: 20 }} />
-    </span>
-  </div>
-</Header>
+      {/* MENU */}
+      <MenuOutlined
+        className="menuBTN"
+        style={{
+          color: theme === "dark" ? "#fff" : "#000",
+          fontSize: 22,
+          cursor: "pointer",
+        }}
+        onClick={() => setOpen(true)}
+      />
+
+      {/* RIGHT SIDE */}
+      <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+
+        {/* THEME TOGGLE */}
+        <div
+          onClick={toggleTheme}
+          style={{
+            cursor: "pointer",
+            fontSize: 20,
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          {theme === "dark" ? (
+            <SunOutlined style={{ color: "#fff" }} />
+          ) : (
+            <MoonOutlined style={{ color: "#000" }} />
+          )}
+        </div>
+
+        {/* NOTIFICATIONS */}
+        <Dropdown trigger={["click"]} 
+        placement="topCenter"
+        dropdownRender={() => notificationMenu}>
+          <Badge count={unreadCount}>
+            <BellOutlined
+            
+        
+              style={{
+                color: theme === "dark" ? "#fff" : "#000",
+                fontSize: 20,
+                cursor: "pointer",
+              }}
+            />
+          </Badge>
+        </Dropdown>
+
+        {/* USER */}
+        <Tooltip title={`${user?.name} - ${user?.role}`}>
+          <UserOutlined
+            style={{
+              color: theme === "dark" ? "#fff" : "#000",
+              fontSize: 20,
+            }}
+          />
+        </Tooltip>
+
+        {/* LOGOUT */}
+        <LogoutOutlined
+          onClick={handleLogout}
+          style={{
+            color: theme === "dark" ? "#fff" : "#000",
+            fontSize: 20,
+            cursor: "pointer",
+          }}
+        />
+      </div>
+    </Header>
   );
 }
 

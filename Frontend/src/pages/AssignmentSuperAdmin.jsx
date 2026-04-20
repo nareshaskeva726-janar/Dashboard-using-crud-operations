@@ -14,8 +14,16 @@ import { useGetAllProjectsSuperadminQuery } from "../redux/projectApi";
 
 const { Option } = Select;
 const { Title, Text } = Typography;
+import { useTheme } from "../context/ThemeContext";
 
 const AssignmentSuperAdmin = () => {
+
+  const { theme, toggleTheme } = useTheme();
+
+
+
+
+
   const { data, isLoading } = useGetAllProjectsSuperadminQuery();
 
   const projects = Array.isArray(data?.data) ? data.data : [];
@@ -106,28 +114,37 @@ const AssignmentSuperAdmin = () => {
     );
   }
 
+
+
+
+
   return (
-    <div style={{ padding: 16, background: "#f5f7fb", minHeight: "100vh" }}>
+    <div style={{
+      padding: 16, minHeight: "100vh",
+
+      background: theme === "dark" ? "#1f1f1f" : "#fff"
+
+    }}>
       {/* HEADER */}
-      <Title level={3} style={{ marginBottom: 4 }}>
+      <Title level={3} style={{ marginBottom: 4, color: theme === "dark" ? "#fff" : "#000" }}>
         Project Submissions
       </Title>
-      <Text type="secondary">
+      <Text type="secondary" style={{ color: theme === "dark" ? "#fff" : "#000" }}>
         Super Admin dashboard for all student projects
       </Text>
 
       {/* ================= STATS CARDS ================= */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} md={8}>
-          <Card>
-            <Title level={5}>Total Projects</Title>
-            <Title level={2}>{stats.total}</Title>
+          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Total Projects</Title>
+            <Title level={2} style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>{stats.total}</Title>
           </Card>
         </Col>
 
         <Col xs={24} md={8}>
-          <Card>
-            <Title level={5}>Submitted</Title>
+          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Submitted</Title>
             <Title level={2} style={{ color: "green" }}>
               {stats.submitted}
             </Title>
@@ -135,8 +152,8 @@ const AssignmentSuperAdmin = () => {
         </Col>
 
         <Col xs={24} md={8}>
-          <Card>
-            <Title level={5}>Pending</Title>
+          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Pending</Title>
             <Title level={2} style={{ color: "red" }}>
               {stats.pending}
             </Title>
@@ -145,23 +162,25 @@ const AssignmentSuperAdmin = () => {
       </Row>
 
       {/* ================= FILTER ================= */}
-      <Card style={{ marginTop: 16, marginBottom: 16 }}>
+      <Card style={{ marginTop: 16, marginBottom: 16, background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
         <Row justify="space-between" align="middle">
           <Col>
-            <Text strong>Filter by Department</Text>
+            <Text strong style={{ color: theme === "dark" ? "#fff" : "#000" }}>Filter by Department</Text>
           </Col>
 
           <Col>
             <Select
               placeholder="Select Department"
               allowClear
-              style={{ width: 220 }}
+              style={{background: theme === "dark" ? "#141414" : "#fff", color: theme === "dark" ? "#bbb" : "#000", borderColor: theme === "dark" ? "#333" : "#d9d9d9", width: 220 }}
+              className={theme === "dark" ? "dark-select" : ""}
+              popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
               onChange={(value) => setDepartmentFilter(value)}
             >
               {departments.map((dept) => (
-                <Option key={dept} value={dept}>
+                <Select.Option key={dept} value={dept}>
                   {dept}
-                </Option>
+                </Select.Option>
               ))}
             </Select>
           </Col>
@@ -169,9 +188,10 @@ const AssignmentSuperAdmin = () => {
       </Card>
 
       {/* ================= TABLE ================= */}
-      <Card>
+      <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000" }}>
         {filteredProjects.length ? (
           <Table
+            className={theme === "dark" ? "dark-table" : ""}
             columns={columns}
             dataSource={filteredProjects}
             rowKey={(record) => record._id}
@@ -180,7 +200,7 @@ const AssignmentSuperAdmin = () => {
             scroll={{ x: "max-content" }}
           />
         ) : (
-          <Empty description="No projects found" />
+          <Empty description="No projects found" style={{ color: theme === "dark" ? "#fff" : "#000" }} />
         )}
       </Card>
     </div>

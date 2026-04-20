@@ -5,16 +5,15 @@ import {
   LogoutOutlined,
   MessageOutlined,
   ProjectOutlined,
-  FileMarkdownOutlined,
-  TableOutlined,
+  BookOutlined,
   DashboardOutlined,
   HistoryOutlined,
-  BookOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { selectUser, logout } from "../redux/authSlice";
 import { toast } from "react-hot-toast";
+import { useTheme } from "../context/ThemeContext"; // ✅ added
 
 const { Sider } = Layout;
 
@@ -24,7 +23,9 @@ function SideBar({ open, setOpen }) {
   const dispatch = useDispatch();
   const user = useSelector(selectUser);
 
-  const sidebarColor = "#0d1e44";
+  const { theme } = useTheme(); // ✅ added
+
+  const sidebarColor = theme === "dark" ? "#1f1f1f" : "#ffffff";
 
   const handleLogout = () => {
     dispatch(logout());
@@ -43,7 +44,6 @@ function SideBar({ open, setOpen }) {
 
   const selectedKey = location.pathname.split("/")[2] || "users";
 
-  // Build menu items dynamically based on role
   const menuItems = [
     {
       key: "dashboardpage",
@@ -54,104 +54,58 @@ function SideBar({ open, setOpen }) {
       key: "users",
       icon: <UserOutlined />,
       label: "Users",
-      // Only visible to superadmin, admin, staff
       hidden: !["superadmin", "admin", "staff", "student"].includes(user?.role),
     },
 
-    ...(user?.role === "superadmin") ?
-      [{
-        key: "attendancesuperadmin",
-        icon: <BookOutlined />,
-        label: "Attendance",
-      }] : [],
+    ...(user?.role === "superadmin"
+      ? [{ key: "attendancesuperadmin", icon: <BookOutlined />, label: "Attendance" }]
+      : []),
 
-    ...(user?.role === "admin") ?
-      [{
-        key: "attendanceadmin",
-        icon: <BookOutlined />,
-        label: "Attendance",
-      }] : [],
+    ...(user?.role === "admin"
+      ? [{ key: "attendanceadmin", icon: <BookOutlined />, label: "Attendance" }]
+      : []),
 
-    ...(user?.role === "staff") ?
-      [{
-        key: "attendancestaff",
-        icon: <BookOutlined />,
-        label: "Attendance",
-      }] : [],
+    ...(user?.role === "staff"
+      ? [{ key: "attendancestaff", icon: <BookOutlined />, label: "Attendance" }]
+      : []),
 
-    ...(user?.role === "student") ?
-      [{
-        key: "attendancestudent",
-        icon: <BookOutlined />,
-        label: "Attendance",
-      }] : [],
+    ...(user?.role === "student"
+      ? [{ key: "attendancestudent", icon: <BookOutlined />, label: "Attendance" }]
+      : []),
 
+    ...(user?.role === "student"
+      ? [{ key: "assignments", icon: <ProjectOutlined />, label: "Assignments" }]
+      : []),
 
+    ...(user?.role === "staff"
+      ? [{ key: "assignmentCheck", icon: <ProjectOutlined />, label: "Assignments" }]
+      : []),
 
+    ...(user?.role === "superadmin"
+      ? [{ key: "assignmnentsuperadmin", icon: <ProjectOutlined />, label: "Assignments" }]
+      : []),
 
-
-
-    ...(user?.role === "student")
-      ? [
-        {
-          key: "assignments", //student
-          icon: <ProjectOutlined />,
-          label: "Assignments",
-        },
-      ] : [],
-
-
-    ...(user?.role === "staff")
-      ? [
-        {
-          key: "assignmentCheck",
-          icon: <ProjectOutlined />,
-          label: "Assignments",
-        },
-      ] : [],
-
-    ...(user?.role === "superadmin")
-      ? [
-        {
-          key: "assignmnentsuperadmin",
-          icon: <ProjectOutlined />,
-          label: "Assignments",
-        },
-      ] : [],
-
-
-    ...(user?.role === "admin")
-      ? [
-        {
-          key: "assignmentadmin",
-          icon: <ProjectOutlined />,
-          label: "Assignments",
-        },
-      ] : [],
-
+    ...(user?.role === "admin"
+      ? [{ key: "assignmentadmin", icon: <ProjectOutlined />, label: "Assignments" }]
+      : []),
 
     {
       key: "chat",
       icon: <MessageOutlined />,
       label: "ChatBot",
     },
-    ...(user?.role === 'superadmin' || user?.role === "admin" || user?.role === "staff") ?
-      [{
-        key: "chathistory",
-        icon: <HistoryOutlined />,
-        label: "Chat History",
-      },] : [],
 
-
-
-
-    // ...(user?.role !== "superadmin") ? [
-    //   {
-    //     key: "timetable",
-    //     icon: <TableOutlined />,
-    //     label: "TimeTable",
-    //   },] : [],
-
+    ...(user?.role === "superadmin" ||
+    user?.role === "admin" ||
+    user?.role === "staff"
+      ? [
+          {
+            key: "chathistory",
+            icon: <HistoryOutlined />,
+            label: "Chat History",
+          },
+        ]
+      : []),
 
     {
       key: "settings",
@@ -167,19 +121,29 @@ function SideBar({ open, setOpen }) {
 
   return (
     <>
+      {/* DESKTOP SIDEBAR */}
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
         width={250}
         className="hidden lg:block min-h-screen"
-        style={{ backgroundColor: sidebarColor }}
+        style={{
+          backgroundColor: sidebarColor,
+          border: `1px solid ${theme === "dark" ? "#333" : "#b3cccc"}`,
+          borderRadius: "3px",
+        }}
       >
         <div className="flex items-center justify-center py-4.5 mb-2">
-          <h1 className="text-white text-xl font-bold">Dashboard</h1>
+          <h1
+            className="text-xl font-bold"
+            style={{ color: theme === "dark" ? "#fff" : "#4d4d4d" }}
+          >
+            DASHBOARD
+          </h1>
         </div>
 
         <Menu
-          theme="dark"
+          theme={theme === "dark" ? "dark" : "light"}
           mode="inline"
           selectedKeys={[selectedKey]}
           onClick={handleMenuClick}
@@ -191,7 +155,7 @@ function SideBar({ open, setOpen }) {
         />
       </Sider>
 
-
+      {/* MOBILE DRAWER */}
       <Drawer
         placement="left"
         size={250}
@@ -202,10 +166,19 @@ function SideBar({ open, setOpen }) {
           body: { padding: 0, backgroundColor: sidebarColor },
           header: { backgroundColor: sidebarColor },
         }}
-        title={<span className="text-white font-bold">Dashboard</span>}
+        title={
+          <span
+            style={{
+              color: theme === "dark" ? "#fff" : "#4d4d4d",
+              fontWeight: "bold",
+            }}
+          >
+            Dashboard
+          </span>
+        }
       >
         <Menu
-          theme="dark"
+          theme={theme === "dark" ? "dark" : "light"}
           mode="inline"
           selectedKeys={[selectedKey]}
           onClick={handleMenuClick}

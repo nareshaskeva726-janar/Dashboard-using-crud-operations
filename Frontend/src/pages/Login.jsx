@@ -6,6 +6,9 @@ import { loginSuccess } from "../redux/authSlice";
 import { toast } from "react-hot-toast";
 
 function Login() {
+
+  
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [loginUser, { isLoading }] = useLoginUserMutation();
@@ -53,7 +56,7 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <Card title="Login" className="w-full max-w-md shadow-lg rounded-xl">
         <Form layout="vertical" onFinish={handleLogin}>
           {/* Email */}

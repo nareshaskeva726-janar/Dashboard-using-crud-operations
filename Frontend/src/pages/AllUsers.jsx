@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Table,
   Space,
@@ -10,425 +10,727 @@ import {
   Form,
   Input,
   Select,
+  Row,
+  Col,
 } from "antd";
-import { EditOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  CloseOutlined,
+  EyeInvisibleOutlined,
+} from "@ant-design/icons";
+
 import { useSelector } from "react-redux";
 import { selectUser } from "../redux/authSlice";
+
 import {
   useGetUsersQuery,
   useDeleteUserMutation,
   useAddUserMutation,
   useUpdateUserMutation,
+  useBulkWriteUsersMutation
 } from "../redux/userApi";
 
-/* ================= DEPARTMENT MAP ================= */
+import { toast } from "react-hot-toast"
+import { useTheme } from "../context/ThemeContext";
+import Papa from "papaparse";
+
+/* ================= DEPARTMENTS ================= */
 
 const departmentSubjectsMap = {
-  ESE: ["Core Java", "Spring", "Hibernate", "JSP", "Servlets"],
-  EEE: ["Python Basics", "Django", "Flask", "Data Analysis", "Machine Learning"],
-  CSE: ["C Basics", "Pointers", "Data Structures", "Algorithms", "File Handling"],
-  MECH: ["C++ Basics", "OOP", "STL", "Algorithms", "Templates"],
-  CIVIL: ["Python for DS", "Statistics", "Pandas", "NumPy", "Machine Learning"],
+  ESE: ["Core Java", "Spring", "Hibernate"],
+  EEE: ["Python", "Django", "Flask"],
+  CSE: ["C", "DSA", "Algorithms"],
+  MECH: ["C++", "OOP"],
+  CIVIL: ["Statistics", "ML"],
 };
 
 const departments = Object.keys(departmentSubjectsMap);
 
 function AllUsers() {
+
+  const { theme, toggleTheme } = useTheme();
+
+  const fileRef = React.useRef(null);
+
+
   const user = useSelector(selectUser);
 
-  const { data, isLoading, error } = useGetUsersQuery();
+  const { data = [], isLoading } = useGetUsersQuery();
   const [deleteUser] = useDeleteUserMutation();
   const [addUser] = useAddUserMutation();
   const [updateUser] = useUpdateUserMutation();
 
-  const users = Array.isArray(data) ? data : [];
 
-  /* ================= DEPARTMENT FILTER ================= */
 
-  const [adminDeptFilter, setAdminDeptFilter] = useState("ALL");
-  const [staffDeptFilter, setStaffDeptFilter] = useState("ALL");
-  const [studentDeptFilter, setStudentDeptFilter] = useState("ALL");
+  const [bulkWriteUsers] = useBulkWriteUsersMutation();
 
-  const filterByDepartment = (list, dept) => {
-    if (dept === "ALL") return list;
-    return list.filter((u) => u.department === dept);
-  };
+  /* ================= TOOLBAR ================= */
 
-  const adminUsers = filterByDepartment(
-    users.filter((u) => u.role === "admin"),
-    adminDeptFilter
+  const [showTools, setShowTools] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [deptFilter, setDeptFilter] = useState("ALL");
+  const [importOpen, setImportOpen] = useState(false);
+
+  /* ================= FILTER ================= */
+
+  const filterUsers = (role) =>
+    data.filter((u) => {
+      const matchRole = u.role === role;
+
+      const matchSearch =
+        u.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchText.toLowerCase());
+
+      const matchDept =
+        deptFilter === "ALL" || u.department === deptFilter;
+
+      return matchRole && matchSearch && matchDept;
+    });
+
+  const adminUsers = useMemo(
+    () => filterUsers("admin"),
+    [data, searchText, deptFilter]
   );
 
-  const staffUsers = filterByDepartment(
-    users.filter((u) => u.role === "staff"),
-    staffDeptFilter
+  const staffUsers = useMemo(
+    () => filterUsers("staff"),
+    [data, searchText, deptFilter]
   );
 
-  const studentUsers = filterByDepartment(
-    users.filter((u) => u.role === "student"),
-    studentDeptFilter
+  const studentUsers = useMemo(
+    () => filterUsers("student"),
+    [data, searchText, deptFilter]
   );
 
-  /* ================= PERMISSIONS ================= */
+  /* ================= DELETE ================= */
 
-  const canModify = (targetUser) => {
-    if (user.role === "superadmin") return true;
-    if (user.role === "admin")
-      return !["admin", "superadmin"].includes(targetUser.role);
-    if (user.role === "staff") return targetUser.role === "student";
-    return false;
+  const handleDelete = async (record) => {
+    await deleteUser(record._id);
+    message.success("User Deleted");
   };
 
-  const handleDelete = async (targetUser) => {
-    if (!canModify(targetUser)) return message.error("Access Denied");
+  /* ================= EXPORT ================= */
 
-    try {
-      await deleteUser(targetUser._id).unwrap();
-      message.success("User deleted");
-    } catch (err) {
-      message.error(err?.data?.message || "Delete failed");
-    }
+  const handleExport = () => {
+    const csv = data.map(
+      (u) =>
+        `${u.name},${u.email},${u.role},${u.department},${u.contact}`
+    );
+
+    const blob = new Blob(
+      ["Name,Email,Role,Department,Contact\n" + csv.join("\n")],
+      { type: "text/csv" }
+    );
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "users.csv";
+    a.click();
   };
 
-  /* ================= MODAL STATE ================= */
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    toast.loading("Importing users...");
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+
+      complete: async ({ data: imported }) => {
+        try {
+          const existingEmails = new Set(
+            data.map((u) => u.email.toLowerCase())
+          );
+
+          const newUsers = imported.filter(
+            (u) =>
+              u.email &&
+              !existingEmails.has(u.email.toLowerCase())
+          );
+
+          if (!newUsers.length) {
+            toast.dismiss();
+            toast.error("No new users found");
+            return;
+          }
+
+          await bulkWriteUsers(newUsers).unwrap();
+
+          toast.dismiss();
+          toast.success(`${newUsers.length} users imported`);
+
+          setImportOpen(false);
+        } catch (err) {
+          toast.dismiss();
+          toast.error("Import failed");
+        }
+      },
+    });
+  };
+
+  /* ================= MODAL ================= */
+
+  const [open, setOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [role, setRole] = useState("");
-  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [department, setDepartment] = useState("");
 
   const [form] = Form.useForm();
 
-  const openModal = (userToEdit = null) => {
-    setEditingUser(userToEdit);
-    setIsModalOpen(true);
+  const openModal = (record = null) => {
+    setEditingUser(record);
+    setOpen(true);
 
-    if (userToEdit) {
-      form.setFieldsValue(userToEdit);
-      setRole(userToEdit.role);
-      setSelectedDepartment(userToEdit.department);
+    if (record) {
+      form.setFieldsValue(record);
+      setRole(record.role);
+      setDepartment(record.department);
     } else {
       form.resetFields();
       setRole("");
-      setSelectedDepartment("");
-    }
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingUser(null);
-  };
-
-  const getAllowedRoles = () => {
-    if (user.role === "superadmin") return ["admin", "staff", "student"];
-    if (user.role === "admin") return ["staff", "student"];
-    if (user.role === "staff") return ["student"];
-    return [];
-  };
-
-  const handleDepartmentChange = (dept) => {
-    setSelectedDepartment(dept);
-
-    if (role === "student") {
-      form.setFieldsValue({
-        subjects: departmentSubjectsMap[dept],
-      });
-    } else {
-      form.setFieldsValue({ subjects: [] });
+      setDepartment("");
     }
   };
 
   const onFinish = async (values) => {
-    try {
-      const payload = { ...values };
+    const payload = { ...values };
 
-      payload.contact = String(payload.contact);
+    if (payload.role === "staff")
+      payload.subjects = [payload.subjects];
 
-      if (payload.role === "admin") delete payload.subjects;
-      if (payload.role === "staff") payload.subjects = [payload.subjects];
-      if (payload.role === "student")
-        payload.subjects = departmentSubjectsMap[payload.department];
+    if (payload.role === "student")
+      payload.subjects =
+        departmentSubjectsMap[payload.department];
 
-      delete payload.confirmpassword;
-
-      if (editingUser) {
-        await updateUser({
-          id: editingUser._id,
-          data: payload,
-        }).unwrap();
-        message.success("User Updated Successfully");
-      } else {
-        await addUser(payload).unwrap();
-        message.success("User Created Successfully");
-      }
-
-      closeModal();
-    } catch (err) {
-      message.error(err?.data?.message || "Operation Failed");
+    if (editingUser) {
+      await updateUser({
+        id: editingUser._id,
+        data: payload,
+      });
+      message.success("Updated");
+    } else {
+      await addUser(payload);
+      message.success("Created");
     }
+
+    setOpen(false);
   };
 
   /* ================= TABLE COLUMNS ================= */
 
-  const adminColumns = [
+  const baseColumns = [
     { title: "Name", dataIndex: "name" },
     { title: "Email", dataIndex: "email" },
     { title: "Department", dataIndex: "department" },
     { title: "Contact", dataIndex: "contact" },
+    {
+      title: "Actions",
+      render: (_, record) => (
+        <Space>
+          <EditOutlined
+            style={{ color: theme === "dark" ? "powderblue" : "blue" }}
+            onClick={() => openModal(record)} />
+          <Popconfirm
+            title="Delete user?"
+            onConfirm={() => handleDelete(record)}
+          >
+            <DeleteOutlined style={{ color: "red" }} />
+          </Popconfirm>
+        </Space>
+      ),
+    },
   ];
+
+  const subjectColumn = {
+    title: "Subjects",
+    render: (_, r) => r.subjects?.join(", ") || "-",
+  };
+
+  const adminColumns = baseColumns;
 
   const staffColumns = [
     { title: "Name", dataIndex: "name" },
     { title: "Email", dataIndex: "email" },
     { title: "Department", dataIndex: "department" },
-    {
-      title: "Subject",
-      render: (_, record) => record.subjects?.[0] || "-",
-    },
-    { title: "Contact", dataIndex: "contact" },
-  ];
-
-  const studentColumns = [
-    { title: "Name", dataIndex: "name" },
-    { title: "Email", dataIndex: "email" },
-    { title: "Department", dataIndex: "department" },
+    subjectColumn,
     { title: "Contact", dataIndex: "contact" },
     {
-      title: "Subjects",
-      render: (_, record) => record.subjects?.join(", ") || "-",
-    },
-  ];
-
-  const addActions = (columns) => {
-    if (user.role === "student") return;
-
-    columns.push({
       title: "Actions",
       render: (_, record) => (
         <Space>
           <EditOutlined
-            style={{ color: "blue" }}
-            onClick={() => openModal(record)}
-          />
-          <Popconfirm title="Are you sure?" onConfirm={() => handleDelete(record)}>
+            style={{ color: theme === "dark" ? "powderblue" : "blue" }}
+            onClick={() => openModal(record)} />
+          <Popconfirm
+            title="Delete user?"
+            onConfirm={() => handleDelete(record)}
+          >
             <DeleteOutlined style={{ color: "red" }} />
           </Popconfirm>
         </Space>
       ),
-    });
-  };
+    },
+  ];
 
-  addActions(adminColumns);
-  addActions(staffColumns);
-  addActions(studentColumns);
+  const studentColumns = staffColumns;
 
-  /* ================= FILTER DROPDOWN ================= */
-
-  const DepartmentFilter = ({ value, onChange }) => (
-    <Select value={value} style={{ width: 170 }} onChange={onChange}>
-      <Select.Option value="ALL">All Departments</Select.Option>
-      {departments.map((dept) => (
-        <Select.Option key={dept} value={dept}>
-          {dept}
-        </Select.Option>
-      ))}
-    </Select>
-  );
-
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error loading users</p>;
+  /* ================= UI ================= */
 
   return (
-    <div className="p-4 flex flex-col gap-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">ALL USERS</h1>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-        {(user.role === "superadmin" ||
-          user.role === "admin" ||
-          user.role === "staff") && (
-            <Button type="primary" onClick={() => openModal()}>
-              <PlusOutlined /> ADD USER
-            </Button>
-          )}
-      </div>
 
-      {/* ADMIN */}
-      <Card
-        title={
-          <div className="flex justify-between items-center">
-            <span>HOD (Admin)</span>
-            <DepartmentFilter
-              value={adminDeptFilter}
-              onChange={setAdminDeptFilter}
-            />
-          </div>
-        }
-      >
-        <Table columns={adminColumns} dataSource={adminUsers} rowKey="_id"  scroll={{x: 800}}/>
-      </Card>
+      <h1 className="text-xl sm:text-2xl md:text-3xl p-1 font-semibold">
+        ALL USERS
+      </h1>
 
-      {/* STAFF */}
-      <Card
-        title={
-          <div className="flex justify-between items-center">
-            <span>Staff</span>
-            <DepartmentFilter
-              value={staffDeptFilter}
-              onChange={setStaffDeptFilter}
-            />
-          </div>
-        }
-      >
-        <Table columns={staffColumns} dataSource={staffUsers} rowKey="_id" scroll={{x: 800}}/>
-      </Card>
 
-      {/* STUDENTS */}
-      <Card
-        title={
-          <div className="flex justify-between items-center">
-            <span>Students</span>
-            <DepartmentFilter
-              value={studentDeptFilter}
-              onChange={setStudentDeptFilter}
-            />
-          </div>
-        }
-      >
-        <Table columns={studentColumns} dataSource={studentUsers} rowKey="_id" scroll={{x: 800}} />
-      </Card>
+      {/* HEADER */}
+      <Row justify="space-between">
+        <Button
+          style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000", }}
+          onClick={() => setShowTools(true)}>
+          Open Tools
+        </Button>
 
-      {/* ================= MODAL ================= */}
+        <Button
+          type="primary"
+          style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000", borderColor: theme === "dark" ? "gray" : "#bbb" }}
+          icon={<PlusOutlined id="Plus-icon" />}
+          onClick={() => openModal()}
+        >
+          Add User
+        </Button>
+      </Row>
 
-      <Modal
-        title={editingUser ? "Update User" : "Add User"}
-        open={isModalOpen}
-        onCancel={closeModal}
-        footer={null}
-        destroyOnClose
-      >
-        <Form form={form} layout="vertical" onFinish={onFinish}>
 
-          <Form.Item label="Name" name="name" rules={[{ required: true }]}>
-            <Input placeholder="Enter full name" />
-          </Form.Item>
 
-          <Form.Item
-            label="Email"
-            name="email"
-            rules={[{ required: true, type: "email" }]}
-          >
-            <Input placeholder="Enter email address" />
-          </Form.Item>
 
-          <Form.Item label="Role" name="role" rules={[{ required: true }]}>
-            <Select
-              placeholder="Select user role"
-              onChange={(value) => {
-                setRole(value);
-                form.resetFields(["department", "subjects"]);
+
+      {/* TOOLS CARD */}
+      {showTools && (
+        <Card
+          style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000", }}
+          bordered={false}
+
+          bodyStyle={{ padding: 16 }}
+        >
+
+
+          <Row align="middle" justify="space-between" gutter={16}>
+
+            {/* LEFT SIDE TOOLS */}
+            <Space size="middle" wrap>
+
+              {/* INPUT */}
+              <Input
+                size="large"
+                suffix={<SearchOutlined />}
+                placeholder="Search name or email..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value.trimStart())}
+                className={theme === "dark" ? "dark-input" : "light-input"}
+                style={{
+                  width: 420,
+                  color: theme === "dark" ? "#fff" : "#000",
+                  background: theme === "dark" ? "#1f1f1f" : "#fff",
+                  borderColor: theme === "dark" ? "#333" : "#d9d9d9",
+                }}
+              />
+
+
+
+              {/* SELECT */}
+              <Select
+                size="large"
+                value={deptFilter}
+                onChange={setDeptFilter}
+                style={{
+                  width: 200,
+                  background: theme === "dark" ? "#1f1f1f" : "#fff",
+                  color: theme === "dark" ? "#fff" : "#000",
+                  borderColor: theme === "dark" ? "#333" : "#d9d9d9"
+                }}
+                dropdownStyle={{
+                  background: theme === "dark" ? "#1f1f1f" : "#fff",
+                }}
+                popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
+              >
+
+
+                <Select.Option
+                  value="ALL"
+                  style={{
+                    color: theme === "dark" ? "#fff" : "#000",
+                  }}
+                >
+                  All Departments
+                </Select.Option>
+
+                {departments.map((d) => (
+                  <Select.Option
+                    key={d}
+                    value={d}
+                    style={{
+                      color: theme === "dark" ? "#fff" : "#000",
+                    }}
+                  >
+                    {d}
+                  </Select.Option>
+                ))}
+              </Select>
+
+              {/* BUTTONS */}
+
+
+
+
+              <Button
+                size="large"
+                style={{
+                  background: theme === "dark" ? "#1f1f1f" : "#fff",
+                  color: theme === "dark" ? "#fff" : "#000",
+                  borderColor: theme === "dark" ? "#333" : "#d9d9d9",
+                }}
+                onClick={() => setImportOpen(true)}
+              >
+                Import
+              </Button>
+
+              <Modal
+                title="Bulk Import Users"
+                open={importOpen}
+                footer={null}
+                onCancel={() => setImportOpen(false)}
+                className={theme === "dark" ? "dark-modal" : ""}
+              >
+                <Form
+                  layout="vertical"
+                  className={theme === "dark" ? "dark-form" : ""}
+                >
+                  {/* NAME */}
+                  <Form.Item label="Name">
+                    <Input placeholder="NareshPM" disabled />
+                  </Form.Item>
+
+                  {/* EMAIL */}
+                  <Form.Item label="Email">
+                    <Input placeholder="nareshpm@gmail.com" disabled />
+                  </Form.Item>
+
+                  {/* ROLE */}
+                  <Form.Item label="Role">
+                    <Select
+                      className={theme === "dark" ? "dark-select" : "light-select"}
+                      disabled placeholder="admin / staff / student">
+                      <Select.Option>Admin</Select.Option>
+                      <Select.Option>Staff</Select.Option>
+                      <Select.Option>Student</Select.Option>
+                    </Select>
+                  </Form.Item>
+
+                  {/* DEPARTMENT */}
+                  <Form.Item label="Department">
+                    <Select
+                      className={theme === "dark" ? "dark-select" : "light-select"}
+                      disabled placeholder="Computer Science">
+                      {departments.map((d) => (
+                        <Select.Option key={d}>{d}</Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+
+                  {/* SUBJECT */}
+                  <Form.Item label="Subject">
+                    <Select
+                      className={theme === "dark" ? "dark-select" : "light-select"}
+                      disabled placeholder="Example Subject">
+                      <Select.Option>Subject Example</Select.Option>
+                    </Select>
+                  </Form.Item>
+
+                  {/* PASSWORD */}
+                  <Form.Item label="Password">
+                    <Input.Password placeholder="password123" disabled />
+                  </Form.Item>
+
+                  {/* CONTACT */}
+                  <Form.Item label="Contact">
+                    <Input placeholder="9876543210" disabled />
+                  </Form.Item>
+
+                  {/* CSV INFO TEXT */}
+                  <div
+                    style={{
+                      marginBottom: 20,
+                      padding: 12,
+                      borderRadius: 6,
+                      background: theme === "dark" ? "#1f1f1f" : "#fafafa",
+                      border: "1px dashed #888",
+                      fontSize: 13,
+                      color: theme === "dark" ? "lightgray" : "darkgray"
+                    }}
+                  >
+                    CSV Columns must be:
+
+                    <br />
+                    <b>
+                      Name, Email, Role, Department, Subject, Password, Contact
+                    </b>
+                  </div>
+
+                  {/* FILE INPUT */}
+                  <input
+                    type="file"
+                    accept=".csv"
+                    ref={fileRef}
+                    style={{ display: "none" }}
+                    onChange={handleImport}
+                  />
+
+                  <Button
+                    type="primary"
+                    block
+                    size="large"
+                    onClick={() => fileRef.current.click()}
+                  >
+                    Upload CSV File
+                  </Button>
+                </Form>
+              </Modal>
+
+
+
+
+
+
+
+
+              <Button
+                size="large"
+                style={{
+                  background: theme === "dark" ? "#1f1f1f" : "#fff",
+                  color: theme === "dark" ? "#fff" : "#000",
+                  borderColor: theme === "dark" ? "#333" : "#d9d9d9",
+                }}
+                onClick={handleExport}
+              >
+                Export
+              </Button>
+            </Space>
+
+            {/* RIGHT SIDE CLOSE ICON */}
+            <Button
+              type="text"
+              icon={<CloseOutlined />}
+              onClick={() => setShowTools(false)}
+              style={{
+                color: theme === "dark" ? "#fff" : "#000",
+                border: "1px solid lightgray",
               }}
             >
-              {getAllowedRoles().map((r) => (
-                <Select.Option key={r} value={r}>
-                  {r.toUpperCase()}
+              Close
+            </Button>
+
+          </Row>
+        </Card>
+      )}
+
+      {/* ADMIN TABLE */}
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+        title={
+          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+            Admin
+          </span>
+        }
+      >
+        <Table
+          scroll={{ x: true }}
+          columns={adminColumns}
+          dataSource={adminUsers}
+          rowKey="_id"
+          loading={isLoading}
+          className={theme === "dark" ? "dark-table" : ""}
+          pagination={{ pageSize: 10 }}
+        />
+      </Card>
+
+
+
+
+
+
+      {/* STAFF TABLE */}
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+        title={
+          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+            Staff
+          </span>
+        }
+      >
+        <Table
+          scroll={{ x: true }}
+          columns={staffColumns}
+          dataSource={staffUsers}
+          rowKey="_id"
+          className={theme === "dark" ? "dark-table" : ""}
+          loading={isLoading}
+        />
+      </Card>
+
+      {/* STUDENT TABLE */}
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+        title={
+          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+            Students
+          </span>
+        }
+      >
+        <Table
+          scroll={{ x: true }}
+          columns={studentColumns}
+          dataSource={studentUsers}
+          rowKey="_id"
+          className={theme === "dark" ? "dark-table" : ""}
+          loading={isLoading}
+        />
+      </Card>
+
+
+
+
+      {/* MODAL */}
+      <Modal
+        open={open}
+        footer={null}
+        onCancel={() => setOpen(false)}
+        title={editingUser ? "Update User" : "Add User"}
+        className={theme === "dark" ? "dark-modal" : ""}
+      >
+        <Form
+          layout="vertical"
+          form={form}
+          onFinish={onFinish}
+          className={theme === "dark" ? "dark-form" : ""}
+        >
+          {/* NAME */}
+          <Form.Item
+            name="name"
+            label="Name"
+            rules={[{ required: true }]}
+          >
+            <Input placeholder="Enter full name (e.g. John Doe)" />
+          </Form.Item>
+
+          {/* EMAIL */}
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[{ required: true }]}
+          >
+            <Input placeholder="Enter email address (e.g. john@gmail.com)" />
+          </Form.Item>
+
+          {/* ROLE */}
+          <Form.Item
+            name="role"
+            label="Role"
+            rules={[{ required: true }]}
+          >
+            <Select
+              style={{ background: theme === "dark" ? "#2a2a2a" : "#fff", borderColor: theme === "dark" ? "#444" : "" }}
+              popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
+              className={theme === "dark" ? "dark-select" : "light-select"}
+              placeholder="Select user role"
+              onChange={(v) => setRole(v)}
+            >
+              <Select.Option value="admin">Admin</Select.Option>
+              <Select.Option value="staff">Staff</Select.Option>
+              <Select.Option value="student">Student</Select.Option>
+            </Select>
+          </Form.Item>
+
+          {/* DEPARTMENT */}
+          <Form.Item name="department" label="Department">
+            <Select
+              style={{ background: theme === "dark" ? "#2a2a2a" : "#fff", borderColor: theme === "dark" ? "#444" : "" }}
+              popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
+              className={theme === "dark" ? "dark-select" : "light-select"}
+              placeholder="Select department"
+              onChange={(d) => setDepartment(d)}
+            >
+              {departments.map((d) => (
+                <Select.Option key={d} value={d}>
+                  {d}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
-          {(role === "admin" || role === "staff" || role === "student") && (
-            <Form.Item
-              label="Department"
-              name="department"
-              rules={[{ required: true }]}
-            >
-              <Select
-                placeholder="Select department"
-                onChange={handleDepartmentChange}
-              >
-                {departments.map((dept) => (
-                  <Select.Option key={dept}>{dept}</Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          )}
-
-          {role === "staff" && selectedDepartment && (
-            <Form.Item
-              label="Subject"
-              name="subjects"
-              rules={[{ required: true }]}
-            >
+          {/* SUBJECTS */}
+          {role === "staff" && department && (
+            <Form.Item name="subjects" label="Subject">
               <Select placeholder="Select subject">
-                {departmentSubjectsMap[selectedDepartment].map((sub) => (
-                  <Select.Option key={sub}>{sub}</Select.Option>
+                {departmentSubjectsMap[department].map((s) => (
+                  <Select.Option key={s} value={s}>
+                    {s}
+                  </Select.Option>
                 ))}
               </Select>
             </Form.Item>
           )}
 
-          {role === "student" && selectedDepartment && (
-            <Form.Item label="Subjects">
-              <Input
-                placeholder="Subjects will be auto assigned"
-                value={departmentSubjectsMap[selectedDepartment].join(", ")}
-                disabled
+          {/* PASSWORD */}
+          {!editingUser && (
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[{ required: true, message: "Enter password" }]}
+            >
+              <Input.Password
+                placeholder="Create a strong password"
+                iconRender={(visible) =>
+                  visible ? (
+                    <EyeOutlined style={{ color: "#fff" }} />
+                  ) : (
+                    <EyeInvisibleOutlined style={{ color: "#fff" }} />
+                  )
+                }
               />
             </Form.Item>
           )}
 
-          {!editingUser && (
-            <>
-              <Form.Item
-                label="Password"
-                name="password"
-                rules={[{ required: true, min: 6 }]}
-              >
-                <Input.Password placeholder="Enter password (min 6 characters)" />
-              </Form.Item>
 
-              <Form.Item
-                label="Confirm Password"
-                name="confirmpassword"
-                dependencies={["password"]}
-                rules={[
-                  { required: true },
-                  ({ getFieldValue }) => ({
-                    validator(_, value) {
-                      if (!value || getFieldValue("password") === value)
-                        return Promise.resolve();
-                      return Promise.reject(
-                        new Error("Passwords do not match")
-                      );
-                    },
-                  }),
-                ]}
-              >
-                <Input.Password placeholder="Re-enter password" />
-              </Form.Item>
-            </>
-          )}
 
+
+          {/* CONTACT */}
           <Form.Item
-            label="Contact"
             name="contact"
+            label="Contact"
             rules={[
-              { required: true },
-              { pattern: /^[0-9]{10}$/, message: "Enter valid 10 digit number" },
+              { required: true, message: "Enter contact number" },
+              { len: 10, message: "Must be 10 digits" },
             ]}
           >
-            <Input
-              maxLength={10}
-              placeholder="Enter 10-digit mobile number"
-            />
+            <Input placeholder="Enter 10-digit mobile number" maxLength={10} />
           </Form.Item>
 
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
-              {editingUser ? "Update User" : "Add User"}
-            </Button>
-          </Form.Item>
-
+          {/* SUBMIT */}
+          <Button type="primary" htmlType="submit" block>
+            {editingUser ? "Update User" : "Create User"}
+          </Button>
         </Form>
       </Modal>
     </div>
@@ -436,3 +738,4 @@ function AllUsers() {
 }
 
 export default AllUsers;
+

@@ -3,12 +3,18 @@ import { Table, Spin, Tag, Card, Row, Col, Typography, Empty } from "antd";
 import { useSelector } from "react-redux";
 import { selectUser } from "../redux/authSlice";
 import { useGetAllProjectsSuperadminQuery } from "../redux/projectApi";
+import { useTheme } from "../context/ThemeContext";
 
 const { Title, Text } = Typography;
 
 const AssignmentAdmin = () => {
+
+  const { theme, toggleTheme } = useTheme();
+
   const { data, isLoading } = useGetAllProjectsSuperadminQuery();
   const user = useSelector(selectUser);
+
+
 
   const projects = Array.isArray(data?.data) ? data.data : [];
 
@@ -95,28 +101,32 @@ const AssignmentAdmin = () => {
   }
 
   return (
-    <div style={{ padding: 16, background: "#f5f7fb", minHeight: "100vh" }}>
+    <div style={{ padding: 16, minHeight: "100vh", }}>
       {/* HEADER */}
-      <Title level={3} style={{ marginBottom: 4 }}>
+      <Title level={3} 
+        style={{ color: theme === 'dark' ? "#fff" : "#000",  marginBottom: 4 }}
+      >
         {user?.department} Department Projects
       </Title>
 
-      <Text type="secondary">
+      <Text type="secondary"
+        style={{ color: theme === 'dark' ? "#fff" : "#000" }}
+      >
         Manage and view submitted student assignments
       </Text>
 
       {/* ================= STATS ================= */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} md={8}>
-          <Card>
-            <Title level={5}>Total Projects</Title>
-            <Title level={2}>{stats.total}</Title>
+          <Card style={{ background: theme === "dark" ? "#333" : "#fff" }}>
+            <Title level={5} style={{color: theme === "dark" ? "#fff" : "#000"}}>Total Projects</Title>
+            <Title level={2} style={{color: theme === "dark" ? "lightblue" : "darkblue"}}>{stats.total}</Title>
           </Card>
         </Col>
 
         <Col xs={24} md={8}>
-          <Card>
-            <Title level={5}>Submitted</Title>
+          <Card style={{ background: theme === "dark" ? "#333" : "#fff" }}>
+            <Title level={5} style={{color: theme === "dark" ? "#fff" : "#000"}}>Submitted</Title>
             <Title level={2} style={{ color: "green" }}>
               {stats.submitted}
             </Title>
@@ -124,8 +134,8 @@ const AssignmentAdmin = () => {
         </Col>
 
         <Col xs={24} md={8}>
-          <Card>
-            <Title level={5}>Pending</Title>
+          <Card style={{ background: theme === "dark" ? "#333" : "#fff" }}>
+            <Title level={5} style={{color: theme === "dark" ? "#fff" : "#000"}}>Pending</Title>
             <Title level={2} style={{ color: "red" }}>
               {stats.pending}
             </Title>
@@ -134,9 +144,10 @@ const AssignmentAdmin = () => {
       </Row>
 
       {/* ================= TABLE ================= */}
-      <Card style={{ marginTop: 16 }}>
+      <Card style={{ marginTop: 16 }}  className={theme === "dark" ? "dark-card" : ""}>
         {filteredProjects.length ? (
           <Table
+            className={theme === "dark" ? "dark-table" : ""}
             columns={columns}
             dataSource={filteredProjects}
             rowKey={(record) => record._id}
