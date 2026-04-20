@@ -31,7 +31,7 @@ import {
   useDeleteUserMutation,
   useAddUserMutation,
   useUpdateUserMutation,
-  useBulkWriteUsersMutation
+  useBulkImportUsersMutation
 } from "../redux/userApi";
 
 import { toast } from "react-hot-toast"
@@ -40,12 +40,20 @@ import Papa from "papaparse";
 
 /* ================= DEPARTMENTS ================= */
 
+// const departmentSubjectsMap = {
+//   ESE: ["Core Java", "Spring", "Hibernate"],
+//   EEE: ["Python", "Django", "Flask"],
+//   CSE: ["C", "DSA", "Algorithms"],
+//   MECH: ["C++", "OOP"],
+//   CIVIL: ["Statistics", "ML"],
+// };
+
 const departmentSubjectsMap = {
-  ESE: ["Core Java", "Spring", "Hibernate"],
-  EEE: ["Python", "Django", "Flask"],
-  CSE: ["C", "DSA", "Algorithms"],
-  MECH: ["C++", "OOP"],
-  CIVIL: ["Statistics", "ML"],
+  ESE: ["Core Java", "Spring", "Hibernate", "JSP", "Servlets"],
+  EEE: ["Python Basics", "Django", "Flask", "Data Analysis", "Machine Learning"],
+  CSE: ["C Basics", "Pointers", "Data Structures", "Algorithms", "File Handling"],
+  MECH: ["C++ Basics", "OOP", "STL", "Algorithms", "Templates"],
+  CIVIL: ["Python for DS", "Statistics", "Pandas", "NumPy", "Machine Learning"]
 };
 
 const departments = Object.keys(departmentSubjectsMap);
@@ -56,7 +64,6 @@ function AllUsers() {
 
   const fileRef = React.useRef(null);
 
-
   const user = useSelector(selectUser);
 
   const { data = [], isLoading } = useGetUsersQuery();
@@ -65,8 +72,9 @@ function AllUsers() {
   const [updateUser] = useUpdateUserMutation();
 
 
+  const [bulkImportUsers] = useBulkImportUsersMutation();
 
-  const [bulkWriteUsers] = useBulkWriteUsersMutation();
+  console.log(bulkImportUsers, "import")
 
   /* ================= TOOLBAR ================= */
 
@@ -135,47 +143,64 @@ function AllUsers() {
 
 
 
-  const handleImport = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+ const handleImport = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    toast.loading("Importing users...");
+  toast.loading("Importing users...");
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
 
-      complete: async ({ data: imported }) => {
-        try {
-          const existingEmails = new Set(
-            data.map((u) => u.email.toLowerCase())
-          );
+    complete: async ({ data: imported }) => {
+      try {
 
-          const newUsers = imported.filter(
-            (u) =>
-              u.email &&
-              !existingEmails.has(u.email.toLowerCase())
-          );
+        const cleaned = imported.map(u => ({
+          name: u.name?.trim(),
+          email: u.email?.trim().toLowerCase(),
+          role: u.role,
+          department: u.department,
+          contact: u.contact,
+          subjects: u.subjects,
+          password: u.password
+        }));
 
-          if (!newUsers.length) {
-            toast.dismiss();
-            toast.error("No new users found");
-            return;
-          }
+        const existingEmails = new Set(
+          data.map((u) => u.email.toLowerCase())
+        );
 
-          await bulkWriteUsers(newUsers).unwrap();
+        const newUsers = cleaned.filter(
+          (u) => u.email && !existingEmails.has(u.email)
+        );
 
+        if (!newUsers.length) {
           toast.dismiss();
-          toast.success(`${newUsers.length} users imported`);
-
-          setImportOpen(false);
-        } catch (err) {
-          toast.dismiss();
-          toast.error("Import failed");
+          toast.error("No new users found");
+          return;
         }
-      },
-    });
-  };
+
+        // ✅ IMPORTANT FIX HERE
+        await bulkImportUsers(newUsers).unwrap();
+
+        toast.dismiss();
+        toast.success(`${newUsers.length} users imported`);
+
+        setImportOpen(false);
+
+      } catch (err) {
+        toast.dismiss();
+        toast.error("Import failed");
+      }
+    },
+  });
+};
+
+
+
+
+
+
 
   /* ================= MODAL ================= */
 
@@ -417,58 +442,7 @@ function AllUsers() {
                   layout="vertical"
                   className={theme === "dark" ? "dark-form" : ""}
                 >
-                  {/* NAME */}
-                  <Form.Item label="Name">
-                    <Input placeholder="NareshPM" disabled />
-                  </Form.Item>
 
-                  {/* EMAIL */}
-                  <Form.Item label="Email">
-                    <Input placeholder="nareshpm@gmail.com" disabled />
-                  </Form.Item>
-
-                  {/* ROLE */}
-                  <Form.Item label="Role">
-                    <Select
-                      className={theme === "dark" ? "dark-select" : "light-select"}
-                      disabled placeholder="admin / staff / student">
-                      <Select.Option>Admin</Select.Option>
-                      <Select.Option>Staff</Select.Option>
-                      <Select.Option>Student</Select.Option>
-                    </Select>
-                  </Form.Item>
-
-                  {/* DEPARTMENT */}
-                  <Form.Item label="Department">
-                    <Select
-                      className={theme === "dark" ? "dark-select" : "light-select"}
-                      disabled placeholder="Computer Science">
-                      {departments.map((d) => (
-                        <Select.Option key={d}>{d}</Select.Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-
-                  {/* SUBJECT */}
-                  <Form.Item label="Subject">
-                    <Select
-                      className={theme === "dark" ? "dark-select" : "light-select"}
-                      disabled placeholder="Example Subject">
-                      <Select.Option>Subject Example</Select.Option>
-                    </Select>
-                  </Form.Item>
-
-                  {/* PASSWORD */}
-                  <Form.Item label="Password">
-                    <Input.Password placeholder="password123" disabled />
-                  </Form.Item>
-
-                  {/* CONTACT */}
-                  <Form.Item label="Contact">
-                    <Input placeholder="9876543210" disabled />
-                  </Form.Item>
-
-                  {/* CSV INFO TEXT */}
                   <div
                     style={{
                       marginBottom: 20,

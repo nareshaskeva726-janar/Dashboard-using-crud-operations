@@ -63,9 +63,9 @@ export const userApi = createApi({
       }),
     }),
 
-    bulkWriteUsers: builder.mutation({
+    bulkImportUsers: builder.mutation({
       query: (users) => ({
-        url: "/bulk-write",
+        url: "/users/bulk-write",
         method: "POST",
         body: { users },
       }),
@@ -74,7 +74,7 @@ export const userApi = createApi({
 });
 
 export const {
-  useBulkWriteUsersMutation,
+  useBulkImportUsersMutation,
   useLoginUserMutation,
   useCheckAuthQuery,
   useGetUsersQuery,

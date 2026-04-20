@@ -198,52 +198,100 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-
+//Bulkwrite
 export const bulkwritetheusers = async (req, res) => {
   try {
     const { users } = req.body;
+    const creatorRole = req.user.role;
 
-    if (!users || !users.length) {
+    if (!users?.length) {
       return res.status(400).json({
         success: false,
         message: "No users provided",
       });
     }
 
-    // ✅ Create bulk operations
-    const operations = users.map((user) => ({
-      updateOne: {
-        filter: { email: user.email }, // duplicate check
-        update: {
-          $setOnInsert: {
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            department: user.department,
-            contact: user.contact,
-            subjects: user.subjects || [],
-          },
-        },
-        upsert: true, // insert if not exists
-      },
-    }));
+    const operations = [];
+    const rejected = [];
 
-    // ✅ BULK WRITE
+    const enrichedUsers = await Promise.all(
+      users.map(async (user) => {
+        const hashedPassword = await bcrypt.hash(
+          user.password || "123456",
+          10
+        );
+
+        return { ...user, hashedPassword };
+      })
+    );
+
+    for (const user of enrichedUsers) {
+      if (!user.email || !user.name) {
+        rejected.push({ email: user.email, reason: "Missing fields" });
+        continue;
+      }
+
+      if (
+        creatorRole === "admin" &&
+        ["admin", "superadmin"].includes(user.role)
+      ) {
+        rejected.push({ email: user.email, reason: "Role not allowed" });
+        continue;
+      }
+
+      if (creatorRole === "staff" && user.role !== "student") {
+        rejected.push({ email: user.email, reason: "Role not allowed" });
+        continue;
+      }
+
+      operations.push({
+        updateOne: {
+          filter: { email: user.email.trim().toLowerCase() },
+          update: {
+            $setOnInsert: {
+              name: user.name.trim(),
+              email: user.email.trim().toLowerCase(),
+              password: user.hashedPassword,
+              role: user.role,
+              department: user.department,
+              contact: Number(user.contact) || null,
+              subjects: Array.isArray(user.subjects)
+                ? user.subjects
+                : typeof user.subjects === "string"
+                ? user.subjects.split(",").map(s => s.trim())
+                : [],
+            },
+          },
+          upsert: true,
+        },
+      });
+    }
+
+    if (!operations.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid users to import",
+        rejected,
+      });
+    }
+
     const result = await User.bulkWrite(operations);
 
     return res.status(200).json({
       success: true,
-      message: "Bulk users imported",
+      message: "Bulk users imported successfully",
       inserted: result.upsertedCount,
-      matched: result.matchedCount,
+      matchedOrExisting: result.matchedCount,
+      rejected,
     });
-
   } catch (error) {
-    console.log("error in the bulkwriteUsers controller", error);
+    console.log("Bulk upload error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
+
+
