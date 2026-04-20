@@ -30,6 +30,6 @@ Userrouter.delete("/deleteUser/:id",userAuth, deleteUser);
 
 Userrouter.get("/me",userAuth,  getMe);
 
-Userrouter.post("/bulk-write", userAuth, checkRole("superadmin"), bulkwritetheusers);
+Userrouter.post("/bulk-write", userAuth,  bulkwritetheusers);
 
 export default Userrouter;

@@ -199,38 +199,139 @@ export const resetPassword = async (req, res) => {
 };
 
 //Bulkwrite
+// export const bulkwritetheusers = async (req, res) => {
+//   try {
+//     const { users } = req.body;
+//     const creatorRole = req.user.role;
+
+//     if (!Array.isArray(users) || users.length === 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "No users provided",
+//       });
+//     }
+
+//     const operations = [];
+//     const rejected = [];
+
+//     for (const user of users) {
+//       // ---------------- VALIDATION ----------------
+//       if (!user?.email || !user?.name) {
+//         rejected.push({
+//           email: user?.email || null,
+//           reason: "Missing required fields",
+//         });
+//         continue;
+//       }
+
+//       const email = user.email.trim().toLowerCase();
+
+//       // ---------------- ROLE CHECK ----------------
+//       if (
+//         creatorRole === "admin" &&
+//         ["admin", "superadmin"].includes(user.role)
+//       ) {
+//         rejected.push({ email, reason: "Role not allowed" });
+//         continue;
+//       }
+
+//       if (creatorRole === "staff" && user.role !== "student") {
+//         rejected.push({ email, reason: "Role not allowed" });
+//         continue;
+//       }
+
+//       // ---------------- CLEAN SUBJECTS ----------------
+//       let subjects = [];
+//       if (Array.isArray(user.subjects)) {
+//         subjects = user.subjects;
+//       } else if (typeof user.subjects === "string") {
+//         subjects = user.subjects.split(",").map(s => s.trim());
+//       }
+
+//       // ---------------- BUILD BULK OP ----------------
+//       operations.push({
+//         updateOne: {
+//           filter: { email },
+//           update: {
+//             $setOnInsert: {
+//               name: user.name.trim(),
+//               email,
+//               role: user.role,
+//               department: user.department || null,
+//               contact: user.contact ? Number(user.contact) : null,
+//               subjects,
+//               createdAt: new Date(),
+//             },
+//           },
+//           upsert: true,
+//         },
+//       });
+//     }
+
+//     // ---------------- NO VALID USERS ----------------
+//     if (!operations.length) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "No valid users to import",
+//         rejected,
+//       });
+//     }
+
+//     // ---------------- BULK WRITE ----------------
+//     const result = await User.bulkWrite(operations, {
+//       ordered: false, // important: continues even if one fails
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Bulk users imported successfully",
+//       inserted: result.upsertedCount || 0,
+//       modified: result.modifiedCount || 0,
+//       matched: result.matchedCount || 0,
+//       rejected,
+//     });
+
+//   } catch (error) {
+//     console.log("Bulk upload error:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
+
 export const bulkwritetheusers = async (req, res) => {
   try {
     const { users } = req.body;
     const creatorRole = req.user.role;
 
     if (!users?.length) {
-      return res.status(400).json({
-        success: false,
-        message: "No users provided",
-      });
+      return res.status(400).json({ message: "No users provided" });
     }
 
     const operations = [];
     const rejected = [];
 
-    const enrichedUsers = await Promise.all(
-      users.map(async (user) => {
-        const hashedPassword = await bcrypt.hash(
-          user.password || "123456",
-          10
-        );
+    for (const rawUser of users) {
+      const user = {
+        ...rawUser,
+        name: rawUser.name || rawUser.Name,
+        email: (rawUser.email || rawUser.Email)?.trim().toLowerCase(),
+        role: rawUser.role || rawUser.Role,
+        department: rawUser.department || rawUser.Department,
+        contact: Number(rawUser.contact || rawUser.Contact) || null,
+        subjects: rawUser.subjects || rawUser.Subjects || []
+      };
 
-        return { ...user, hashedPassword };
-      })
-    );
-
-    for (const user of enrichedUsers) {
+      // VALIDATION
       if (!user.email || !user.name) {
         rejected.push({ email: user.email, reason: "Missing fields" });
         continue;
       }
 
+      // ROLE CHECK
       if (
         creatorRole === "admin" &&
         ["admin", "superadmin"].includes(user.role)
@@ -244,22 +345,15 @@ export const bulkwritetheusers = async (req, res) => {
         continue;
       }
 
+      const hashedPassword = await bcrypt.hash("123456", 10);
+
       operations.push({
         updateOne: {
-          filter: { email: user.email.trim().toLowerCase() },
+          filter: { email: user.email },
           update: {
             $setOnInsert: {
-              name: user.name.trim(),
-              email: user.email.trim().toLowerCase(),
-              password: user.hashedPassword,
-              role: user.role,
-              department: user.department,
-              contact: Number(user.contact) || null,
-              subjects: Array.isArray(user.subjects)
-                ? user.subjects
-                : typeof user.subjects === "string"
-                ? user.subjects.split(",").map(s => s.trim())
-                : [],
+              ...user,
+              password: hashedPassword
             },
           },
           upsert: true,
@@ -269,7 +363,6 @@ export const bulkwritetheusers = async (req, res) => {
 
     if (!operations.length) {
       return res.status(400).json({
-        success: false,
         message: "No valid users to import",
         rejected,
       });
@@ -278,20 +371,13 @@ export const bulkwritetheusers = async (req, res) => {
     const result = await User.bulkWrite(operations);
 
     return res.status(200).json({
-      success: true,
-      message: "Bulk users imported successfully",
+      message: "Bulk import successful",
       inserted: result.upsertedCount,
-      matchedOrExisting: result.matchedCount,
       rejected,
     });
-  } catch (error) {
-    console.log("Bulk upload error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: err.message });
   }
 };
-
 

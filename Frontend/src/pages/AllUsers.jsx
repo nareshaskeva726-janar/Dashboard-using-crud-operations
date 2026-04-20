@@ -123,23 +123,6 @@ function AllUsers() {
 
 
 
-  // const handleExport = () => {
-  //   const csv = data.map(
-  //     (u) =>
-  //       `${u.name},${u.email},${u.role},${u.department},${u.contact}`
-  //   );
-
-  //   const blob = new Blob(
-  //     ["Name,Email,Role,Department,Contact\n" + csv.join("\n")],
-  //     { type: "text/csv" }
-  //   );
-
-  //   const url = URL.createObjectURL(blob);
-  //   const a = document.createElement("a");
-  //   a.href = url;
-  //   a.download = "users.csv";
-  //   a.click();
-  // };
 
   const handleExport = () => {
     // Prepare data in tabular format
@@ -165,60 +148,91 @@ function AllUsers() {
   console.log(handleExport, 'handleExport')
 
 
-  const handleImport = (e) => {
-    const file = e.target.files[0];
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+
+    console.log("FILE:", file);
+
     if (!file) return;
+
+    const fileExt = file.name.split(".").pop().toLowerCase();
 
     toast.loading("Importing users...");
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
+    try {
+      let users = [];
 
-      complete: async ({ data: imported }) => {
-        try {
+      // ================= CSV =================
+      if (fileExt === "csv") {
+        users = await new Promise((resolve) => {
+          Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (result) => resolve(result.data),
+          });
+        });
+      }
 
-          const cleaned = imported.map(u => ({
-            name: u.name?.trim(),
-            email: u.email?.trim().toLowerCase(),
-            role: u.role,
-            department: u.department,
-            contact: u.contact,
-            subjects: u.subjects,
-            password: u.password
-          }));
+      // ================= EXCEL =================
+      else if (fileExt === "xlsx" || fileExt === "xls") {
+        const reader = new FileReader();
 
-          const existingEmails = new Set(
-            data.map((u) => u.email.toLowerCase())
-          );
+        users = await new Promise((resolve, reject) => {
+          reader.onload = (event) => {
+            const binary = event.target.result;
 
-          const newUsers = cleaned.filter(
-            (u) => u.email && !existingEmails.has(u.email)
-          );
+            const workbook = XLSX.read(binary, { type: "binary" });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
 
-          if (!newUsers.length) {
-            toast.dismiss();
-            toast.error("No new users found");
-            return;
-          }
+            const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-          // ✅ IMPORTANT FIX HERE
-          await bulkImportUsers(newUsers).unwrap();
+            resolve(jsonData);
+          };
 
-          toast.dismiss();
-          toast.success(`${newUsers.length} users imported`);
+          reader.onerror = reject;
+          reader.readAsBinaryString(file);
+        });
+      } else {
+        toast.dismiss();
+        toast.error("Unsupported file format");
+        return;
+      }
 
-          setImportOpen(false);
+      const cleanedUsers = users.map((u) => ({
+        name: u.name || u.Name,
+        email: (u.email || u.Email)?.trim()?.toLowerCase(),
+        role: u.role || u.Role,
+        department: u.department || u.Department,
+        contact: u.contact || u.Contact,
+        subjects: u.subjects || u.Subjects
+      }));
 
-        } catch (err) {
-          toast.dismiss();
-          toast.error("Import failed");
-        }
-      },
-    });
+      console.log(cleanedUsers, "cleanedusers")
+
+      // ================= CALL API =================
+      await bulkImportUsers(cleanedUsers).unwrap();
+
+      toast.dismiss();
+      toast.success("Users imported successfully");
+
+      // reset input so same file can be uploaded again
+      e.target.value = "";
+    } catch (err) {
+      console.error(err);
+      toast.dismiss();
+      toast.error("Import failed");
+    }
   };
 
   console.log(handleImport, "handleImport")
+
+  const openFilePicker = () => {
+    if (fileRef.current) {
+      fileRef.current.value = ""; // IMPORTANT (allows re-upload same file)
+      fileRef.current.click();
+    }
+  };
 
 
 
@@ -438,6 +452,9 @@ function AllUsers() {
                 ))}
               </Select>
 
+
+
+
               {/* BUTTONS */}
 
 
@@ -466,7 +483,6 @@ function AllUsers() {
                   layout="vertical"
                   className={theme === "dark" ? "dark-form" : ""}
                 >
-
                   <div
                     style={{
                       marginBottom: 20,
@@ -479,31 +495,34 @@ function AllUsers() {
                     }}
                   >
                     CSV Columns must be:
-
                     <br />
-                    <b>
-                      Name, Email, Role, Department, Subject, Password, Contact
-                    </b>
+                    <b>Name, Email, Role, Department, Subject, Password, Contact</b>
                   </div>
 
                   {/* FILE INPUT */}
                   <input
                     type="file"
-                    accept=".csv"
+                    accept=".csv,.xlsx,.xls"
                     ref={fileRef}
                     style={{ display: "none" }}
                     onChange={handleImport}
                   />
-
                   <Button
                     type="primary"
                     block
                     size="large"
-                    onClick={() => fileRef.current.click()}
+                    onClick={() => {
+                      if (fileRef.current) {
+                        fileRef.current.value = "";
+                        fileRef.current.click();
+                      }
+                    }}
                   >
-                    Upload CSV File
+                    Upload File
                   </Button>
                 </Form>
+
+
               </Modal>
 
 
