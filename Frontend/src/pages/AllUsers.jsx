@@ -13,6 +13,7 @@ import {
   Row,
   Col,
 } from "antd";
+import * as XLSX from "xlsx";
 import {
   EyeOutlined,
   EditOutlined,
@@ -74,7 +75,6 @@ function AllUsers() {
 
   const [bulkImportUsers] = useBulkImportUsersMutation();
 
-  console.log(bulkImportUsers, "import")
 
   /* ================= TOOLBAR ================= */
 
@@ -121,80 +121,104 @@ function AllUsers() {
     message.success("User Deleted");
   };
 
-  /* ================= EXPORT ================= */
+
+
+  // const handleExport = () => {
+  //   const csv = data.map(
+  //     (u) =>
+  //       `${u.name},${u.email},${u.role},${u.department},${u.contact}`
+  //   );
+
+  //   const blob = new Blob(
+  //     ["Name,Email,Role,Department,Contact\n" + csv.join("\n")],
+  //     { type: "text/csv" }
+  //   );
+
+  //   const url = URL.createObjectURL(blob);
+  //   const a = document.createElement("a");
+  //   a.href = url;
+  //   a.download = "users.csv";
+  //   a.click();
+  // };
 
   const handleExport = () => {
-    const csv = data.map(
-      (u) =>
-        `${u.name},${u.email},${u.role},${u.department},${u.contact}`
-    );
+    // Prepare data in tabular format
+    const worksheetData = data.map((u) => ({
+      Name: u.name,
+      Email: u.email,
+      Role: u.role,
+      Department: u.department,
+      Contact: u.contact,
+    }));
 
-    const blob = new Blob(
-      ["Name,Email,Role,Department,Contact\n" + csv.join("\n")],
-      { type: "text/csv" }
-    );
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "users.csv";
-    a.click();
+    // Create workbook
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+
+    // Export Excel file
+    XLSX.writeFile(workbook, "users.xlsx");
   };
 
+  console.log(handleExport, 'handleExport')
 
 
- const handleImport = (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  toast.loading("Importing users...");
+    toast.loading("Importing users...");
 
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
 
-    complete: async ({ data: imported }) => {
-      try {
+      complete: async ({ data: imported }) => {
+        try {
 
-        const cleaned = imported.map(u => ({
-          name: u.name?.trim(),
-          email: u.email?.trim().toLowerCase(),
-          role: u.role,
-          department: u.department,
-          contact: u.contact,
-          subjects: u.subjects,
-          password: u.password
-        }));
+          const cleaned = imported.map(u => ({
+            name: u.name?.trim(),
+            email: u.email?.trim().toLowerCase(),
+            role: u.role,
+            department: u.department,
+            contact: u.contact,
+            subjects: u.subjects,
+            password: u.password
+          }));
 
-        const existingEmails = new Set(
-          data.map((u) => u.email.toLowerCase())
-        );
+          const existingEmails = new Set(
+            data.map((u) => u.email.toLowerCase())
+          );
 
-        const newUsers = cleaned.filter(
-          (u) => u.email && !existingEmails.has(u.email)
-        );
+          const newUsers = cleaned.filter(
+            (u) => u.email && !existingEmails.has(u.email)
+          );
 
-        if (!newUsers.length) {
+          if (!newUsers.length) {
+            toast.dismiss();
+            toast.error("No new users found");
+            return;
+          }
+
+          // ✅ IMPORTANT FIX HERE
+          await bulkImportUsers(newUsers).unwrap();
+
           toast.dismiss();
-          toast.error("No new users found");
-          return;
+          toast.success(`${newUsers.length} users imported`);
+
+          setImportOpen(false);
+
+        } catch (err) {
+          toast.dismiss();
+          toast.error("Import failed");
         }
+      },
+    });
+  };
 
-        // ✅ IMPORTANT FIX HERE
-        await bulkImportUsers(newUsers).unwrap();
-
-        toast.dismiss();
-        toast.success(`${newUsers.length} users imported`);
-
-        setImportOpen(false);
-
-      } catch (err) {
-        toast.dismiss();
-        toast.error("Import failed");
-      }
-    },
-  });
-};
+  console.log(handleImport, "handleImport")
 
 
 
