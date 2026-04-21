@@ -429,7 +429,7 @@ function AllUsers() {
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value.trimStart())}
                 style={{
-                  width: 360,
+                  width: 250,
                   borderRadius: "10px",
                   background: theme === "dark" ? "#1f1f1f" : "#fff",
                   color: theme === "dark" ? "#fff" : "#000",
@@ -672,7 +672,7 @@ function AllUsers() {
             rules={[{ required: true }]}
           >
             <Select
-              style={{ background: theme === "dark" ? "#2a2a2a" : "#fff", borderColor: theme === "dark" ? "#444" : "" }}
+              style={{ background: theme === "dark" ? "#2a2a2a" : "#fff", borderColor: theme === "dark" ? "#444" : "", color: theme === "dark" ? "#fff" : "#000" }}
               popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
               className={theme === "dark" ? "dark-select" : "light-select"}
               placeholder="Select user role"
@@ -692,6 +692,7 @@ function AllUsers() {
               style={{
                 background: theme === "dark" ? "#2a2a2a" : "#fff",
                 borderRadius: 8,
+                color: theme === "dark" ? "#fff" : "#000" 
               }}
               popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
               className={theme === "dark" ? "dark-select" : "light-select"}
