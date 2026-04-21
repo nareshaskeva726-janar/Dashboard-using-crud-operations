@@ -4,8 +4,12 @@ import { useLoginUserMutation } from "../redux/userApi";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../redux/authSlice";
 import { toast } from "react-hot-toast";
+import { useTheme } from "../context/ThemeContext";
 
 function Login() {
+
+
+  const { theme, toggleTheme } = useTheme();
 
   
 
@@ -56,41 +60,100 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <Card title="Login" className="w-full max-w-md shadow-lg rounded-xl">
-        <Form layout="vertical" onFinish={handleLogin}>
-          {/* Email */}
-          <Form.Item
-            label="Email"
-            name="email"
-            normalize={(value) => value?.trimStart()}
-            rules={[
-              { required: true, message: "Please enter your email" },
-              { type: "email", message: "Enter a valid email" },
-            ]}
-          >
-            <Input placeholder="Enter your email" size="large" />
-          </Form.Item>
+<div
+  className="min-h-screen flex items-center justify-center px-4"
+  style={{
+    background: theme === "dark"
+      ? "#222"
+      : "#f5f5f5",
+  }}
+>
+  <Card
+    className="w-full max-w-md shadow-xl rounded-2xl"
+    style={{
+      background: theme === "dark" ? "#1f1f1f" : "#fff",
+      border: theme === "dark" ? "1px solid #1f2937" : "none",
+    }}
+    title={
+      <span
+        style={{
+          color: theme === "dark" ? "#fff" : "#000",
+          fontSize: 20,
+          fontWeight: 600,
+        }}
+      >
+        Login
+      </span>
+    }
+  >
+    <Form layout="vertical" onFinish={handleLogin}>
+      
+      {/* Email */}
+      <Form.Item
+        label={
+          <span style={{ color: theme === "dark" ? "#d1d5db" : "#000" }}>
+            Email
+          </span>
+        }
+        name="email"
+        normalize={(value) => value?.trimStart()}
+        rules={[
+          { required: true, message: "Please enter your email" },
+          { type: "email", message: "Enter a valid email" },
+        ]}
+      >
+        <Input
+          size="large"
+          placeholder="Enter your email"
+          style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff",
+            color: theme === "dark" ? "#fff" : "#000",
+            border: theme === "dark" ? "1px solid #374151" : "",
+          }}
+        />
+      </Form.Item>
 
-          {/* Password */}
-          <Form.Item
-            label="Password"
-            name="password"
-            normalize={(value) => value?.trimStart()}
-            rules={[{ required: true, message: "Please enter your password" }]}
-          >
-            <Input.Password placeholder="Enter your password" size="large" />
-          </Form.Item>
+      {/* Password */}
+      <Form.Item
+        label={
+          <span style={{ color: theme === "dark" ? "#d1d5db" : "#000" }}>
+            Password
+          </span>
+        }
+        name="password"
+        normalize={(value) => value?.trimStart()}
+        rules={[{ required: true, message: "Please enter your password" }]}
+      >
+        <Input.Password
+          size="large"
+          placeholder="Enter your password"
+          style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff",
+            color: theme === "dark" ? "#fff" : "#000",
+            border: theme === "dark" ? "1px solid #374151" : "",
+          }}
+        />
+      </Form.Item>
 
-          {/* Submit Button */}
-          <Button
-            style={{ marginTop: "20px" }}
-            type="primary" htmlType="submit" block size="large" loading={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
-          </Button>
-        </Form>
-      </Card>
-    </div>
+      {/* Submit */}
+      <Button
+        type="primary"
+        htmlType="submit"
+        block
+        size="large"
+        loading={isLoading}
+        style={{
+          marginTop: 20,
+          height: 48,
+          fontWeight: 600,
+          borderRadius: 10,
+        }}
+      >
+        {isLoading ? "Logging in..." : "Login"}
+      </Button>
+    </Form>
+  </Card>
+</div>
   );
 }
 

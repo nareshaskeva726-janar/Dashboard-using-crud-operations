@@ -127,7 +127,14 @@ const Assignments = () => {
     <div style={pageStyle}>
 
       {/* ===== HEADER ===== */}
-      <Card style={{ ...cardStyle, textAlign: "center", marginBottom: 20 }}>
+      <Card style={{
+        ...cardStyle, textAlign: "center", marginBottom: 20,
+        border:
+          theme === "dark"
+            ? "1px solid #2a2a2a"
+            : "1px solid #e5e7eb"
+
+      }}>
         <Title level={3} style={{ color: isDark ? "#fff" : "#000" }}>
           Submit Your Assignment
         </Title>
@@ -139,66 +146,127 @@ const Assignments = () => {
 
       {/* ===== MODAL ===== */}
       <Modal
-        title="Submit Project"
+        title={
+          <span style={{ color: isDark ? "#fff" : "#000" }}>
+            Submit Project
+          </span>
+        }
         open={open}
         footer={null}
         destroyOnClose
         onCancel={() => setOpen(false)}
+        className={isDark ? "dark-modal" : ""}
         styles={{
-          body: { background: isDark ? "#1f1f1f" : "#fff" },
-          header: { background: isDark ? "#1f1f1f" : "#fff" },
+          content: {
+            background: isDark ? "#1f1f1f" : "#fff",
+            borderRadius: 12,
+          },
+          header: {
+            background: isDark ? "#1f1f1f" : "#fff",
+            borderBottom: isDark
+              ? "1px solid #303030"
+              : "1px solid #f0f0f0",
+          },
+          body: {
+            background: isDark ? "#1f1f1f" : "#fff",
+          },
         }}
       >
-        <Form form={form} layout="vertical" onFinish={onFinish}>
-
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={onFinish}
+          className={isDark ? "dark-form" : ""}
+        >
+          {/* SUBJECT */}
           <Form.Item
-            label="Subject"
+            label={<span style={{ color: isDark ? "#fff" : "#000" }}>Subject</span>}
             name="subject"
             rules={[{ required: true, message: "Select subject" }]}
           >
-            <Select placeholder="Select subject">
+            <Select
+              style={{
+                background: theme === "dark" ? "#1f1f1f" : "#fff",
+                border:
+                  theme === "dark"
+                    ? "1px solid #2a2a2a"
+                    : "1px solid #e5e7eb",
+
+              }}
+              placeholder="Select subject"
+              className={isDark ? "dark-select" : ""}
+              popupClassName={isDark ? "dark-select-dropdown" : ""}
+            >
               {subjectsList.map((s) => (
-                <Option key={s} value={s}>{s}</Option>
+                <Select.Option key={s} value={s}>
+                  {s}
+                </Select.Option>
               ))}
             </Select>
           </Form.Item>
 
+          {/* PROJECT NAME */}
           <Form.Item
-            label="Project Name"
+            label={<span style={{ color: isDark ? "#fff" : "#000" }}>Project Name</span>}
             name="projectName"
             rules={[{ required: true, message: "Enter project name" }]}
           >
-            <Input placeholder="Enter project name" />
+            <Input
+              placeholder="Enter project name"
+              className={isDark ? "dark-input" : ""}
+            />
           </Form.Item>
 
+          {/* FILE UPLOAD */}
           <Form.Item
             name="file"
-            label="Project File"
+            label={<span style={{ color: isDark ? "#fff" : "#000" }}>Project File</span>}
             valuePropName="fileList"
             getValueFromEvent={(e) => e?.fileList || []}
             rules={[{ required: true, message: "Upload file" }]}
           >
             <Upload beforeUpload={() => false} maxCount={1}>
-              <Button icon={<UploadOutlined />} block>
+              <Button
+                icon={<UploadOutlined />}
+                block
+                style={{
+                  background: isDark ? "#141414" : "#fff",
+                  color: isDark ? "#fff" : "#000",
+                  borderColor: isDark ? "#303030" : "#d9d9d9",
+                }}
+              >
                 Upload File
               </Button>
             </Upload>
           </Form.Item>
 
+          {/* SUBMIT */}
           <Button
             type="primary"
             htmlType="submit"
             loading={isLoading}
             block
+            size="large"
+            style={{ borderRadius: 8 }}
           >
-            Submit
+            Submit Project
           </Button>
         </Form>
       </Modal>
 
+
+
+
+
       {/* ===== PROJECT LIST ===== */}
       <Card
-        style={cardStyle}
+        style={{
+          background: theme === "dark" ? "#1f1f1f" : "#fff",
+          border:
+            theme === "dark"
+              ? "1px solid #2a2a2a"
+              : "1px solid #e5e7eb"
+        }}
         title={<span style={{ color: isDark ? "#fff" : "#000" }}>My Submitted Projects</span>}
       >
         <Row gutter={[16, 16]}>
@@ -213,12 +281,18 @@ const Assignments = () => {
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "space-between",
+                    gap: "20px",
+                    border:
+                      theme === "dark"
+                        ? "1px solid #2a2a2a"
+                        : "1px solid #e5e7eb"
+
                   }}
                 >
                   {/* TOP CONTENT */}
                   <div>
-                    <Text strong style={{color: theme === "dark" ? "#fff" : "#000"}}>Subject:</Text> {p.subject || "-"} <br />
-                    <Text strong style={{color: theme === "dark" ? "#fff" : "#000"}}>Project:</Text> {p.projectName || "-"} <br />
+                    <Text strong style={{ color: theme === "dark" ? "#fff" : "#000" }}>Subject:</Text> {p.subject || "-"} <br />
+                    <Text strong style={{ color: theme === "dark" ? "#fff" : "#000" }}>Project:</Text> {p.projectName || "-"} <br />
 
                     <Tag
                       color={p.status === "Submitted" ? "green" : "orange"}
@@ -226,6 +300,12 @@ const Assignments = () => {
                     >
                       {p.status || "Pending"}
                     </Tag>
+
+                    {p.marks !== undefined && (
+                      <Tag color="blue" style={{ marginTop: 8 }}>
+                        Marks: {p.marks}
+                      </Tag>
+                    )}
                   </div>
 
                   {/* BOTTOM CONTENT (always aligned) */}
@@ -236,17 +316,49 @@ const Assignments = () => {
                       </a>
                     )}
 
-                    {p.marks !== undefined && (
-                      <Tag color="blue" style={{ marginTop: 8 }}>
-                        Marks: {p.marks}
-                      </Tag>
-                    )}
+
+
                   </div>
                 </Card>
               </Col>
             ))
           ) : (
-            <Empty description="No submissions yet" />
+            <Card
+              style={{
+                marginTop: 16,
+                textAlign: "center",
+                display: "block",
+                margin: "auto",
+                background: theme === "dark" ? "#1f1f1f" : "#ffffff",
+                borderRadius: 16,
+                border: theme === "dark" ? "1px solid #333" : "1px solid #f0f0f0",
+              }}
+            >
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  <div>
+                    <h3
+                      style={{
+                        color: theme === "dark" ? "#fff" : "#000",
+                        marginBottom: 6,
+                      }}
+                    >
+                      No submissions yet
+                    </h3>
+
+                    <p
+                      style={{
+                        color: theme === "dark" ? "#aaa" : "#666",
+                        fontSize: 14,
+                      }}
+                    >
+                      Students haven't submitted any projects yet.
+                    </p>
+                  </div>
+                }
+              />
+            </Card>
           )}
         </Row>
       </Card>

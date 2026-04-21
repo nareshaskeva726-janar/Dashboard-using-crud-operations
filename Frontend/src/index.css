@@ -38,10 +38,10 @@
 
 
 
-
+/* 
 ::-webkit-scrollbar {
   display: none;
-}
+} */
 
 html {
   scroll-behavior: "smooth";
@@ -494,4 +494,41 @@ body[data-theme="dark"] .ant-input::placeholder {
     border-radius: 10px;
   }
 }
+
+/* DARK MODE PAGINATION */
+.dark-table .ant-pagination-item {
+  background: #1f1f1f !important;
+  border-color: #333 !important;
+}
+
+.dark-table .ant-pagination-item a {
+  color: #cbd5e1 !important;
+}
+
+/* active page */
+.dark-table .ant-pagination-item-active {
+  background: #1677ff !important;
+  border-color: #1677ff !important;
+}
+
+.dark-table .ant-pagination-item-active a {
+  color: #fff !important;
+}
+
+/* hover */
+.dark-table .ant-pagination-item:hover a {
+  color: #fff !important;
+}
+
+
+
+
+.dark-select .ant-select-selection-placeholder {
+  color: #9ca3af !important;
+}
+
+.light-select .ant-select-selection-placeholder {
+  color: #9ca3af !important;
+}
+
 

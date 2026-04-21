@@ -96,15 +96,15 @@ function SideBar({ open, setOpen }) {
     },
 
     ...(user?.role === "superadmin" ||
-    user?.role === "admin" ||
-    user?.role === "staff"
+      user?.role === "admin" ||
+      user?.role === "staff"
       ? [
-          {
-            key: "chathistory",
-            icon: <HistoryOutlined />,
-            label: "Chat History",
-          },
-        ]
+        {
+          key: "chathistory",
+          icon: <HistoryOutlined />,
+          label: "Chat History",
+        },
+      ]
       : []),
 
     {
@@ -138,7 +138,7 @@ function SideBar({ open, setOpen }) {
             className="text-xl font-bold"
             style={{ color: theme === "dark" ? "#fff" : "#4d4d4d" }}
           >
-            DASHBOARD
+            {user.role.toUpperCase()} PANEL
           </h1>
         </div>
 
@@ -173,7 +173,7 @@ function SideBar({ open, setOpen }) {
               fontWeight: "bold",
             }}
           >
-            Dashboard
+            {user.role.toUpperCase()} PANEL
           </span>
         }
       >

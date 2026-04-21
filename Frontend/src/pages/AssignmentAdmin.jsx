@@ -103,8 +103,8 @@ const AssignmentAdmin = () => {
   return (
     <div style={{ padding: 16, minHeight: "100vh", }}>
       {/* HEADER */}
-      <Title level={3} 
-        style={{ color: theme === 'dark' ? "#fff" : "#000",  marginBottom: 4 }}
+      <Title level={3}
+        style={{ color: theme === 'dark' ? "#fff" : "#000", marginBottom: 4 }}
       >
         {user?.department} Department Projects
       </Title>
@@ -118,15 +118,29 @@ const AssignmentAdmin = () => {
       {/* ================= STATS ================= */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} md={8}>
-          <Card style={{ background: theme === "dark" ? "#333" : "#fff" }}>
-            <Title level={5} style={{color: theme === "dark" ? "#fff" : "#000"}}>Total Projects</Title>
-            <Title level={2} style={{color: theme === "dark" ? "lightblue" : "darkblue"}}>{stats.total}</Title>
+          <Card style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff",
+            border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb",
+
+          }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Total Projects</Title>
+            <Title level={2} style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>{stats.total}</Title>
           </Card>
         </Col>
 
         <Col xs={24} md={8}>
-          <Card style={{ background: theme === "dark" ? "#333" : "#fff" }}>
-            <Title level={5} style={{color: theme === "dark" ? "#fff" : "#000"}}>Submitted</Title>
+          <Card style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff",
+
+            border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb",
+          }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Submitted</Title>
             <Title level={2} style={{ color: "green" }}>
               {stats.submitted}
             </Title>
@@ -134,8 +148,13 @@ const AssignmentAdmin = () => {
         </Col>
 
         <Col xs={24} md={8}>
-          <Card style={{ background: theme === "dark" ? "#333" : "#fff" }}>
-            <Title level={5} style={{color: theme === "dark" ? "#fff" : "#000"}}>Pending</Title>
+          <Card style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff", border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb",
+          }}>
+            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Pending</Title>
             <Title level={2} style={{ color: "red" }}>
               {stats.pending}
             </Title>
@@ -144,21 +163,35 @@ const AssignmentAdmin = () => {
       </Row>
 
       {/* ================= TABLE ================= */}
-      <Card style={{ marginTop: 16 }}  className={theme === "dark" ? "dark-card" : ""}>
-        {filteredProjects.length ? (
-          <Table
-            className={theme === "dark" ? "dark-table" : ""}
-            columns={columns}
-            dataSource={filteredProjects}
-            rowKey={(record) => record._id}
-            bordered
-            pagination={{ pageSize: 8 }}
-            scroll={{ x: "max-content" }}
-          />
-        ) : (
-          <Empty description="No projects found for your department" />
-        )}
-      </Card>
+  <Card
+  className="rounded-xl shadow-sm"
+  style={{
+    marginTop: 16,
+    background: theme === "dark" ? "#1f1f1f" : "#ffffff",
+    border:
+      theme === "dark"
+        ? "1px solid #2a2a2a"
+        : "1px solid #e5e7eb",
+  }}
+>
+  {filteredProjects.length ? (
+    <Table
+      className={theme === "dark" ? "dark-table" : ""}
+      columns={columns}
+      dataSource={filteredProjects}
+      rowKey={(record) => record._id}
+      pagination={{
+        pageSize: 8,
+        showSizeChanger: false,
+      }}
+      scroll={{ x: "max-content" }}
+    />
+  ) : (
+    <div className="py-10">
+      <Empty description="No projects found for your department" />
+    </div>
+  )}
+</Card>
     </div>
   );
 };

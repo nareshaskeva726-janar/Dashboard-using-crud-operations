@@ -143,50 +143,102 @@ const ChatBot = () => {
   return (
 
 
-    <Layout className="h-[86vh]  rounded-2xl overflow-hidden flex border border-gray-300" style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+    <Layout
+      className="h-[86vh] flex overflow-hidden rounded-2xl"
+      style={{
+        background: theme === "dark" ? "#141414" : "#ffffff",
+        border:
+          theme === "dark"
+            ? "1px solid #2a2a2a"
+            : "1px solid #e5e7eb",
+        boxShadow:
+          theme === "dark"
+            ? "0 4px 20px rgba(0,0,0,0.4)"
+            : "0 4px 20px rgba(0,0,0,0.06)",
+      }}
+    >
 
       {/* ================= CHAT LIST ================= */}
       {!activeChatUser && (
-        <div className="w-full h-full overflow-y-auto bg-white">
-          <div className="sticky top-0 z-10  p-5  text-xl font-bold border-b border-gray-300"
-            style={{ color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#1f1f1f" : "#fff" }}
+        <div
+          className="w-full h-full flex flex-col"
+          style={{
+            background: theme === "dark" ? "#141414" : "#f5f7fb",
+          }}
+        >
+          {/* HEADER */}
+          <div
+            className="sticky top-0 z-10 px-6 py-4 text-lg font-semibold border-b"
+            style={{
+              color: theme === "dark" ? "#fff" : "#111",
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderColor: theme === "dark" ? "#303030" : "#e5e7eb",
+            }}
           >
             Chats
           </div>
 
-          <List
-            className={theme === "dark" ? "dark-user-list" : ""}
-            dataSource={usersWithLastMessage}
-            renderItem={(u) => {
-              const active = activeChatUser?._id === u._id;
+          {/* USER LIST */}
+          <div className="flex-1 overflow-y-auto px-2 py-3">
+            <List
+              dataSource={usersWithLastMessage}
+              renderItem={(u) => {
+                const active = activeChatUser?._id === u._id;
 
-              return (
-                <List.Item
-                  onClick={() => handleUserSelect(u)}
-                  className={`
-          cursor-pointer transition
-          ${active ? "active-chat" : "chat-item"}
-        `}
-                  style={{ border: "none" }}
-                >
-                  <List.Item.Meta
-                    className="p-3"
-                    avatar={<Avatar icon={<UserOutlined />} />}
-                    title={
-                      <span className={theme === "dark" ? "text-white" : "text-gray-900 font-medium"}>
-                        {u.name}
-                      </span>
-                    }
-                    description={
-                      <span className={theme === "dark" ? "text-gray-300" : "text-gray-600 text-xs truncate"}>
-                        {u.lastMessage || u.role}
-                      </span>
-                    }
-                  />
-                </List.Item>
-              );
-            }}
-          />
+                return (
+                  <List.Item
+                    onClick={() => handleUserSelect(u)}
+                    className="border-none p-0"
+                  >
+                    <div
+                      className={`
+                  flex items-center gap-4 w-full p-3 rounded-xl
+                  transition-all duration-200 cursor-pointer
+                  ${active
+                          ? "bg-blue-500 text-white shadow-md"
+                          : theme === "dark"
+                            ? "hover:bg-[#262626]"
+                            : "hover:bg-gray-100"
+                        }
+                `}
+                    >
+                      {/* Avatar */}
+                      <Avatar
+                        size={44}
+                        icon={<UserOutlined />}
+                        className="flex-shrink-0"
+                      />
+
+                      {/* Name + Message */}
+                      <div className="flex flex-col overflow-hidden w-full">
+                        <span
+                          className={`font-semibold truncate ${active
+                            ? "text-white"
+                            : theme === "dark"
+                              ? "text-gray-200"
+                              : "text-gray-900"
+                            }`}
+                        >
+                          {u.name}
+                        </span>
+
+                        <span
+                          className={`text-sm truncate ${active
+                            ? "text-gray-200"
+                            : theme === "dark"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                            }`}
+                        >
+                          {u.lastMessage || u.role}
+                        </span>
+                      </div>
+                    </div>
+                  </List.Item>
+                );
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -195,87 +247,125 @@ const ChatBot = () => {
 
       {/* ================= CHAT SCREEN ================= */}
       {activeChatUser && (
-        <Content className="flex flex-col w-full h-full " style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000" }}>
-
-          {/* HEADER */}
-          <div className="flex items-center gap-3 p-3  sticky top-0 z-10 border-b border-gray-300" style={{ color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#1f1f1f" : "#fff" }} >
+        <Content
+          className="flex flex-col w-full h-full"
+          style={{
+            background: theme === "dark" ? "#0f0f0f" : "#f5f7fb",
+          }}
+        >
+          {/* ================= HEADER ================= */}
+          <div
+            className="flex items-center gap-4 px-5 py-3 sticky top-0 z-10 shadow-sm"
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#ffffff",
+              borderBottom:
+                theme === "dark"
+                  ? "1px solid #303030"
+                  : "1px solid #e5e7eb",
+            }}
+          >
             <Button
-              icon={<ArrowLeftOutlined style={{ color: theme === "dark" ? "#fff" : "#000" }} />}
+              icon={
+                <ArrowLeftOutlined
+                  style={{ color: theme === "dark" ? "#fff" : "#000" }}
+                />
+              }
               onClick={handleBack}
-              style={{
-                background: theme === "dark" ? "#1f1f1f" : "#fff",
-                border: "none",
-                outline: "none",
-                color: "white",
-              }}
+              type="text"
             />
-            <Avatar icon={<UserOutlined />} />
-            <div>
-              <div className=" font-semibold" style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+
+            <Avatar size={42} icon={<UserOutlined />} />
+
+            <div className="flex flex-col">
+              <span
+                className="font-semibold"
+                style={{ color: theme === "dark" ? "#fff" : "#111" }}
+              >
                 {activeChatUser.name}
-              </div>
-              <Text style={{ color: "darkgray", fontSize: 12 }}>
-                chat
-              </Text>
+              </span>
+
+              <span className="text-xs text-green-500">
+                Online
+              </span>
             </div>
           </div>
 
-
-
-
-          {/* MESSAGES */}
-          <div className="flex-1 overflow-y-auto p-4" style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+          {/* ================= MESSAGES ================= */}
+          <div
+            className="flex-1 overflow-y-auto px-6 py-5 space-y-3"
+            style={{
+              background:
+                theme === "dark"
+                  ? "#141414"
+                  : "#eef1f5",
+            }}
+          >
             {messages.map((msg, i) => {
               const isSender = msg.sender?._id === user._id;
 
               return (
                 <div
                   key={msg._id || i}
-                  className={`flex ${isSender ? "justify-end" : "justify-start"} mb-2`}
+                  className={`flex ${isSender ? "justify-end" : "justify-start"
+                    }`}
                 >
                   <div
                     className={`
-                      px-4 py-2 max-w-[75%] text-sm break-words shadow
-                      ${isSender
-                        ? "bg-blue-500 text-white rounded-3xl rounded-br-md"
-                        : "bg-white text-gray-800 rounded-3xl rounded-bl-md border border-gray-200"
+                px-4 py-2 max-w-[70%] text-sm break-words
+                shadow-md transition-all
+                ${isSender
+                        ? "bg-blue-500 text-white rounded-2xl rounded-br-sm"
+                        : theme === "dark"
+                          ? "bg-[#262626] text-gray-200 rounded-2xl rounded-bl-sm"
+                          : "bg-white text-gray-800 rounded-2xl rounded-bl-sm"
                       }
-                    `}
+              `}
                   >
                     {msg.message}
                   </div>
                 </div>
               );
             })}
+
             <div ref={chatEndRef} />
           </div>
 
+          {/* ================= INPUT ================= */}
+          <div
+            className="px-5 py-4"
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderTop:
+                theme === "dark"
+                  ? "1px solid #303030"
+                  : "1px solid #e5e7eb",
+            }}
+          >
+            <div
+              className="flex items-center gap-3 p-2 rounded-full shadow-sm"
+              style={{
+                background: theme === "dark" ? "#262626" : "#f1f3f6",
+              }}
+            >
+              <Input
+                bordered={false}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onPressEnter={handleSend}
+                placeholder="Type a message..."
+                style={{
+                  background: "transparent",
+                  color: theme === "dark" ? "#fff" : "#111",
+                }}
+              />
 
-
-
-          {/* INPUT */}
-          <div className="p-3 flex gap-2 border-t border-gray-300 " style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000" }}>
-
-
-            <Input
-              style={{background: theme === "dark" ? "#333" : "#fff", color: theme === "dark" ? "#fff" : "#333", fontWeight: 600}}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onPressEnter={handleSend}
-              placeholder="Type a message..."
-            />
-
-
-
-            <Button
-              style={{background: theme === "dark" ? "#333" : "#fff", borderColor: theme === "dark" ? "#fff" : "lightgray"}}
-              icon={<SendOutlined 
-                style={{color : theme === "dark" ? "#fff" : "#333"}}
-                />}
-              onClick={handleSend}
-            />
-
-
+              <Button
+                type="primary"
+                shape="circle"
+                icon={<SendOutlined />}
+                onClick={handleSend}
+              />
+            </div>
           </div>
         </Content>
       )}

@@ -39,15 +39,7 @@ import { toast } from "react-hot-toast"
 import { useTheme } from "../context/ThemeContext";
 import Papa from "papaparse";
 
-/* ================= DEPARTMENTS ================= */
 
-// const departmentSubjectsMap = {
-//   ESE: ["Core Java", "Spring", "Hibernate"],
-//   EEE: ["Python", "Django", "Flask"],
-//   CSE: ["C", "DSA", "Algorithms"],
-//   MECH: ["C++", "OOP"],
-//   CIVIL: ["Statistics", "ML"],
-// };
 
 const departmentSubjectsMap = {
   ESE: ["Core Java", "Spring", "Hibernate", "JSP", "Servlets"],
@@ -210,13 +202,12 @@ function AllUsers() {
 
       console.log(cleanedUsers, "cleanedusers")
 
-      // ================= CALL API =================
+
       await bulkImportUsers(cleanedUsers).unwrap();
 
       toast.dismiss();
       toast.success("Users imported successfully");
 
-      // reset input so same file can be uploaded again
       e.target.value = "";
     } catch (err) {
       console.error(err);
@@ -348,6 +339,11 @@ function AllUsers() {
 
   /* ================= UI ================= */
 
+
+
+
+
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
@@ -358,21 +354,46 @@ function AllUsers() {
 
 
       {/* HEADER */}
-      <Row justify="space-between">
+      <Row justify="space-between" align="middle" style={{ marginBottom: 16 }}>
+
         <Button
-          style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000", }}
-          onClick={() => setShowTools(true)}>
+          style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff",
+            color: theme === "dark" ? "#fff" : "#000",
+            borderRadius: "10px",
+            padding: "0 16px",
+            height: "38px",
+            border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
+            fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+          onClick={() => setShowTools(true)}
+        >
           Open Tools
         </Button>
 
         <Button
-          type="primary"
-          style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000", borderColor: theme === "dark" ? "gray" : "#bbb" }}
-          icon={<PlusOutlined id="Plus-icon" />}
+          
+           style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff",
+            color: theme === "dark" ? "#fff" : "#000",
+            borderRadius: "10px",
+            padding: "0 16px",
+            height: "38px",
+            border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
+            fontWeight: 500,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+          icon={<PlusOutlined />}
           onClick={() => openModal()}
         >
           Add User
         </Button>
+
       </Row>
 
 
@@ -382,35 +403,39 @@ function AllUsers() {
       {/* TOOLS CARD */}
       {showTools && (
         <Card
-          style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000", }}
-          bordered={false}
-
-          bodyStyle={{ padding: 16 }}
+          style={{
+            background: theme === "dark" ? "#141414" : "#ffffff",
+            color: theme === "dark" ? "#fff" : "#000",
+            borderRadius: "16px",
+            boxShadow:
+              theme === "dark"
+                ? "0 6px 20px rgba(0,0,0,0.6)"
+                : "0 6px 16px rgba(0,0,0,0.08)",
+            border: "none",
+            marginTop: 12,
+          }}
+          bodyStyle={{ padding: "16px 20px" }}
         >
-
-
-          <Row align="middle" justify="space-between" gutter={16}>
+          <Row align="middle" justify="space-between" gutter={[12, 12]}>
 
             {/* LEFT SIDE TOOLS */}
-            <Space size="middle" wrap>
+            <Space size="middle" wrap align="center">
 
-              {/* INPUT */}
+              {/* SEARCH */}
               <Input
                 size="large"
                 suffix={<SearchOutlined />}
                 placeholder="Search name or email..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value.trimStart())}
-                className={theme === "dark" ? "dark-input" : "light-input"}
                 style={{
-                  width: 420,
-                  color: theme === "dark" ? "#fff" : "#000",
+                  width: 360,
+                  borderRadius: "10px",
                   background: theme === "dark" ? "#1f1f1f" : "#fff",
-                  borderColor: theme === "dark" ? "#333" : "#d9d9d9",
+                  color: theme === "dark" ? "#fff" : "#000",
+                  border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
                 }}
               />
-
-
 
               {/* SELECT */}
               <Select
@@ -418,32 +443,25 @@ function AllUsers() {
                 value={deptFilter}
                 onChange={setDeptFilter}
                 style={{
-                  width: 200,
+                  borderRadius: "10px",
                   background: theme === "dark" ? "#1f1f1f" : "#fff",
                   color: theme === "dark" ? "#fff" : "#000",
-                  borderColor: theme === "dark" ? "#333" : "#d9d9d9"
+                  border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
                 }}
                 dropdownStyle={{
                   background: theme === "dark" ? "#1f1f1f" : "#fff",
                 }}
-                popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
               >
-
-
-                <Select.Option
-                  value="ALL"
-                  style={{
-                    color: theme === "dark" ? "#fff" : "#000",
-                  }}
-                >
-                  All Departments
-                </Select.Option>
+                <Select.Option value="ALL"
+                  style={{ color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#1f1f1f" : "#fff" }}
+                >All Departments</Select.Option>
 
                 {departments.map((d) => (
-                  <Select.Option
-                    key={d}
-                    value={d}
+                  <Select.Option key={d} value={d}
                     style={{
+                      width: 200,
+                      borderRadius: "10px",
+                      background: theme === "dark" ? "#1f1f1f" : "#fff",
                       color: theme === "dark" ? "#fff" : "#000",
                     }}
                   >
@@ -452,92 +470,28 @@ function AllUsers() {
                 ))}
               </Select>
 
-
-
-
-              {/* BUTTONS */}
-
-
-
-
+              {/* IMPORT */}
               <Button
                 size="large"
                 style={{
+                  borderRadius: "10px",
                   background: theme === "dark" ? "#1f1f1f" : "#fff",
                   color: theme === "dark" ? "#fff" : "#000",
-                  borderColor: theme === "dark" ? "#333" : "#d9d9d9",
+                  border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
                 }}
                 onClick={() => setImportOpen(true)}
               >
                 Import
               </Button>
 
-              <Modal
-                title="Bulk Import Users"
-                open={importOpen}
-                footer={null}
-                onCancel={() => setImportOpen(false)}
-                className={theme === "dark" ? "dark-modal" : ""}
-              >
-                <Form
-                  layout="vertical"
-                  className={theme === "dark" ? "dark-form" : ""}
-                >
-                  <div
-                    style={{
-                      marginBottom: 20,
-                      padding: 12,
-                      borderRadius: 6,
-                      background: theme === "dark" ? "#1f1f1f" : "#fafafa",
-                      border: "1px dashed #888",
-                      fontSize: 13,
-                      color: theme === "dark" ? "lightgray" : "darkgray"
-                    }}
-                  >
-                    CSV Columns must be:
-                    <br />
-                    <b>Name, Email, Role, Department, Subject, Password, Contact</b>
-                  </div>
-
-                  {/* FILE INPUT */}
-                  <input
-                    type="file"
-                    accept=".csv,.xlsx,.xls"
-                    ref={fileRef}
-                    style={{ display: "none" }}
-                    onChange={handleImport}
-                  />
-                  <Button
-                    type="primary"
-                    block
-                    size="large"
-                    onClick={() => {
-                      if (fileRef.current) {
-                        fileRef.current.value = "";
-                        fileRef.current.click();
-                      }
-                    }}
-                  >
-                    Upload File
-                  </Button>
-                </Form>
-
-
-              </Modal>
-
-
-
-
-
-
-
-
+              {/* EXPORT */}
               <Button
                 size="large"
                 style={{
+                  borderRadius: "10px",
                   background: theme === "dark" ? "#1f1f1f" : "#fff",
                   color: theme === "dark" ? "#fff" : "#000",
-                  borderColor: theme === "dark" ? "#333" : "#d9d9d9",
+                  border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
                 }}
                 onClick={handleExport}
               >
@@ -545,14 +499,15 @@ function AllUsers() {
               </Button>
             </Space>
 
-            {/* RIGHT SIDE CLOSE ICON */}
+            {/* RIGHT SIDE CLOSE */}
             <Button
               type="text"
               icon={<CloseOutlined />}
               onClick={() => setShowTools(false)}
               style={{
                 color: theme === "dark" ? "#fff" : "#000",
-                border: "1px solid lightgray",
+                borderRadius: "10px",
+                border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
               }}
             >
               Close
@@ -563,24 +518,40 @@ function AllUsers() {
       )}
 
       {/* ADMIN TABLE */}
-      <Card
-        className={theme === "dark" ? "dark-card" : ""}
-        title={
-          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
-            Admin
-          </span>
-        }
-      >
-        <Table
-          scroll={{ x: true }}
-          columns={adminColumns}
-          dataSource={adminUsers}
-          rowKey="_id"
-          loading={isLoading}
-          className={theme === "dark" ? "dark-table" : ""}
-          pagination={{ pageSize: 10 }}
-        />
-      </Card>
+   <Card
+  className={theme === "dark" ? "dark-card" : ""}
+  style={{
+    borderRadius: "16px",
+    boxShadow:
+      theme === "dark"
+        ? "0 6px 20px rgba(0,0,0,0.6)"
+        : "0 6px 16px rgba(0,0,0,0.08)",
+    border: "none",
+  }}
+  title={
+    <span
+      style={{
+        color: theme === "dark" ? "#fff" : "#000",
+        fontWeight: 600,
+      }}
+    >
+      Admin
+    </span>
+  }
+>
+  <Table
+    scroll={{ x: true }}
+    columns={adminColumns}
+    dataSource={adminUsers}
+    rowKey="_id"
+    loading={isLoading}
+    className={theme === "dark" ? "dark-table" : ""}
+    pagination={{
+      pageSize: 10,
+      position: ["bottomRight"],
+    }}
+  />
+</Card>
 
 
 
@@ -588,42 +559,76 @@ function AllUsers() {
 
 
       {/* STAFF TABLE */}
-      <Card
-        className={theme === "dark" ? "dark-card" : ""}
-        title={
-          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
-            Staff
-          </span>
-        }
-      >
-        <Table
-          scroll={{ x: true }}
-          columns={staffColumns}
-          dataSource={staffUsers}
-          rowKey="_id"
-          className={theme === "dark" ? "dark-table" : ""}
-          loading={isLoading}
-        />
-      </Card>
+  <Card
+  className={theme === "dark" ? "dark-card" : ""}
+  style={{
+    borderRadius: "16px",
+    boxShadow:
+      theme === "dark"
+        ? "0 6px 20px rgba(0,0,0,0.6)"
+        : "0 6px 16px rgba(0,0,0,0.08)",
+    border: "none",
+  }}
+  title={
+    <span
+      style={{
+        color: theme === "dark" ? "#fff" : "#000",
+        fontWeight: 600,
+      }}
+    >
+      Staff
+    </span>
+  }
+>
+  <Table
+    scroll={{ x: true }}
+    columns={staffColumns}
+    dataSource={staffUsers}
+    rowKey="_id"
+    loading={isLoading}
+    className={theme === "dark" ? "dark-table" : ""}
+    pagination={{
+      pageSize: 10,
+      position: ["bottomRight"],
+    }}
+  />
+</Card>
 
       {/* STUDENT TABLE */}
-      <Card
-        className={theme === "dark" ? "dark-card" : ""}
-        title={
-          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
-            Students
-          </span>
-        }
-      >
-        <Table
-          scroll={{ x: true }}
-          columns={studentColumns}
-          dataSource={studentUsers}
-          rowKey="_id"
-          className={theme === "dark" ? "dark-table" : ""}
-          loading={isLoading}
-        />
-      </Card>
+    <Card
+  className={theme === "dark" ? "dark-card" : ""}
+  style={{
+    borderRadius: "16px",
+    boxShadow:
+      theme === "dark"
+        ? "0 6px 20px rgba(0,0,0,0.6)"
+        : "0 6px 16px rgba(0,0,0,0.08)",
+    border: "none",
+  }}
+  title={
+    <span
+      style={{
+        color: theme === "dark" ? "#fff" : "#000",
+        fontWeight: 600,
+      }}
+    >
+      Students
+    </span>
+  }
+>
+  <Table
+    scroll={{ x: true }}
+    columns={studentColumns}
+    dataSource={studentUsers}
+    rowKey="_id"
+    loading={isLoading}
+    className={theme === "dark" ? "dark-table" : ""}
+    pagination={{
+      pageSize: 10,
+      position: ["bottomRight"],
+    }}
+  />
+</Card>
 
 
 
@@ -682,11 +687,14 @@ function AllUsers() {
           {/* DEPARTMENT */}
           <Form.Item name="department" label="Department">
             <Select
-              style={{ background: theme === "dark" ? "#2a2a2a" : "#fff", borderColor: theme === "dark" ? "#444" : "" }}
-              popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
-              className={theme === "dark" ? "dark-select" : "light-select"}
               placeholder="Select department"
               onChange={(d) => setDepartment(d)}
+              style={{
+                background: theme === "dark" ? "#2a2a2a" : "#fff",
+                borderRadius: 8,
+              }}
+              popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
+              className={theme === "dark" ? "dark-select" : "light-select"}
             >
               {departments.map((d) => (
                 <Select.Option key={d} value={d}>

@@ -190,6 +190,7 @@ const AttendanceStudent = () => {
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
+
   };
 
   return (
@@ -201,7 +202,7 @@ const AttendanceStudent = () => {
     >
       {/* HEADER */}
       <div style={{ marginBottom: 16 }}>
-        <Title level={3} 
+        <Title level={3}
           style={{ color: theme === "dark" ? "#fff" : "#000", marginBottom: 0 }}
         >
           My Attendance
@@ -217,14 +218,28 @@ const AttendanceStudent = () => {
       {/* CARDS */}
       <Row gutter={[16, 16]} align="stretch">
         <Col xs={24} sm={12} md={8}>
-          <Card style={{ background: theme === "dark" ? "#333" : "#fff", height: "100%" }}>
+          <Card style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff", height: "100%",
+
+            border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb"
+          }}>
             <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Total Subjects</Title>
             <Title level={2} style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>{subjects.length}</Title>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} md={8}>
-          <Card style={{ background: theme === "dark" ? "#333" : "#fff", height: "100%" }}>
+          <Card style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff", height: "100%",
+            border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb"
+
+          }}>
             <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Overall Attendance</Title>
             <Title level={2} style={{ color: "#1890ff" }}>
               {overallPercentage}%
@@ -233,7 +248,14 @@ const AttendanceStudent = () => {
         </Col>
 
         <Col xs={24} sm={12} md={8}>
-          <Card style={{ background: theme === "dark" ? "#333" : "#fff", height: "100%" }}>
+          <Card style={{
+            background: theme === "dark" ? "#1f1f1f" : "#fff", height: "100%",
+            border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb"
+
+          }}>
             <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Status</Title>
             <Tag
               color={

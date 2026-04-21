@@ -9,6 +9,7 @@ import {
   Col,
   Typography,
   Empty,
+  Space
 } from "antd";
 import { useGetAllProjectsSuperadminQuery } from "../redux/projectApi";
 
@@ -126,59 +127,239 @@ const AssignmentSuperAdmin = () => {
 
     }}>
       {/* HEADER */}
-      <Title level={3} style={{ marginBottom: 4, color: theme === "dark" ? "#fff" : "#000" }}>
-        Project Submissions
-      </Title>
-      <Text type="secondary" style={{ color: theme === "dark" ? "#fff" : "#000" }}>
-        Super Admin dashboard for all student projects
-      </Text>
+      <Space
+        direction="vertical"
+        size={2}
+        style={{ marginBottom: 16 }}
+      >
+        <Title
+          level={3}
+          style={{
+            margin: 0,
+            fontWeight: 600,
+            color: theme === "dark" ? "#fff" : "#111",
+          }}
+        >
+          Project Submissions
+        </Title>
+
+        <Text
+          style={{
+            fontSize: 14,
+            color: theme === "dark" ? "#a6a6a6" : "#666",
+          }}
+        >
+          Super Admin dashboard for all student projects
+        </Text>
+      </Space>
 
       {/* ================= STATS CARDS ================= */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} md={8}>
-          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Total Projects</Title>
-            <Title level={2} style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>{stats.total}</Title>
+          <Card
+            hoverable
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderRadius: 12,
+              border:
+                theme === "dark"
+                  ? "1px solid #303030"
+                  : "1px solid #f0f0f0",
+              transition: "all 0.25s ease",
+            }}
+            bodyStyle={{ padding: 20 }}
+          >
+            <Space
+              direction="vertical"
+              size={4}
+              style={{ width: "100%" }}
+            >
+              {/* LABEL */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: theme === "dark" ? "#a6a6a6" : "#666",
+                }}
+              >
+                Total Projects
+              </Text>
+
+              {/* VALUE */}
+              <Title
+                level={2}
+                style={{
+                  margin: 0,
+                  fontWeight: 700,
+                  color: theme === "dark" ? "#69c0ff" : "#1677ff",
+                }}
+              >
+                {stats.total}
+              </Title>
+            </Space>
           </Card>
         </Col>
 
         <Col xs={24} md={8}>
-          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Submitted</Title>
-            <Title level={2} style={{ color: "green" }}>
-              {stats.submitted}
-            </Title>
+          <Card
+            hoverable
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderRadius: 12,
+              border:
+                theme === "dark"
+                  ? "1px solid #303030"
+                  : "1px solid #f0f0f0",
+              transition: "all 0.25s ease",
+            }}
+            bodyStyle={{ padding: 20 }}
+          >
+            <Space
+              direction="vertical"
+              size={4}
+              style={{ width: "100%" }}
+            >
+              {/* LABEL */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: theme === "dark" ? "#a6a6a6" : "#666",
+                }}
+              >
+                Submitted
+              </Text>
+
+              {/* VALUE */}
+              <Title
+                level={2}
+                style={{
+                  margin: 0,
+                  fontWeight: 700,
+                  color: "#52c41a",
+                }}
+              >
+                {stats.submitted}
+              </Title>
+            </Space>
           </Card>
         </Col>
 
         <Col xs={24} md={8}>
-          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Pending</Title>
-            <Title level={2} style={{ color: "red" }}>
-              {stats.pending}
-            </Title>
+          <Card
+            hoverable
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderRadius: 12,
+              border:
+                theme === "dark"
+                  ? "1px solid #303030"
+                  : "1px solid #f0f0f0",
+              transition: "all 0.25s ease",
+            }}
+            bodyStyle={{ padding: 20 }}
+          >
+            <Space
+              direction="vertical"
+              size={4}
+              style={{ width: "100%" }}
+            >
+              {/* LABEL */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: theme === "dark" ? "#a6a6a6" : "#666",
+                }}
+              >
+                Pending
+              </Text>
+
+              {/* VALUE */}
+              <Title
+                level={2}
+                style={{
+                  margin: 0,
+                  fontWeight: 700,
+                  color: "#ff4d4f",
+                }}
+              >
+                {stats.pending}
+              </Title>
+            </Space>
           </Card>
         </Col>
       </Row>
 
       {/* ================= FILTER ================= */}
-      <Card style={{ marginTop: 16, marginBottom: 16, background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
+      <Card
+        style={{
+          marginTop: 16,
+          marginBottom: 20,
+          borderRadius: 12,
+          background: theme === "dark" ? "#1f1f1f" : "#fff",
+          border:
+            theme === "dark"
+              ? "1px solid #303030"
+              : "1px solid #f0f0f0",
+        }}
+        bodyStyle={{ padding: "18px 22px" }}
+      >
         <Row justify="space-between" align="middle">
+
+          {/* LEFT SIDE */}
           <Col>
-            <Text strong style={{ color: theme === "dark" ? "#fff" : "#000" }}>Filter by Department</Text>
+            <Space direction="vertical" size={0}>
+              <Text
+                strong
+                style={{
+                  fontSize: 15,
+                  color: theme === "dark" ? "#fff" : "#111",
+                }}
+              >
+                Filter Projects
+              </Text>
+
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: theme === "dark" ? "#a6a6a6" : "#888",
+                }}
+              >
+                Select department to refine results
+              </Text>
+            </Space>
           </Col>
 
+          {/* RIGHT SIDE */}
           <Col>
             <Select
               placeholder="Select Department"
               allowClear
-              style={{background: theme === "dark" ? "#141414" : "#fff", color: theme === "dark" ? "#bbb" : "#000", borderColor: theme === "dark" ? "#333" : "#d9d9d9", width: 220 }}
+              size="large"
+              style={{
+                borderRadius: "10px",
+                background: theme === "dark" ? "#1f1f1f" : "#fff",
+                color: theme === "dark" ? "#fff" : "#000",
+                border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
+                width: 240
+              }}
+
+
               className={theme === "dark" ? "dark-select" : ""}
-              popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
+
+
+              popupClassName={
+                theme === "dark" ? "dark-select-dropdown" : ""
+              }
+
+
               onChange={(value) => setDepartmentFilter(value)}
             >
               {departments.map((dept) => (
-                <Select.Option key={dept} value={dept}>
+                <Select.Option
+                  style={{ color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#1f1f1f" : "#fff" }}
+                  key={dept} value={dept}>
                   {dept}
                 </Select.Option>
               ))}
@@ -187,20 +368,60 @@ const AssignmentSuperAdmin = () => {
         </Row>
       </Card>
 
+
+
       {/* ================= TABLE ================= */}
-      <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000" }}>
+      <Card
+        style={{
+          borderRadius: 12,
+          background: theme === "dark" ? "#1f1f1f" : "#fff",
+          border:
+            theme === "dark"
+              ? "1px solid #303030"
+              : "1px solid #f0f0f0",
+        }}
+        bodyStyle={{ padding: 20 }} onChange={(value) => setDepartmentFilter(value)}
+        title={
+          <Space>
+            <Text
+              strong
+              style={{
+                fontSize: 16,
+                color: theme === "dark" ? "#fff" : "#111",
+              }}
+            >
+              Project Submissions
+            </Text>
+
+            <Tag color="processing">
+              {filteredProjects.length} Projects
+            </Tag>
+          </Space>
+        }
+      >
         {filteredProjects.length ? (
           <Table
             className={theme === "dark" ? "dark-table" : ""}
             columns={columns}
             dataSource={filteredProjects}
             rowKey={(record) => record._id}
-            bordered
-            pagination={{ pageSize: 8 }}
+            pagination={{
+              pageSize: 8,
+              showSizeChanger: false,
+            }}
+            bordered={false}
+            size="middle"
             scroll={{ x: "max-content" }}
           />
         ) : (
-          <Empty description="No projects found" style={{ color: theme === "dark" ? "#fff" : "#000" }} />
+          <Empty
+            description={
+              <span style={{ color: theme === "dark" ? "#aaa" : "#666" }}>
+                No projects found
+              </span>
+            }
+            style={{ padding: 40 }}
+          />
         )}
       </Card>
     </div>

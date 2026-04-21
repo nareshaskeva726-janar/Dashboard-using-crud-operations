@@ -192,7 +192,7 @@ const AssignmentCheck = () => {
 
               <Select
                 placeholder="Select subject"
-                style={{ background: theme === "dark" ? "#2a2a2a " : "#fff", borderColor: theme === "dark" ? "#444 " : "#ccc" }}
+                style={{ background: theme === "dark" ? "#2a2a2a " : "#fff", borderColor: theme === "dark" ? "#444 " : "#ccc", color: theme === 'dark' ? "#fff" : "#000" }}
                 className={theme === "dark" ? "dark-select" : "light-select"}
                 popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
               >

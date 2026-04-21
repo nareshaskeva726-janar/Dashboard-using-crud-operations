@@ -248,79 +248,98 @@ const AttendanceSuperAdmin = () => {
   return (
     <div style={{ padding: 16, minHeight: "100vh", color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
       {/* HEADER */}
-      <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff", color: theme === "dark" ? "#fff" : "#000" }}>
+      <Card
+        style={{
+          background: theme === "dark" ? "#1f1f1f" : "#fff",
+          border: theme === "dark" ? "1px solid #303030" : "1px solid #f0f0f0",
+          borderRadius: 12,
+        }}
+        bodyStyle={{ padding: "20px 24px" }}
+      >
+        <Row align="middle" justify="space-between" gutter={[16, 16]}>
 
-
-        <Row align="middle" justify="space-between" gutter={[12, 12]}>
+          {/* LEFT SECTION */}
           <Col xs={24} md={12}>
-            <Space direction="vertical" size={0}>
-
-
-
+            <Space direction="vertical" size={4}>
               <Title
                 level={3}
                 style={{
                   margin: 0,
-                  color: theme === "dark" ? "#fff" : "#000",
+                  fontWeight: 600,
+                  color: theme === "dark" ? "#fff" : "#111",
                 }}
               >
                 Attendance Panel
               </Title>
 
-              <Text type="secondary" style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+              <Text
+                style={{
+                  color: theme === "dark" ? "#a6a6a6" : "#666",
+                }}
+              >
                 Attendance analytics, department overview & logs
               </Text>
             </Space>
           </Col>
 
-
-
-
+          {/* RIGHT CONTROLS */}
           <Col xs={24} md={12}>
             <Space
-              align="center"
-              size="middle"
-              style={{ width: "100%", justifyContent: "flex-end" }}
               wrap
+              size="middle"
+              style={{
+                width: "100%",
+                justifyContent: "flex-end",
+              }}
             >
 
-
-              <Search
-                placeholder="Search name or email"
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ width: 220 }}
-                className={theme === "dark" ? "dark-search" : "light-search"}
-                enterButton={
-                  <Button
-                    icon={<SearchOutlined />}
-                    style={{
-                      background: theme === "dark" ? "#141414" : "#fff",
-                      color: theme === "dark" ? "#fff" : "#000",
-                      borderColor: theme === "dark" ? "#333" : "#d9d9d9",
-                    }}
-                  />
-                }
+              {/* SEARCH */}
+              <Input
+                size="large"
+                suffix={<SearchOutlined />}
+                placeholder="Search name or email..."
+                onChange={(e) => setSearch(e.target.value.trimStart())}
+                style={{
+                  width: 360,
+                  borderRadius: "10px",
+                  background: theme === "dark" ? "#1f1f1f" : "#fff",
+                  color: theme === "dark" ? "#fff" : "#000",
+                  border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
+                }}
               />
 
+              {/* SELECT */}
               <Select
-                placeholder="select anything"
+                size="large"
                 value={view}
                 onChange={setView}
-                style={{ width: 200, background: theme === "dark" ? "#141414" : "#fff", color: theme === "dark" ? "#bbb" : "#000", borderColor: theme === "dark" ? "#333" : "#d9d9d9" }}
-                className={theme === "dark" ? "dark-select" : "light-select"}
-
-
-                popupClassName={theme === "dark" ? "dark-select-dropdown" : "light-select-dropdown"}
+                style={{
+                  borderRadius: "10px",
+                  background: theme === "dark" ? "#1f1f1f" : "#fff",
+                  color: theme === "dark" ? "#fff" : "#000",
+                  border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
+                }}
+                dropdownStyle={{
+                  background: theme === "dark" ? "#1f1f1f" : "#fff",
+                }}
               >
-                <Select.Option value="ALL">ALL Departments</Select.Option>
+                <Select.Option value="ALL"
+                  style={{ color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#1f1f1f" : "#fff" }}
+                >All Departments</Select.Option>
 
                 {departments.map((d) => (
-                  <Select.Option key={d} value={d}>
+                  <Select.Option key={d} value={d}
+                    style={{
+                      width: 200,
+                      borderRadius: "10px",
+                      background: theme === "dark" ? "#1f1f1f" : "#fff",
+                      color: theme === "dark" ? "#fff" : "#000",
+                    }}
+                  >
                     {d}
                   </Select.Option>
                 ))}
               </Select>
-
 
             </Space>
           </Col>
@@ -334,161 +353,470 @@ const AttendanceSuperAdmin = () => {
         <Col xs={24} sm={12} md={6}>
 
 
-          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Total Students</Title>
-            <Title level={2} style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>{totalStudents}</Title>
+          <Card
+            hoverable
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderRadius: 12,
+              border: theme === "dark"
+                ? "1px solid #303030"
+                : "1px solid #f0f0f0",
+              transition: "all 0.25s ease",
+            }}
+            bodyStyle={{ padding: "20px" }}
+          >
+            <Space direction="vertical" size={4} style={{ width: "100%" }}>
+
+              {/* LABEL */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: theme === "dark" ? "#a6a6a6" : "#666",
+                  fontWeight: 500,
+                }}
+              >
+                Total Students
+              </Text>
+
+              {/* VALUE */}
+              <Title
+                level={2}
+                style={{
+                  margin: 0,
+                  fontWeight: 700,
+                  color: theme === "dark" ? "#69c0ff" : "#003a8c",
+                }}
+              >
+                {totalStudents}
+              </Title>
+            </Space>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Present</Title>
-            <Title level={2} style={{ color: "#52c41a" }}>
-              {totalPresent}
-            </Title>
+          <Card
+            hoverable
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderRadius: 12,
+              border:
+                theme === "dark"
+                  ? "1px solid #303030"
+                  : "1px solid #f0f0f0",
+              transition: "all 0.25s ease",
+            }}
+            bodyStyle={{ padding: "20px" }}
+          >
+            <Space
+              direction="vertical"
+              size={4}
+              style={{ width: "100%" }}
+            >
+              {/* LABEL */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: theme === "dark" ? "#a6a6a6" : "#666",
+                }}
+              >
+                Present
+              </Text>
+
+              {/* VALUE */}
+              <Title
+                level={2}
+                style={{
+                  margin: 0,
+                  fontWeight: 700,
+                  color: "#52c41a",
+                }}
+              >
+                {totalPresent}
+              </Title>
+            </Space>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Absent</Title>
-            <Title level={2} style={{ color: "#ff4d4f" }}>
-              {totalAbsent}
-            </Title>
+          <Card
+            hoverable
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderRadius: 12,
+              border:
+                theme === "dark"
+                  ? "1px solid #303030"
+                  : "1px solid #f0f0f0",
+              transition: "all 0.25s ease",
+            }}
+            bodyStyle={{ padding: "20px" }}
+          >
+            <Space
+              direction="vertical"
+              size={4}
+              style={{ width: "100%" }}
+            >
+              {/* LABEL */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: theme === "dark" ? "#a6a6a6" : "#666",
+                }}
+              >
+                Absent
+              </Text>
+
+              {/* VALUE */}
+              <Title
+                level={2}
+                style={{
+                  margin: 0,
+                  fontWeight: 700,
+                  color: "#ff4d4f",
+                }}
+              >
+                {totalAbsent}
+              </Title>
+            </Space>
           </Card>
         </Col>
 
         <Col xs={24} sm={12} md={6}>
-          <Card style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Avg Attendance</Title>
-            <Title level={2} style={{ color: "#1890ff" }}>
-              {avgAttendance}%
-            </Title>
+          <Card
+            hoverable
+            style={{
+              background: theme === "dark" ? "#1f1f1f" : "#fff",
+              borderRadius: 12,
+              border:
+                theme === "dark"
+                  ? "1px solid #303030"
+                  : "1px solid #f0f0f0",
+              transition: "all 0.25s ease",
+            }}
+            bodyStyle={{ padding: "20px" }}
+          >
+            <Space
+              direction="vertical"
+              size={4}
+              style={{ width: "100%" }}
+            >
+              {/* LABEL */}
+              <Text
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: theme === "dark" ? "#a6a6a6" : "#666",
+                }}
+              >
+                Absent
+              </Text>
+
+              {/* VALUE */}
+              <Title
+                level={2}
+                style={{
+                  margin: 0,
+                  fontWeight: 700,
+                  color: "#ff4d4f",
+                }}
+              >
+                {totalAbsent}
+              </Title>
+            </Space>
           </Card>
         </Col>
       </Row>
 
       {/* DEPARTMENT TABLE */}
-      <Card title={
-        <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
-          Department-wise Attendance
+      <Card
+  style={{
+    marginTop: 16,
+    background: theme === "dark" ? "#1f1f1f" : "#fff",
+    borderRadius: 12,
+    border:
+      theme === "dark"
+        ? "1px solid #303030"
+        : "1px solid #f0f0f0",
+  }}
+  bodyStyle={{ padding: 20 }}
+  title={
+    <Space>
+      <Text
+        strong
+        style={{
+          fontSize: 16,
+          color: theme === "dark" ? "#fff" : "#111",
+        }}
+      >
+        Department-wise Attendance
+      </Text>
+    </Space>
+  }
+>
+  <Table
+    className={theme === "dark" ? "dark-table" : ""}
+    scroll={{ x: true }}
+    dataSource={departmentData}
+    pagination={false}
+    bordered={false}
+    size="middle"
+    rowKey="department"
+    columns={[
+      {
+        title: "Department",
+        dataIndex: "department",
+        render: (t) => (
+          <Tag
+            color="blue"
+            style={{
+              borderRadius: 6,
+              padding: "2px 10px",
+              fontWeight: 500,
+            }}
+          >
+            {t}
+          </Tag>
+        ),
+      },
+   {
+  title: "Attendance",
+  dataIndex: "avgAttendance",
+  render: (v) => (
+    <Progress
+      percent={v}
+      size="small"
+      strokeColor="#1677ff"
+      trailColor={theme === "dark" ? "#303030" : "#f0f0f0"}
+      format={(percent) => (
+        <span
+          style={{
+            color: theme === "dark" ? "#fff" : "#000",
+            fontWeight: 500,
+          }}
+        >
+          {percent}%
         </span>
-      }
-
-
-        style={{ marginTop: 16, background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-        <Table
-          className={theme === "dark" ? "dark-table" : ""}
-          scroll={{ x: true }}
-          dataSource={departmentData}
-          pagination={false}
-          bordered
-          columns={[
-            {
-              title: "Department",
-              dataIndex: "department",
-              render: (t) => <Tag color="blue">{t}</Tag>,
-            },
-            {
-              title: "Attendance",
-              dataIndex: "avgAttendance",
-              render: (v) => <Progress percent={v} size="small" />,
-            },
-            { title: "Present", dataIndex: "present" },
-            { title: "Absent", dataIndex: "absent" },
-          ]}
-        />
-      </Card>
+      )}
+    />
+  ),
+},
+      {
+        title: "Present",
+        dataIndex: "present",
+        align: "center",
+      },
+      {
+        title: "Absent",
+        dataIndex: "absent",
+        align: "center",
+      },
+    ]}
+  />
+</Card>
 
       {/* LOGS */}
-      <Card
-        title={
-          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
-            Attendance Logs (Marked by Staff)
-          </span>
-        }
+  <Card
+  style={{
+    marginTop: 16,
+    background: theme === "dark" ? "#1f1f1f" : "#fff",
+    borderRadius: 12,
+    border:
+      theme === "dark"
+        ? "1px solid #303030"
+        : "1px solid #f0f0f0",
+  }}
+  bodyStyle={{ padding: 20 }}
+  title={
+    <Space>
+      <Text
+        strong
+        style={{
+          fontSize: 16,
+          color: theme === "dark" ? "#fff" : "#111",
+        }}
+      >
+        Attendance Logs (Marked by Staff)
+      </Text>
 
-
-
-        style={{ marginTop: 16, background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-        <Table
-          className={theme === "dark" ? "dark-table" : ""}
-          scroll={{ x: true }}
-          dataSource={filteredLogs}
-          pagination={{ pageSize: 8 }}
-          bordered
-          columns={[
-            { title: "Student", dataIndex: "studentName" },
-            { title: "Email", dataIndex: "studentEmail" },
-            {
-              title: "Dept",
-              dataIndex: "studentDept",
-              render: (t) => <Tag color="blue">{t}</Tag>,
-            },
-            {
-              title: "Subject",
-              dataIndex: "subject",
-              render: (t) => <Tag color="purple">{t}</Tag>,
-            },
-            {
-              title: "Status",
-              dataIndex: "status",
-              render: (v) => (
-                <Tag color={v?.toLowerCase() === "present" ? "green" : "red"}>
-                  {v}
-                </Tag>
-              ),
-            },
-            {
-              title: "Marked By",
-              dataIndex: "staffName",
-              render: (t) => <Tag color="orange">{t}</Tag>,
-            },
-            { title: "Date", dataIndex: "date" },
-          ]}
-        />
-      </Card>
+      <Tag color="processing">
+        {filteredLogs.length} Records
+      </Tag>
+    </Space>
+  }
+>
+  <Table
+    className={theme === "dark" ? "dark-table" : ""}
+    scroll={{ x: true }}
+    dataSource={filteredLogs}
+    pagination={{ pageSize: 8, showSizeChanger: false }}
+    rowKey={(record, index) => index}
+    bordered={false}
+    size="middle"
+    columns={[
+      {
+        title: "Student",
+        dataIndex: "studentName",
+        render: (t) => <Text style={{color: theme === "dark" ? "white" : "#111", fontWeight: 500}}>{t}</Text>,
+      },
+      {
+        title: "Email",
+        dataIndex: "studentEmail",
+        ellipsis: true,
+      },
+      {
+        title: "Dept",
+        dataIndex: "studentDept",
+        render: (t) => (
+          <Tag
+            color="blue"
+            style={{ borderRadius: 6, padding: "2px 10px" }}
+          >
+            {t}
+          </Tag>
+        ),
+      },
+      {
+        title: "Subject",
+        dataIndex: "subject",
+        render: (t) => (
+          <Tag
+            color="purple"
+            style={{ borderRadius: 6, padding: "2px 10px" }}
+          >
+            {t}
+          </Tag>
+        ),
+      },
+      {
+        title: "Status",
+        dataIndex: "status",
+        render: (v) => (
+          <Tag
+            color={
+              v?.toLowerCase() === "present"
+                ? "success"
+                : "error"
+            }
+            style={{ fontWeight: 500 }}
+          >
+            {v}
+          </Tag>
+        ),
+      },
+      {
+        title: "Marked By",
+        dataIndex: "staffName",
+        render: (t) => (
+          <Tag
+            color="orange"
+            style={{ borderRadius: 6 }}
+          >
+            {t}
+          </Tag>
+        ),
+      },
+      {
+        title: "Date",
+        dataIndex: "date",
+      },
+    ]}
+  />
+</Card>
 
       {/* MONTHLY SUMMARY (NEW) */}
-      <Card
-        title={
-          <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
-            Monthly Summary
-          </span>
-        }
+  <Card
+  style={{
+    marginTop: 16,
+    background: theme === "dark" ? "#1f1f1f" : "#fff",
+    borderRadius: 12,
+    border:
+      theme === "dark"
+        ? "1px solid #303030"
+        : "1px solid #f0f0f0",
+  }}
+  bodyStyle={{ padding: 20 }}
+  title={
+    <Space>
+      <Text
+        strong
+        style={{
+          fontSize: 16,
+          color: theme === "dark" ? "#fff" : "#111",
+        }}
+      >
+        Monthly Summary
+      </Text>
 
-        style={{ marginTop: 16, background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-        <Table
-          className={theme === "dark" ? "dark-table" : ""}
-          scroll={{ x: true }}
-          dataSource={monthlySummary}
-          loading={monthlyLoading}
-          pagination={{ pageSize: 6 }}
-          bordered
-          columns={[
-            {
-              title: "Subject / Dept",
-              dataIndex: "subject",
-              render: (t, r) => (
-                <Tag color="purple">{r.key || r.department}</Tag>
-              ),
-            },
-            { title: "Total", dataIndex: "total" },
-            { title: "Present", dataIndex: "present" },
-            {
-              title: "Percentage",
-              dataIndex: "percentage",
-              render: (v) => (
-                <Progress
-                  percent={v}
-                  size="small"
-                  status={v < 75 ? "exception" : "active"}
-                />
-              ),
-            },
-          ]}
-        />
-      </Card>
+      <Tag color="processing">
+        {monthlySummary?.length || 0} Reports
+      </Tag>
+    </Space>
+  }
+>
+  <Table
+    className={theme === "dark" ? "dark-table" : ""}
+    scroll={{ x: true }}
+    dataSource={monthlySummary}
+    loading={monthlyLoading}
+    pagination={{ pageSize: 6, showSizeChanger: false }}
+    bordered={false}
+    size="middle"
+    rowKey={(r, i) => i}
+    columns={[
+      {
+        title: "Subject / Dept",
+        dataIndex: "subject",
+        render: (t, r) => (
+          <Tag
+            color="purple"
+            style={{
+              borderRadius: 6,
+              padding: "2px 10px",
+              fontWeight: 500,
+            }}
+          >
+            {r.key || r.department}
+          </Tag>
+        ),
+      },
+      {
+        title: "Total",
+        dataIndex: "total",
+        align: "center",
+      },
+      {
+        title: "Present",
+        dataIndex: "present",
+        align: "center",
+      },
+  {
+  title: "Percentage",
+  dataIndex: "percentage",
+  render: (v) => (
+    <Progress
+      percent={v}
+      size="small"
+      status={v < 75 ? "exception" : "active"}
+      strokeColor={v < 75 ? "#ff4d4f" : "#1677ff"}
+      trailColor={theme === "dark" ? "#303030" : "#f0f0f0"}
+      format={(percent) => (
+        <span
+          style={{
+            color: theme === "dark" ? "#fff" : "#000",
+            fontWeight: 500,
+          }}
+        >
+          {percent}%
+        </span>
+      )}
+    />
+  ),
+}
+    ]}
+  />
+</Card>
     </div>
   );
 };

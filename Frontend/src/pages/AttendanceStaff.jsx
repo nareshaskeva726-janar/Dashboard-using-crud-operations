@@ -278,11 +278,20 @@ const AttendanceStaff = () => {
       >
         <Row gutter={16}>
           <Col xs={24} md={12}>
-            <Text style={{ color: theme === "dark" ? "#fff" : "#000" }}>Subject</Text>
+            <Text style={{ color: theme === "dark" ? "#fff" : "#000"}}>Subject</Text>
+
             <Select
               value={subject}
               onChange={setSubject}
-              style={{ width: "100%", color: theme === "dark" ? "#fff" : "#000", background: theme === "dark" ? "#333" : "#fff" }}
+              style={{
+                width: "100%", color: theme === "dark" ? "#fff" : "#000",
+                background: theme === "dark" ? "#333" : "#fff",
+                border:
+                  theme === "dark"
+                    ? "1px solid #2a2a2a"
+                    : "1px solid #e5e7eb",
+
+              }}
               className={theme === "dark" ? "dark-select" : "light-select"}
               popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
             >
@@ -295,14 +304,23 @@ const AttendanceStaff = () => {
           </Col>
 
           <Col xs={24} md={12}>
-            <Text style={{ color: theme === "dark" ? "#fff" : "#000" }}>Date</Text>
+            <Text style={{
+
+              color: theme === "dark" ? "#fff" : "#000"
+
+            }}>Date</Text>
             <DatePicker
               value={date}
               onChange={setDate}
               style={{
                 width: "100%",
                 background: theme === "dark" ? "#333" : "#fff",
-                color: theme === "dark" ? "#fff" : "#000"
+                color: theme === "dark" ? "#fff" : "#000",
+                border:
+                  theme === "dark"
+                    ? "1px solid #2a2a2a"
+                    : "1px solid #e5e7eb",
+
               }}
             />
           </Col>

@@ -205,27 +205,67 @@ const AttendanceAdmin = () => {
       <Row gutter={[16, 16]} align="stretch">
 
         <Col xs={24} md={8} style={{ display: "flex" }}>
-          <Card style={{
-            width: "100%", height: "100%",
-            background: theme === "dark" ? "#333" : "#fff"
 
-          }}>
-            <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Students</Title>
-            <Title level={2} style={{ color: theme === "dark" ? "lightblue" : "darkblue" }}>
-              {departmentStats.students}
-            </Title>
+
+          <Card
+            className="rounded-xl shadow-sm"
+            style={{
+              width: "100%",
+              height: "100%",
+              background: theme === "dark" ? "#1f1f1f" : "#ffffff",
+              border:
+                theme === "dark"
+                  ? "1px solid #2a2a2a"
+                  : "1px solid #e5e7eb",
+            }}
+          >
+            <div className="flex flex-col justify-between h-full">
+
+              {/* Label */}
+              <span
+                className="text-sm font-medium"
+                style={{ color: theme === "dark" ? "#9ca3af" : "#6b7280" }}
+              >
+                Students
+              </span>
+
+              {/* Value */}
+              <span
+                className="text-3xl font-semibold mt-2"
+                style={{ color: theme === "dark" ? "#fff" : "#111827" }}
+              >
+                {departmentStats.students}
+              </span>
+
+            </div>
           </Card>
+
+
         </Col>
 
         <Col xs={24} md={8} style={{ display: "flex" }}>
-          <Card style={{ width: "100%", height: "100%", background: theme === "dark" ? "#333" : "#fff" }}>
+          <Card style={{
+            width: "100%", height: "100%", background: theme === "dark" ? "#1f1f1f" : "#fff", 
+            border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb",
+          }}>
             <Title level={5} style={{ color: theme === "dark" ? "#fff" : "#000" }}>Avg Attendance</Title>
             <Progress percent={departmentStats.avgAttendance} style={{ color: theme === "dark" ? "#fff" : "#000" }} className={theme === "dark" ? "dark-indicator" : ""} />
           </Card>
         </Col>
 
         <Col xs={24} md={8} style={{ display: "flex" }}>
-          <Card style={{ width: "100%", height: "100%", background: theme === "dark" ? "#333" : "#fff" }}>
+          <Card style={{
+            width: "100%", height: "100%", background: theme === "dark" ? "#1f1f1f" : "#fff",
+
+            border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb",
+
+          }}>
             <Tag color="green">
               Present: {departmentStats.presentToday}
             </Tag>
@@ -263,7 +303,7 @@ const AttendanceAdmin = () => {
               dataIndex: "percentage",
               render: (value) => (
                 <Progress
-                className={theme === "dark" ? "dark-indicator" : ""}
+                  className={theme === "dark" ? "dark-indicator" : ""}
                   percent={value}
                   size="small"
                   status={value < 75 ? "exception" : "active"}

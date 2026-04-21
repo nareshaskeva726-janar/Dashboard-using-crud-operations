@@ -55,34 +55,59 @@ function Settings() {
       <div className="w-full max-w-2xl flex flex-col gap-6">
 
         {/* USER DETAILS */}
-
         <Card
+          className="w-full rounded-xl shadow-sm"
+          style={{
+            background: theme === "dark" ? "#1f1f1f" : "#ffffff",
+            border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb",
+          }}
           title={
-            <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
+            <span
+              className="text-base font-semibold"
+              style={{ color: theme === "dark" ? "#fff" : "#111827" }}
+            >
               User Details
             </span>
           }
+        >
+          <div className="space-y-4 text-sm md:text-base">
+            {/* Name */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500">Name</span>
+              <span
+                className="font-medium"
+                style={{ color: theme === "dark" ? "#fff" : "#111827" }}
+              >
+                {user.name}
+              </span>
+            </div>
 
-
-
-          className="w-full shadow-sm" style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}>
-
-          <div className="space-y-2 text-sm md:text-base">
-            <p style={{ color: theme === "dark" ? "#fff" : "#000" }} ><b>Name :</b> {user.name}</p>
-            <p className="break-all" style={{ color: theme === "dark" ? "#fff" : "#000" }}><b>Email :</b> {user.email}</p>
+            {/* Email */}
+            <div className="flex justify-between items-start gap-3">
+              <span className="text-gray-500">Email</span>
+              <span
+                className="font-medium break-all text-right"
+                style={{ color: theme === "dark" ? "#fff" : "#111827" }}
+              >
+                {user.email}
+              </span>
+            </div>
           </div>
 
           {!showForm && (
-
-            <p
-              className="text-blue-700 text-right font-medium cursor-pointer mt-4"
-              onClick={() => setShowForm(true)}
-            >
-              Forgot Password?
-            </p>
-
+            <div className="mt-6 text-right">
+              <span
+                onClick={() => setShowForm(true)}
+                className="cursor-pointer text-sm font-medium hover:underline"
+                style={{ color: theme === "dark" ? "#9ca3af" : "#4b5563" }}
+              >
+                Forgot Password?
+              </span>
+            </div>
           )}
-
         </Card>
 
         {/* RESET PASSWORD */}
@@ -90,7 +115,11 @@ function Settings() {
         {showForm && (
 
           <Card
-            style={{ background: theme === "dark" ? "#1f1f1f" : "#fff" }}
+            style={{ background: theme === "dark" ? "#1f1f1f" : "#fff",      border:
+              theme === "dark"
+                ? "1px solid #2a2a2a"
+                : "1px solid #e5e7eb",
+           }}
             title={
               <span style={{ color: theme === "dark" ? "#fff" : "#000" }}>
                 Reset Password
@@ -115,7 +144,7 @@ function Settings() {
                   { min: 6, message: "Minimum 6 characters" }
                 ]}
               >
-                 <Input.Password
+                <Input.Password
                   placeholder="New password"
                   iconRender={(visible) =>
                     visible ? (
