@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { motion } from "framer-motion";
 import { Card, Row, Col, Typography, Spin } from "antd";
 import {
   PieChart,

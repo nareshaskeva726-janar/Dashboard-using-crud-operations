@@ -53,6 +53,8 @@ const departments = Object.keys(departmentSubjectsMap);
 
 function AllUsers() {
 
+
+
   const { theme, toggleTheme } = useTheme();
 
   const fileRef = React.useRef(null);
@@ -375,8 +377,8 @@ function AllUsers() {
         </Button>
 
         <Button
-          
-           style={{
+
+          style={{
             background: theme === "dark" ? "#1f1f1f" : "#fff",
             color: theme === "dark" ? "#fff" : "#000",
             borderRadius: "10px",
@@ -470,6 +472,14 @@ function AllUsers() {
                 ))}
               </Select>
 
+              <input
+                type="file"
+                ref={fileRef}
+                accept=".csv,.xlsx,.xls"
+                style={{ display: "none" }}
+                onChange={handleImport}
+              />
+
               {/* IMPORT */}
               <Button
                 size="large"
@@ -479,10 +489,12 @@ function AllUsers() {
                   color: theme === "dark" ? "#fff" : "#000",
                   border: theme === "dark" ? "1px solid #333" : "1px solid #d9d9d9",
                 }}
-                onClick={() => setImportOpen(true)}
+                onClick={() => fileRef.current.click()}
               >
                 Import
               </Button>
+
+
 
               {/* EXPORT */}
               <Button
@@ -518,40 +530,40 @@ function AllUsers() {
       )}
 
       {/* ADMIN TABLE */}
-   <Card
-  className={theme === "dark" ? "dark-card" : ""}
-  style={{
-    borderRadius: "16px",
-    boxShadow:
-      theme === "dark"
-        ? "0 6px 20px rgba(0,0,0,0.6)"
-        : "0 6px 16px rgba(0,0,0,0.08)",
-    border: "none",
-  }}
-  title={
-    <span
-      style={{
-        color: theme === "dark" ? "#fff" : "#000",
-        fontWeight: 600,
-      }}
-    >
-      Admin
-    </span>
-  }
->
-  <Table
-    scroll={{ x: true }}
-    columns={adminColumns}
-    dataSource={adminUsers}
-    rowKey="_id"
-    loading={isLoading}
-    className={theme === "dark" ? "dark-table" : ""}
-    pagination={{
-      pageSize: 10,
-      position: ["bottomRight"],
-    }}
-  />
-</Card>
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+        style={{
+          borderRadius: "16px",
+          boxShadow:
+            theme === "dark"
+              ? "0 6px 20px rgba(0,0,0,0.6)"
+              : "0 6px 16px rgba(0,0,0,0.08)",
+          border: "none",
+        }}
+        title={
+          <span
+            style={{
+              color: theme === "dark" ? "#fff" : "#000",
+              fontWeight: 600,
+            }}
+          >
+            Admin
+          </span>
+        }
+      >
+        <Table
+          scroll={{ x: true }}
+          columns={adminColumns}
+          dataSource={adminUsers}
+          rowKey="_id"
+          loading={isLoading}
+          className={theme === "dark" ? "dark-table" : ""}
+          pagination={{
+            pageSize: 10,
+            position: ["bottomRight"],
+          }}
+        />
+      </Card>
 
 
 
@@ -559,76 +571,76 @@ function AllUsers() {
 
 
       {/* STAFF TABLE */}
-  <Card
-  className={theme === "dark" ? "dark-card" : ""}
-  style={{
-    borderRadius: "16px",
-    boxShadow:
-      theme === "dark"
-        ? "0 6px 20px rgba(0,0,0,0.6)"
-        : "0 6px 16px rgba(0,0,0,0.08)",
-    border: "none",
-  }}
-  title={
-    <span
-      style={{
-        color: theme === "dark" ? "#fff" : "#000",
-        fontWeight: 600,
-      }}
-    >
-      Staff
-    </span>
-  }
->
-  <Table
-    scroll={{ x: true }}
-    columns={staffColumns}
-    dataSource={staffUsers}
-    rowKey="_id"
-    loading={isLoading}
-    className={theme === "dark" ? "dark-table" : ""}
-    pagination={{
-      pageSize: 10,
-      position: ["bottomRight"],
-    }}
-  />
-</Card>
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+        style={{
+          borderRadius: "16px",
+          boxShadow:
+            theme === "dark"
+              ? "0 6px 20px rgba(0,0,0,0.6)"
+              : "0 6px 16px rgba(0,0,0,0.08)",
+          border: "none",
+        }}
+        title={
+          <span
+            style={{
+              color: theme === "dark" ? "#fff" : "#000",
+              fontWeight: 600,
+            }}
+          >
+            Staff
+          </span>
+        }
+      >
+        <Table
+          scroll={{ x: true }}
+          columns={staffColumns}
+          dataSource={staffUsers}
+          rowKey="_id"
+          loading={isLoading}
+          className={theme === "dark" ? "dark-table" : ""}
+          pagination={{
+            pageSize: 10,
+            position: ["bottomRight"],
+          }}
+        />
+      </Card>
 
       {/* STUDENT TABLE */}
-    <Card
-  className={theme === "dark" ? "dark-card" : ""}
-  style={{
-    borderRadius: "16px",
-    boxShadow:
-      theme === "dark"
-        ? "0 6px 20px rgba(0,0,0,0.6)"
-        : "0 6px 16px rgba(0,0,0,0.08)",
-    border: "none",
-  }}
-  title={
-    <span
-      style={{
-        color: theme === "dark" ? "#fff" : "#000",
-        fontWeight: 600,
-      }}
-    >
-      Students
-    </span>
-  }
->
-  <Table
-    scroll={{ x: true }}
-    columns={studentColumns}
-    dataSource={studentUsers}
-    rowKey="_id"
-    loading={isLoading}
-    className={theme === "dark" ? "dark-table" : ""}
-    pagination={{
-      pageSize: 10,
-      position: ["bottomRight"],
-    }}
-  />
-</Card>
+      <Card
+        className={theme === "dark" ? "dark-card" : ""}
+        style={{
+          borderRadius: "16px",
+          boxShadow:
+            theme === "dark"
+              ? "0 6px 20px rgba(0,0,0,0.6)"
+              : "0 6px 16px rgba(0,0,0,0.08)",
+          border: "none",
+        }}
+        title={
+          <span
+            style={{
+              color: theme === "dark" ? "#fff" : "#000",
+              fontWeight: 600,
+            }}
+          >
+            Students
+          </span>
+        }
+      >
+        <Table
+          scroll={{ x: true }}
+          columns={studentColumns}
+          dataSource={studentUsers}
+          rowKey="_id"
+          loading={isLoading}
+          className={theme === "dark" ? "dark-table" : ""}
+          pagination={{
+            pageSize: 10,
+            position: ["bottomRight"],
+          }}
+        />
+      </Card>
 
 
 
@@ -692,7 +704,7 @@ function AllUsers() {
               style={{
                 background: theme === "dark" ? "#2a2a2a" : "#fff",
                 borderRadius: 8,
-                color: theme === "dark" ? "#fff" : "#000" 
+                color: theme === "dark" ? "#fff" : "#000"
               }}
               popupClassName={theme === "dark" ? "dark-select-dropdown" : ""}
               className={theme === "dark" ? "dark-select" : "light-select"}
